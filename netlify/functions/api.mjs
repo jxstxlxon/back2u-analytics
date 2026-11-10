@@ -22,13 +22,16 @@ function signingKey(){return process.env.SESSION_SECRET||''}
 function signature(x){return createHmac('sha256',signingKey()).update(x).digest('base64url')}
 function sessionCookie(){const raw=Buffer.from(JSON.stringify({v:1,e:Math.floor(Date.now()/1000)+2592000})).toString('base64url');return 'back2u_session='+raw+'.'+signature(raw)+'; Path=/api; HttpOnly; Secure; SameSite=Lax; Max-Age=2592000'}
 function authorized(req){if(!signingKey())return false;const val=(req.headers.get('cookie')||'').split(';').map(s=>s.trim()).find(s=>s.startsWith('back2u_session='))?.slice(15);if(!val)return false;const [raw,sig]=val.split('.');if(!raw||!sig||!equal(sig,signature(raw)))return false;try{const x=JSON.parse(Buffer.from(raw,'base64url').toString('utf8'));return x.v===1&&x.e>Math.floor(Date.now()/1000)}catch{return false}}
-const rows=b=>Array.isArray(b)?b:Array.isArray(b?.data)?b.data:Array.isArray(b?.result)?b.result:[];
+const rows=b=>Array.isArray(b)?b:Array.isArray(b?.data)?b.data:Array.isArray(b?.result)?b.result:Array.isArray(b?.rows)?b.rows:Array.isArray(b?.result?.data)?b.result.data:[];
 async function pull(task,key){
  const [,p,c,fields]=task;const qs=new URLSearchParams({api_key:key,fields,select_accounts:ACC[p],date_preset:'last_28d',_max_rows:'1500',refresh_interval:'6h',_renderer:'json'});
  const res=await fetch('https://connectors.windsor.ai/'+c+'?'+qs.toString(),{headers:{accept:'application/json'},signal:AbortSignal.timeout(24000)});
  if(!res.ok)throw Error('Windsor HTTP '+res.status);
- const json=await res.json();if(json?.error)throw Error(txt(json.error));if(json?.status==='pending')throw Error('Windsor bereitet Daten auf');
- return rows(json);
+ const json=await res.json();
+ if(json?.error){const raw=String(typeof json.error==='object'?(json.error.code||json.error.message||''):json.error);const kind=/not.authoriz|unauthoriz|forbidden|invalid.api.key/i.test(raw)?' (Zugriff abgelehnt)':/rate.limit|too.many|quota/i.test(raw)?' (API-Limit erreicht)':/field|invalid|unknown/i.test(raw)?' (Ungültige Datenabfrage)':'';throw Error('Windsor meldet einen Fehler'+kind)}
+ if(json?.status==='pending')throw Error('Windsor bereitet Daten auf');
+ const items=rows(json);if(!items.length&&json&&!Array.isArray(json)&&!Array.isArray(json.data)&&!Array.isArray(json.result)&&!Array.isArray(json.rows)&&!Array.isArray(json.result?.data))throw Error('Unerwartetes Windsor-Antwortformat');
+ return items;
 }
 function snapshot(sets,errors){
  const platforms={yt:{daily:[],videos:[],profile:{}},ig:{daily:[],videos:[],profile:{}},tt:{daily:[],videos:[],profile:{}}};
@@ -53,7 +56,7 @@ async function getSnapshot(force){
  if(!inflight)inflight=(async()=>{
   const out=await Promise.allSettled(TASKS.map(t=>pull(t,process.env.WINDSOR_API_KEY)));
   const sets={},errors=[];out.forEach((r,i)=>{if(r.status==='fulfilled')sets[TASKS[i][0]]=r.value;else errors.push({platform:TASKS[i][1],task:TASKS[i][0],message:txt(r.reason?.message||'Abruf fehlgeschlagen')})});
-  const data=snapshot(sets,errors);if(!Object.values(data.platforms).some(p=>p.daily.length))throw Error('Keine Tagesdaten von Windsor.ai verfügbar');
+  const data=snapshot(sets,errors);if(!Object.values(data.platforms).some(p=>p.daily.length)){const summary=errors.filter(e=>['yt-d','ig-d','tt-d'].includes(e.task)).map(e=>e.task+': '+e.message).join(' | ');throw Error('Keine Tagesdaten von Windsor.ai verfügbar'+(summary?' – '+summary.slice(0,480):''));}
   cache={data,until:Date.now()+20*60*1000};return data;
  })().finally(()=>{inflight=null});
  return inflight;
@@ -69,6 +72,14 @@ export default async function handler(request){
   return resp({ok:true},200,{'set-cookie':sessionCookie()});
  }
  if(op==='logout')return resp({ok:true},200,{'set-cookie':'back2u_session=; Path=/api; Max-Age=0; Secure; HttpOnly; SameSite=Lax'});
+ if(op==='diagnostics'){
+  if(request.method!=='GET')return resp({error:'Nur GET erlaubt'},405);
+  if(!authorized(request))return resp({error:'Bitte anmelden'},401);
+  if(!process.env.WINDSOR_API_KEY)return resp({error:'API-Zugang nicht eingerichtet'},503);
+  const checks=await Promise.allSettled([TASKS[0],TASKS[5],TASKS[8]].map(t=>pull(t,process.env.WINDSOR_API_KEY)));
+  const names=['YouTube','Instagram','TikTok'];
+  return resp({service:'BACK2U LIVE · Diagnose',checkedAt:new Date().toISOString(),platforms:checks.map((x,i)=>x.status==='fulfilled'?{platform:names[i],status:x.value.length?'ok':'empty',rows:x.value.length}:{platform:names[i],status:'error',reason:txt(x.reason?.message||'Datenabfrage fehlgeschlagen')})});
+ }
  if(op!=='snapshot')return resp({error:'Nicht gefunden'},404);
  if(request.method!=='GET')return resp({error:'Nur GET erlaubt'},405);
  if(!authorized(request))return resp({error:'Bitte anmelden'},401);
