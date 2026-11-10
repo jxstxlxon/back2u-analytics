@@ -1,0 +1,8 @@
+{
+  "name": "back2u-analytics-netlify-live",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "node -e \"console.log('BACK2U Netlify build ready')\""
+  }
+}
