@@ -30,6 +30,12 @@
   status = 200
   force = true
 
+[[redirects]]
+  from = "/api/diagnostics"
+  to = "/.netlify/functions/api?op=diagnostics"
+  status = 200
+  force = true
+
 [[headers]]
   for = "/api/*"
   [headers.values]
