@@ -40,7 +40,7 @@ function parsePush(body) {
   return {
     schema:1,generatedAt:new Date().toISOString(),status:'partial',
     platforms:{
-      yt:{daily,videos:[...videosById.values()],profile:{}},
+      yt:{daily,videos:[...videosById.values()],profile:{},videoMetricDays:28},
       ig:{daily:[],videos:[],profile:{}},
       tt:{daily:[],videos:[],profile:{}}
     },
