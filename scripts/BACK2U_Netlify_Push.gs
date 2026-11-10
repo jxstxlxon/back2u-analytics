@@ -1,6 +1,7 @@
 /**
  * Diesen Funktionsblock UNTEN in die vorhandene Apps-Script-Datei Code.gs kopieren.
  * Verwendet die bereits vorhandenen Helfer BACK2U_SPREADSHEET_ID und back2uSheet_.
+ * Das Ziel BACK2U_INGEST_ENDPOINT liegt in privaten Script Properties.
  * Keine neuen Passwörter in den Code eintragen.
  */
 function pushToNetlify() {
@@ -23,7 +24,12 @@ function pushToNetlify() {
     ])
   };
 
-  const result = UrlFetchApp.fetch('https://quiet-halva-285199.netlify.app/api/ingest', {
+  // Endpoint is stored in private Script Properties to keep deploy-specific values out of Git.
+  const endpoint = PropertiesService.getScriptProperties().getProperty('BACK2U_INGEST_ENDPOINT');
+  if (!endpoint || !/^https:\/\/[^/]+\.netlify\.app\/api\/ingest$/.test(endpoint)) {
+    throw new Error('BACK2U_INGEST_ENDPOINT fehlt oder ist ungültig.');
+  }
+  const result = UrlFetchApp.fetch(endpoint, {
     method: 'post',
     contentType: 'application/json',
     headers: { Authorization: 'Bearer ' + secret },
