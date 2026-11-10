@@ -27,7 +27,9 @@ async function pull(task,key){
  const [,p,c,fields]=task;const qs=new URLSearchParams({api_key:key,fields,select_accounts:ACC[p],date_preset:'last_28d',_max_rows:'1500',refresh_interval:'6h',_renderer:'json'});
  const res=await fetch('https://connectors.windsor.ai/'+c+'?'+qs.toString(),{headers:{accept:'application/json'},signal:AbortSignal.timeout(24000)});
  if(!res.ok)throw Error('Windsor HTTP '+res.status);
- const json=await res.json();if(json?.error)throw Error(txt(json.error));if(json?.status==='pending')throw Error('Windsor bereitet Daten auf');
+ const json=await res.json();
+ if(json?.error){const raw=typeof json.error==='object'?String(json.error.code||''):String(json.error);const code=/^[a-zA-Z0-9_-]{2,64}$/.test(raw)?' ('+raw+')':'';throw Error('Windsor meldet einen Fehler'+code)}
+ if(json?.status==='pending')throw Error('Windsor bereitet Daten auf');
  return rows(json);
 }
 function snapshot(sets,errors){
@@ -53,7 +55,7 @@ async function getSnapshot(force){
  if(!inflight)inflight=(async()=>{
   const out=await Promise.allSettled(TASKS.map(t=>pull(t,process.env.WINDSOR_API_KEY)));
   const sets={},errors=[];out.forEach((r,i)=>{if(r.status==='fulfilled')sets[TASKS[i][0]]=r.value;else errors.push({platform:TASKS[i][1],task:TASKS[i][0],message:txt(r.reason?.message||'Abruf fehlgeschlagen')})});
-  const data=snapshot(sets,errors);if(!Object.values(data.platforms).some(p=>p.daily.length))throw Error('Keine Tagesdaten von Windsor.ai verfügbar');
+  const data=snapshot(sets,errors);if(!Object.values(data.platforms).some(p=>p.daily.length)){const summary=errors.filter(e=>['yt-d','ig-d','tt-d'].includes(e.task)).map(e=>e.task+': '+e.message).join(' | ');throw Error('Keine Tagesdaten von Windsor.ai verfügbar'+(summary?' – '+summary.slice(0,480):''));}
   cache={data,until:Date.now()+20*60*1000};return data;
  })().finally(()=>{inflight=null});
  return inflight;
@@ -69,6 +71,14 @@ export default async function handler(request){
   return resp({ok:true},200,{'set-cookie':sessionCookie()});
  }
  if(op==='logout')return resp({ok:true},200,{'set-cookie':'back2u_session=; Path=/api; Max-Age=0; Secure; HttpOnly; SameSite=Lax'});
+ if(op==='diagnostics'){
+  if(request.method!=='GET')return resp({error:'Nur GET erlaubt'},405);
+  if(!authorized(request))return resp({error:'Bitte anmelden'},401);
+  if(!process.env.WINDSOR_API_KEY)return resp({error:'API-Zugang nicht eingerichtet'},503);
+  const checks=await Promise.allSettled([TASKS[0],TASKS[5],TASKS[8]].map(t=>pull(t,process.env.WINDSOR_API_KEY)));
+  const names=['YouTube','Instagram','TikTok'];
+  return resp({service:'BACK2U LIVE · Diagnose',checkedAt:new Date().toISOString(),platforms:checks.map((x,i)=>x.status==='fulfilled'?{platform:names[i],status:x.value.length?'ok':'empty',rows:x.value.length}:{platform:names[i],status:'error',reason:txt(x.reason?.message||'Datenabfrage fehlgeschlagen')})});
+ }
  if(op!=='snapshot')return resp({error:'Nicht gefunden'},404);
  if(request.method!=='GET')return resp({error:'Nur GET erlaubt'},405);
  if(!authorized(request))return resp({error:'Bitte anmelden'},401);
