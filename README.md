@@ -14,12 +14,12 @@ Die separate Root-Datei `index.html` ist ein historischer Stand und wird nicht a
 
 ## Datenquelle
 
-- Windsor.ai synchronisiert YouTube-Daten täglich in eine **private** Google-Tabelle.
-- Das Google Apps Script `NetlifyPush.gs` überträgt die Daten mit einem gesonderten Sicherheitstoken an `/api/ingest`.
+- Windsor.ai synchronisiert YouTube- und Instagram-Daten täglich in eine **private** Google-Tabelle.
+- Das Google Apps Script `NetlifyPush.gs` überträgt YouTube- und Instagram-Daten mit einem gesonderten Sicherheitstoken an `/api/ingest`. Nach dem Aktualisieren der Script-Datei `pushToNetlify` manuell testen und `installBack2uDailySync` ausführen, um den 09:00-Uhr-Abgleich in der Zeitzone Europe/Berlin neu zu setzen (Sommerzeit beachten).
 - Netlify hält die übernommenen Werte in einem privaten Datenspeicher. Der Browser bekommt sie nur nach erfolgreicher Dashboard-Anmeldung.
 - Der ältere direkte Windsor-API-Abruf ist deaktiviert: Er wird nicht für die laufende Google-Sheets-Synchronisierung benötigt.
 - YouTube-Einzelvideos haben zurzeit **28-Tage-Kennzahlen**. Die 7- und 90-Tage-Auswahl darf diese Werte nicht als andere Berichtszeiträume ausgeben.
-- Instagram und TikTok nutzen vorerst historische Exportwerte; ein Live-Feed ist noch nicht eingerichtet.
+- Instagram hat jetzt zwei Windsor-Exporte: `Instagram_Live` (Tagesaufrufe, Reichweite, Interaktionen) und `Instagram_Videos` (Gesamtwerte je Medienobjekt) – tägliche Synchronisierung via Apps Script. TikTok bleibt bei Archivdaten.
 
 ## Sicherheit
 
