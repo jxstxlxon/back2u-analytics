@@ -36,6 +36,12 @@
   status = 200
   force = true
 
+[[redirects]]
+  from = "/api/ingest"
+  to = "/.netlify/functions/api?op=ingest"
+  status = 200
+  force = true
+
 [[headers]]
   for = "/api/*"
   [headers.values]
