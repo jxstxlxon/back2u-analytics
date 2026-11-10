@@ -22,15 +22,16 @@ function signingKey(){return process.env.SESSION_SECRET||''}
 function signature(x){return createHmac('sha256',signingKey()).update(x).digest('base64url')}
 function sessionCookie(){const raw=Buffer.from(JSON.stringify({v:1,e:Math.floor(Date.now()/1000)+2592000})).toString('base64url');return 'back2u_session='+raw+'.'+signature(raw)+'; Path=/api; HttpOnly; Secure; SameSite=Lax; Max-Age=2592000'}
 function authorized(req){if(!signingKey())return false;const val=(req.headers.get('cookie')||'').split(';').map(s=>s.trim()).find(s=>s.startsWith('back2u_session='))?.slice(15);if(!val)return false;const [raw,sig]=val.split('.');if(!raw||!sig||!equal(sig,signature(raw)))return false;try{const x=JSON.parse(Buffer.from(raw,'base64url').toString('utf8'));return x.v===1&&x.e>Math.floor(Date.now()/1000)}catch{return false}}
-const rows=b=>Array.isArray(b)?b:Array.isArray(b?.data)?b.data:Array.isArray(b?.result)?b.result:[];
+const rows=b=>Array.isArray(b)?b:Array.isArray(b?.data)?b.data:Array.isArray(b?.result)?b.result:Array.isArray(b?.rows)?b.rows:Array.isArray(b?.result?.data)?b.result.data:[];
 async function pull(task,key){
  const [,p,c,fields]=task;const qs=new URLSearchParams({api_key:key,fields,select_accounts:ACC[p],date_preset:'last_28d',_max_rows:'1500',refresh_interval:'6h',_renderer:'json'});
  const res=await fetch('https://connectors.windsor.ai/'+c+'?'+qs.toString(),{headers:{accept:'application/json'},signal:AbortSignal.timeout(24000)});
  if(!res.ok)throw Error('Windsor HTTP '+res.status);
  const json=await res.json();
- if(json?.error){const raw=typeof json.error==='object'?String(json.error.code||''):String(json.error);const code=/^[a-zA-Z0-9_-]{2,64}$/.test(raw)?' ('+raw+')':'';throw Error('Windsor meldet einen Fehler'+code)}
+ if(json?.error){const raw=String(typeof json.error==='object'?(json.error.code||json.error.message||''):json.error);const kind=/not.authoriz|unauthoriz|forbidden|invalid.api.key/i.test(raw)?' (Zugriff abgelehnt)':/rate.limit|too.many|quota/i.test(raw)?' (API-Limit erreicht)':/field|invalid|unknown/i.test(raw)?' (Ungültige Datenabfrage)':'';throw Error('Windsor meldet einen Fehler'+kind)}
  if(json?.status==='pending')throw Error('Windsor bereitet Daten auf');
- return rows(json);
+ const items=rows(json);if(!items.length&&json&&!Array.isArray(json)&&!Array.isArray(json.data)&&!Array.isArray(json.result)&&!Array.isArray(json.rows)&&!Array.isArray(json.result?.data))throw Error('Unerwartetes Windsor-Antwortformat');
+ return items;
 }
 function snapshot(sets,errors){
  const platforms={yt:{daily:[],videos:[],profile:{}},ig:{daily:[],videos:[],profile:{}},tt:{daily:[],videos:[],profile:{}}};
