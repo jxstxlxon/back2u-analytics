@@ -1,0 +1,37 @@
+[build]
+  command = "npm run build"
+  publish = "site"
+
+[functions]
+  directory = "netlify/functions"
+  node_bundler = "esbuild"
+
+[[redirects]]
+  from = "/api/login"
+  to = "/.netlify/functions/api?op=login"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/api/logout"
+  to = "/.netlify/functions/api?op=logout"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/api/health"
+  to = "/.netlify/functions/api?op=health"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/api/snapshot"
+  to = "/.netlify/functions/api?op=snapshot"
+  status = 200
+  force = true
+
+[[headers]]
+  for = "/api/*"
+  [headers.values]
+    Cache-Control = "private, no-store"
+    X-Content-Type-Options = "nosniff"
