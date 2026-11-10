@@ -26,7 +26,19 @@ const rows=b=>Array.isArray(b)?b:Array.isArray(b?.data)?b.data:Array.isArray(b?.
 async function pull(task,key){
  const [,p,c,fields]=task;const qs=new URLSearchParams({api_key:key,fields,select_accounts:ACC[p],date_preset:'last_28d',_max_rows:'1500',refresh_interval:'6h',_renderer:'json'});
  const res=await fetch('https://connectors.windsor.ai/'+c+'?'+qs.toString(),{headers:{accept:'application/json'},signal:AbortSignal.timeout(24000)});
- if(!res.ok)throw Error('Windsor HTTP '+res.status);
+ if(!res.ok){
+   let category='Ablehnungsgrund noch unbekannt';
+   try{
+     const body=await res.text();let reason='';
+     try{const j=JSON.parse(body);const e=j.error;reason=typeof e==='string'?e:[e?.code,e?.message,j.message,j.detail].filter(v=>typeof v==='string').join(' ')}catch{reason=body.slice(0,200)}
+     if(/expired|subscription|plan|trial|upgrade|payment|billing|not paid|paid plan/i.test(reason))category='Tarif oder Probezugang nicht berechtigt';
+     else if(/invalid.*(key|token)|key.*invalid|authentication|unauthori[sz]/i.test(reason))category='API-Schlüssel ungültig oder nicht autorisiert';
+     else if(/account|team|workspace|permission|access denied|forbidden/i.test(reason))category='Zugriff auf Konto oder Datenquelle verweigert';
+     else if(/quota|limit|too many|throttl/i.test(reason))category='Kontingent oder Abfragelimit';
+     else if(/cloudflare|blocked|firewall|ip address/i.test(reason))category='Verbindung serverseitig blockiert';
+   }catch{}
+   throw Error('Windsor HTTP '+res.status+': '+category)
+ }
  const json=await res.json();
  if(json?.error){const raw=String(typeof json.error==='object'?(json.error.code||json.error.message||''):json.error);const kind=/not.authoriz|unauthoriz|forbidden|invalid.api.key/i.test(raw)?' (Zugriff abgelehnt)':/rate.limit|too.many|quota/i.test(raw)?' (API-Limit erreicht)':/field|invalid|unknown/i.test(raw)?' (Ungültige Datenabfrage)':'';throw Error('Windsor meldet einen Fehler'+kind)}
  if(json?.status==='pending')throw Error('Windsor bereitet Daten auf');
