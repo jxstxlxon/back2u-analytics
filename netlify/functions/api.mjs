@@ -1,4 +1,5 @@
 import {createHash,createHmac,timingSafeEqual} from 'node:crypto';
+import {googleSheetsSnapshot} from './sheet-feed.mjs';
 const ACC={yt:'83736',ig:'17841476673616735',tt:'_000Gn_3riaTBVXEHqk1YfrwMWPK3cJcFkGv'};
 const TASKS=[
  ['yt-d','yt','youtube','date,views,engaged_views,likes,comments'],
@@ -19,6 +20,8 @@ const url=v=>{try{const u=new URL(String(v||'').slice(0,2500));return u.protocol
 const resp=(j,s=200,h={})=>new Response(JSON.stringify(j),{status:s,headers:{'content-type':'application/json; charset=utf-8','cache-control':'private, no-store','x-content-type-options':'nosniff',...h}});
 const equal=(a,b)=>timingSafeEqual(createHash('sha256').update(String(a)).digest(),createHash('sha256').update(String(b)).digest());
 function signingKey(){return process.env.SESSION_SECRET||''}
+const sheetsReady=()=>Boolean(process.env.BACK2U_GOOGLE_FEED_URL&&process.env.BACK2U_GOOGLE_FEED_SECRET);
+const sourceReady=()=>Boolean(sheetsReady()||process.env.WINDSOR_API_KEY);
 function signature(x){return createHmac('sha256',signingKey()).update(x).digest('base64url')}
 function sessionCookie(){const raw=Buffer.from(JSON.stringify({v:1,e:Math.floor(Date.now()/1000)+2592000})).toString('base64url');return 'back2u_session='+raw+'.'+signature(raw)+'; Path=/api; HttpOnly; Secure; SameSite=Lax; Max-Age=2592000'}
 function authorized(req){if(!signingKey())return false;const val=(req.headers.get('cookie')||'').split(';').map(s=>s.trim()).find(s=>s.startsWith('back2u_session='))?.slice(15);if(!val)return false;const [raw,sig]=val.split('.');if(!raw||!sig||!equal(sig,signature(raw)))return false;try{const x=JSON.parse(Buffer.from(raw,'base64url').toString('utf8'));return x.v===1&&x.e>Math.floor(Date.now()/1000)}catch{return false}}
@@ -75,10 +78,10 @@ async function getSnapshot(force){
 }
 export default async function handler(request){
  const u=new URL(request.url);const op=u.searchParams.get('op')||u.pathname.split('/').at(-1);
- if(op==='health')return resp({service:'BACK2U LIVE',configured:!!(process.env.WINDSOR_API_KEY&&process.env.DASHBOARD_PASSWORD&&process.env.SESSION_SECRET),loginReady:!!process.env.DASHBOARD_PASSWORD,sourceReady:!!process.env.WINDSOR_API_KEY});
+ if(op==='health')return resp({service:'BACK2U LIVE',configured:!!(sourceReady()&&process.env.DASHBOARD_PASSWORD&&process.env.SESSION_SECRET),loginReady:!!process.env.DASHBOARD_PASSWORD,sourceReady:sourceReady(),source:sheetsReady()?'private-google-sheets':process.env.WINDSOR_API_KEY?'windsor-direct':'none'});
  if(op==='login'){
   if(request.method!=='POST')return resp({error:'Nur POST erlaubt'},405);
-  if(!process.env.SESSION_SECRET||!process.env.WINDSOR_API_KEY||!process.env.DASHBOARD_PASSWORD)return resp({error:'Netlify-Variablen unvollständig'},503);
+  if(!process.env.SESSION_SECRET||!sourceReady()||!process.env.DASHBOARD_PASSWORD)return resp({error:'Netlify-Variablen unvollständig'},503);
   let x;try{x=await request.json()}catch{return resp({error:'Ungültige Anmeldung'},400)}
   if(typeof x?.password!=='string'||x.password.length>512||process.env.DASHBOARD_PASSWORD.length<12||!equal(x.password,process.env.DASHBOARD_PASSWORD))return resp({error:'Passwort falsch'},401);
   return resp({ok:true},200,{'set-cookie':sessionCookie()});
@@ -87,7 +90,11 @@ export default async function handler(request){
  if(op==='diagnostics'){
   if(request.method!=='GET')return resp({error:'Nur GET erlaubt'},405);
   if(!authorized(request))return resp({error:'Bitte anmelden'},401);
-  if(!process.env.WINDSOR_API_KEY)return resp({error:'API-Zugang nicht eingerichtet'},503);
+  if(!sourceReady())return resp({error:'API-Zugang nicht eingerichtet'},503);
+  if(sheetsReady()){
+    try {const sheet=await googleSheetsSnapshot(true);return resp({service:'BACK2U LIVE · Diagnose',checkedAt:new Date().toISOString(),source:'private-google-sheets',platforms:[{platform:'YouTube',status:sheet.platforms.yt.daily.length?'ok':'empty',rows:sheet.platforms.yt.daily.length,videos:sheet.platforms.yt.videos.length,dataThrough:sheet.dataThrough},{platform:'Instagram',status:'pending'},{platform:'TikTok',status:'pending'}]})}
+    catch(e){return resp({service:'BACK2U LIVE · Diagnose',source:'private-google-sheets',error:String(e.message||e)},502)}
+  }
   const checks=await Promise.allSettled([TASKS[0],TASKS[5],TASKS[8]].map(t=>pull(t,process.env.WINDSOR_API_KEY)));
   const names=['YouTube','Instagram','TikTok'];
   return resp({service:'BACK2U LIVE · Diagnose',checkedAt:new Date().toISOString(),platforms:checks.map((x,i)=>x.status==='fulfilled'?{platform:names[i],status:x.value.length?'ok':'empty',rows:x.value.length}:{platform:names[i],status:'error',reason:txt(x.reason?.message||'Datenabfrage fehlgeschlagen')})});
@@ -95,7 +102,7 @@ export default async function handler(request){
  if(op!=='snapshot')return resp({error:'Nicht gefunden'},404);
  if(request.method!=='GET')return resp({error:'Nur GET erlaubt'},405);
  if(!authorized(request))return resp({error:'Bitte anmelden'},401);
- if(!process.env.WINDSOR_API_KEY)return resp({error:'WINDSOR_API_KEY fehlt'},503);
- try{return resp(await getSnapshot(u.searchParams.get('refresh')==='1'))}
+ if(!sourceReady())return resp({error:'Datenquelle fehlt'},503);
+ try{return resp(sheetsReady()?await googleSheetsSnapshot(u.searchParams.get('refresh')==='1'):await getSnapshot(u.searchParams.get('refresh')==='1'))}
  catch(e){return resp({error:'Abruf fehlgeschlagen',hint:txt(e.message)},502)}
 }
