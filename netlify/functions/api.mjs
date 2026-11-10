@@ -31,11 +31,11 @@ export default async function handler(request){
     try {
       const sheet=await getPushedGoogleSheets();
       if(!sheet)return resp({service:'BACK2U LIVE · Diagnose',source:'private-google-sheets-push',status:'waiting',message:'Noch kein Export von Google angekommen. Apps Script: pushToNetlify ausführen.'});
-      return resp({service:'BACK2U LIVE · Diagnose',source:'private-google-sheets-push',platforms:[{platform:'YouTube',status:'ok',rows:sheet.platforms.yt.daily.length,videos:sheet.platforms.yt.videos.length,dataThrough:sheet.dataThrough},{platform:'Instagram',status:'pending'},{platform:'TikTok',status:'pending'}],lastPush:sheet.generatedAt});
+      return resp({service:'BACK2U LIVE · Diagnose',source:'private-google-sheets-push',platforms:[{platform:'YouTube',status:'ok',rows:sheet.platforms.yt.daily.length,videos:sheet.platforms.yt.videos.length,dataThrough:sheet.dataThrough},{platform:'Instagram',status:sheet.platforms.ig.daily.length&&sheet.platforms.ig.videos.length?'ok':'pending',rows:sheet.platforms.ig.daily.length,videos:sheet.platforms.ig.videos.length,dataThrough:sheet.platforms.ig.daily.at(-1)?.d||null},{platform:'TikTok',status:'pending'}],lastPush:sheet.generatedAt});
     } catch(e){return resp({service:'BACK2U LIVE · Diagnose',source:'private-google-sheets-push',error:'Speicherzugriff fehlgeschlagen'},502)}
   }
   if(sheetsReady()){
-    try {const sheet=await googleSheetsSnapshot(true);return resp({service:'BACK2U LIVE · Diagnose',checkedAt:new Date().toISOString(),source:'private-google-sheets',platforms:[{platform:'YouTube',status:sheet.platforms.yt.daily.length?'ok':'empty',rows:sheet.platforms.yt.daily.length,videos:sheet.platforms.yt.videos.length,dataThrough:sheet.dataThrough},{platform:'Instagram',status:'pending'},{platform:'TikTok',status:'pending'}]})}
+    try {const sheet=await googleSheetsSnapshot(true);return resp({service:'BACK2U LIVE · Diagnose',checkedAt:new Date().toISOString(),source:'private-google-sheets',platforms:[{platform:'YouTube',status:sheet.platforms.yt.daily.length?'ok':'empty',rows:sheet.platforms.yt.daily.length,videos:sheet.platforms.yt.videos.length,dataThrough:sheet.dataThrough},{platform:'Instagram',status:sheet.platforms.ig.daily.length&&sheet.platforms.ig.videos.length?'ok':'pending',rows:sheet.platforms.ig.daily.length,videos:sheet.platforms.ig.videos.length,dataThrough:sheet.platforms.ig.daily.at(-1)?.d||null},{platform:'TikTok',status:'pending'}]})}
     catch(e){return resp({service:'BACK2U LIVE · Diagnose',source:'private-google-sheets',error:String(e.message||e)},502)}
   }
   return resp({service:'BACK2U LIVE · Diagnose',source:'none',status:'unavailable',message:'Kein Google-Sheets-Feed konfiguriert'},503);
