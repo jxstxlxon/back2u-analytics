@@ -50,7 +50,7 @@ export async function googleSheetsSnapshot(force = false) {
     schema: 1, generatedAt: new Date().toISOString(),
     status: 'partial',
     platforms: {
-      yt: { daily, videos, profile: {} },
+      yt: { daily, videos, profile: {}, videoMetricDays: 28 },
       ig: { daily: [], videos: [], profile: {} },
       tt: { daily: [], videos: [], profile: {} }
     },
