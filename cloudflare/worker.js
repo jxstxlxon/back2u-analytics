@@ -41,6 +41,57 @@ async function put(env,key,value){
  if(enc.encode(payload).length>1850000)throw new Error('D1 row limit: data too large');
  await env.DB.prepare('INSERT INTO back2u_store (key,value,updated_at) VALUES (?,?,CURRENT_TIMESTAMP) ON CONFLICT(key) DO UPDATE SET value=excluded.value,updated_at=CURRENT_TIMESTAMP').bind(key,payload).run();
 }
+
+/* Historical YouTube Analytics daily totals are stored separately so regular
+   Sheets pushes and TikTok cron runs cannot overwrite verified day reports. */
+async function hydratedSnapshot(env){
+ const s=await get(env,'snapshot');
+ if(!s?.platforms?.yt)return s;
+ const verified=await get(env,'yt_analytics_daily');
+ if(!verified?.daily?.length)return s;
+ const byDate=new Map((s.platforms.yt.daily||[]).map(r=>[r.d,r]));
+ for(const item of verified.daily)byDate.set(item.d,item);
+ s.platforms.yt.daily=[...byDate.values()].sort((a,b)=>a.d.localeCompare(b.d));
+ if(typeof verified.subscriberCount==='number')s.platforms.yt.profile={...s.platforms.yt.profile,subscribers:verified.subscriberCount,asOf:verified.updatedAt,source:'YouTube Data API'};
+ s.platforms.yt.dailySource='YouTube Analytics API (day-level) plus retained Sheets history';
+ s.verifiedYouTubeDaily={updatedAt:verified.updatedAt,dataThrough:verified.daily.at(-1)?.d||null,count:verified.daily.length};
+ s.dataThrough=s.platforms.yt.daily.at(-1)?.d||s.dataThrough;
+ return s;
+}
+async function ingestYoutubeDaily(req,env){
+ if(req.method!=='POST')return json({error:'POST only'},405);
+ if(!env.BACK2U_GOOGLE_FEED_SECRET||env.BACK2U_GOOGLE_FEED_SECRET.length<24)return json({error:'Feed secret missing'},503);
+ const token=(req.headers.get('authorization')||'').replace(/^Bearer\s+/i,'');
+ if(!token||!(await equal(token,env.BACK2U_GOOGLE_FEED_SECRET)))return json({error:'Forbidden'},403);
+ const raw=await req.text();if(raw.length>95000)return json({error:'Payload too large'},413);
+ let data;try{data=JSON.parse(raw)}catch{return json({error:'Bad JSON'},400)}
+ if(data?.schema!==1||!Array.isArray(data.daily)||!data.daily.length||data.daily.length>125)return json({error:'Invalid YouTube daily rows'},422);
+ const byDate=new Map();
+ const today=new Date().toISOString().slice(0,10);
+ for(const row of data.daily){
+  const d=String(row.date||row.d||'');
+  if(!/^\d{4}-\d{2}-\d{2}$/.test(d)||Number.isNaN(Date.parse(d+'T00:00:00Z'))||d>today)return json({error:'Invalid report date'},422);
+  const numeric={};for(const field of ['views','likes','comments','subscribersGained','subscribersLost']){
+   const value=num(row[field]);
+   if(value===null||value<0||!Number.isSafeInteger(value))return json({error:'Invalid '+field},422);
+   numeric[field]=value;
+  }
+  byDate.set(d,{d,views:numeric.views,likes:numeric.likes,comments:numeric.comments,
+   follows:numeric.subscribersGained-numeric.subscribersLost,
+   subscribersGained:numeric.subscribersGained,subscribersLost:numeric.subscribersLost,
+   source:'YouTube Analytics API'});
+ }
+ const old=await get(env,'yt_analytics_daily');
+ const merged=new Map((old?.daily||[]).map(row=>[row.d,row]));
+ for(const [k,v] of byDate)merged.set(k,v);
+ const daily=[...merged.values()].sort((a,b)=>a.d.localeCompare(b.d)).slice(-125);
+ const subscriberCount=num(data.subscriberCount);
+ const snapshot={daily,updatedAt:new Date().toISOString(),
+  subscriberCount:subscriberCount!==null&&subscriberCount>=0?subscriberCount:old?.subscriberCount??null};
+ await put(env,'yt_analytics_daily',snapshot);
+ return json({ok:true,rows:daily.length,dataThrough:daily.at(-1)?.d,subscriberCountKnown:snapshot.subscriberCount!==null});
+}
+
 function parsePush(body){
  if(body?.schema!==1||!Array.isArray(body.daily)||!Array.isArray(body.videos)||
     body.daily.length>1000||body.videos.length>1500||
@@ -195,6 +246,7 @@ async function route(req,env){
  if(path==='/api/health')return json({service:'BACK2U Cloud',configured:!!(env.DB&&env.DASHBOARD_PASSWORD&&env.SESSION_SECRET),dbReady:!!env.DB,
   loginReady:!!env.DASHBOARD_PASSWORD,sourceReady:!!env.BACK2U_GOOGLE_FEED_SECRET});
  if(path==='/api/login')return req.method==='POST'?issueToken(req,env):json({error:'POST only'},405);
+ if(path==='/api/youtube-daily/ingest')return ingestYoutubeDaily(req,env);
  if(path==='/api/ingest'){
   if(req.method!=='POST')return json({error:'POST only'},405);
   if(!env.BACK2U_GOOGLE_FEED_SECRET||env.BACK2U_GOOGLE_FEED_SECRET.length<24)return json({error:'Ingest secret missing'},503);
@@ -216,14 +268,15 @@ async function route(req,env){
  if(!(await authorized(req,env)))return json({error:'Bitte anmelden'},401);
  if(path==='/api/logout')return json({ok:true},200,{'set-cookie':clearSession});
  if(path==='/api/snapshot'){
-  const s=await get(env,'snapshot');
+  const s=await hydratedSnapshot(env);
   return s?json(s):json({error:'Noch kein Google Sheets Export eingegangen'},503);
  }
  if(path==='/api/diagnostics'){
-  const s=await get(env,'snapshot');
+  const s=await hydratedSnapshot(env);
   const scan=await get(env,'tt_page_cursor');
   return json({service:'BACK2U Cloud',source:s?.source||'none',generatedAt:s?.generatedAt||null,
    tiktokScan:{updatedAt:scan?.updatedAt||null,hasMore:scan?.hasMore??null,complete:scan?.complete??null,pagesLastBatch:scan?.pagesLastBatch||null},
+   youtubeDailyVerified:s?.verifiedYouTubeDaily||null,dailyThrough:{youtube:s?.platforms?.yt?.daily?.at(-1)?.d||null,instagram:s?.platforms?.ig?.daily?.at(-1)?.d||null},
    platforms:[{platform:'YouTube',videos:s?.platforms?.yt?.videos?.length||0},{platform:'Instagram',videos:s?.platforms?.ig?.videos?.length||0},
     {platform:'TikTok',videos:s?.platforms?.tt?.videos?.length||0}]});
  }
