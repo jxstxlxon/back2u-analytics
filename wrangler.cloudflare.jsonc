@@ -19,5 +19,12 @@
       "*/30 * * * *"
     ]
   },
-  "keep_vars": true
+  "keep_vars": true,
+  "secrets": {
+    "required": [
+      "DASHBOARD_PASSWORD",
+      "SESSION_SECRET",
+      "BACK2U_GOOGLE_FEED_SECRET"
+    ]
+  }
 }
