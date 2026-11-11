@@ -2,7 +2,7 @@
  * BACK2U: Offiziellen Instagram-Followerstand abrufen und sicher an Cloudflare D1 senden.
  *
  * Als NEUE Datei InstagramFollowerSync.gs in BACK2U LIVE CONNECTOR einfügen.
- * Nutzt die bereits vorhandenen privaten Script Properties IG_SUAT_TOKEN
+ * Nutzt Instagram_Unified.gs -> b2uIgRequest_ (Facebook Graph API) und private Script Properties IG_SUAT_TOKEN
  * und BACK2U_CLOUDFLARE_FEED_SECRET (keine Secrets in diese Datei schreiben).
  *
  * Vor der Automatik zuerst back2uInstagramFollowerSync einzeln testen.
@@ -21,23 +21,72 @@ function back2uInstagramFollowerSync() {
   if (!cloudToken || cloudToken.length < 24)
     throw new Error('BACK2U_CLOUDFLARE_FEED_SECRET fehlt in den Skripteigenschaften.');
 
-  const graphResponse = UrlFetchApp.fetch(
-    'https://graph.instagram.com/v25.0/me?fields=username,followers_count',
-    {
-      method: 'get',
-      headers: {Authorization: 'Bearer ' + instagramToken},
-      muteHttpExceptions: true
+  // Reuse the proven Facebook Graph API helper from Instagram_Unified.gs.
+  // The system-user token is NOT an Instagram Login token; graph.instagram.com/me
+  // returns HTTP 401 even when the existing media/insights sync is working.
+  if (typeof b2uIgRequest_ !== 'function')
+    throw new Error('Instagram_Unified.gs: b2uIgRequest_ fehlt. Bestehenden Instagram-Sync prüfen.');
+
+  const graph = (path, params) => b2uIgRequest_(path, params || {});
+  const candidates = [];
+
+  // Reuse an existing IG-user ID from the project's private configuration, if present.
+  for (const key of ['IG_USER_ID', 'IG_ACCOUNT_ID', 'IG_BUSINESS_ACCOUNT_ID',
+    'INSTAGRAM_USER_ID', 'INSTAGRAM_ACCOUNT_ID', 'B2U_IG_USER_ID']) {
+    const v = props.getProperty(key);
+    if (/^\d{12,25}$/.test(String(v || ''))) candidates.push(String(v));
+  }
+
+  // A verified media ID is already in the private Instagram_API_All sheet.
+  // For one's OWN media, Graph API's 'owner' points to the IG user node.
+  try {
+    const book = SpreadsheetApp.openById(BACK2U_SPREADSHEET_ID);
+    const tab = book.getSheetByName('Instagram_API_All');
+    if (tab && tab.getLastRow() >= 2) {
+      const mediaIds = tab.getRange(2, 1, Math.min(10, tab.getLastRow() - 1), 1)
+        .getDisplayValues().map(x => x[0]).filter(x => /^\d{12,25}$/.test(x));
+      for (const mediaId of mediaIds) {
+        try {
+          const media = graph(mediaId, {fields: 'owner'});
+          if (/^\d{12,25}$/.test(String(media?.owner?.id || ''))) {
+            candidates.push(String(media.owner.id));
+            break;
+          }
+        } catch (_) {} // Try the next recent media.
+      }
     }
-  );
+  } catch (_) {} // Continue to the Page association fallback.
 
-  const graphText = graphResponse.getContentText();
-  if (graphResponse.getResponseCode() !== 200)
-    throw new Error('Instagram Graph API HTTP ' + graphResponse.getResponseCode()
-      + ' – prüfe den bestehenden IG_SUAT_TOKEN und seine Berechtigungen.');
+  // Page-linked Instagram Professional account (Meta's Facebook Login flow).
+  if (!candidates.length) {
+    try {
+      const pages = graph('me/accounts', {
+        fields: 'instagram_business_account{id,username}', limit: 100
+      });
+      for (const page of pages?.data || []) {
+        const id = page?.instagram_business_account?.id;
+        if (/^\d{12,25}$/.test(String(id || ''))) candidates.push(String(id));
+      }
+    } catch (_) {}
+  }
 
-  let profile;
-  try { profile = JSON.parse(graphText); }
-  catch (_) { throw new Error('Instagram hat kein gültiges JSON zurückgegeben.'); }
+  let profile = null;
+  for (const id of [...new Set(candidates)]) {
+    try {
+      const found = graph(id, {fields: 'id,username,followers_count'});
+      if (String(found?.username || '').trim().toLowerCase() === 'lxon_jxmpstyle'
+        && Number.isSafeInteger(Number(found.followers_count))) {
+        profile = found;
+        break;
+      }
+    } catch (_) {}
+  }
+
+  if (!profile) {
+    throw new Error('Instagram-Followerprofil nicht lesbar. Prüfe Instagram_Unified.gs '
+      + 'und ob die vorhandene Meta-Verbindung die eigene IG-Konto-ID erreicht. '
+      + 'Keinen Token in das Ausführungsprotokoll kopieren.');
+  }
 
   const account = String(profile.username || '').trim().toLowerCase();
   if (account !== 'lxon_jxmpstyle')
