@@ -148,9 +148,9 @@ async function ttAccess(env){
  scope:token.scope||t.scope,expiresAt:now+Number(token.expires_in||0)*1000,refreshExpiresAt:now+Number(token.refresh_expires_in||0)*1000};
  await put(env,'tt_oauth',t);return t;
 }
-async function ttFetch(env,maxPages=25){
+async function ttFetch(env,maxPages=25,startCursor){
  const t=await ttAccess(env);if(!t)return {connected:false,videos:[],hasMore:false};
- let cursor,hasMore=true,pages=0;
+ let cursor=startCursor,hasMore=true,pages=0;
  const records=new Map();
  while(hasMore&&pages<maxPages){
   const args={max_count:20};if(cursor!==undefined)args.cursor=cursor;
@@ -169,10 +169,12 @@ async function ttFetch(env,maxPages=25){
   pages++;hasMore=!!data.data?.has_more;cursor=data.data?.cursor;
   if(hasMore&&(cursor===undefined||cursor===null))throw Error('TikTok pagination cursor missing');
  }
- return {connected:true,videos:[...records.values()],hasMore,pages};
+ return {connected:true,videos:[...records.values()],hasMore,pages,nextCursor:hasMore?cursor:null};
 }
 async function ttSync(env){
- const t=await ttFetch(env,25);if(!t.connected)return {connected:false,added:0};
+ const checkpoint=await get(env,'tt_page_cursor');
+ const validCheckpoint=checkpoint?.hasMore&&checkpoint?.cursor!=null&&Number.isSafeInteger(Number(checkpoint.cursor))&&Date.now()-Date.parse(checkpoint.updatedAt||'')<86400000;
+ const t=await ttFetch(env,25,validCheckpoint?Number(checkpoint.cursor):undefined);if(!t.connected)return {connected:false,added:0};
  const snapshot=await get(env,'snapshot');
  if(!snapshot?.platforms?.yt)return {connected:true,added:t.videos.length,pending:'Google Sheets snapshot not yet migrated'};
  const prior=snapshot.platforms.tt?.videos||[];
@@ -185,7 +187,8 @@ async function ttSync(env){
  if(t.hasMore)snapshot.errors.push({platform:'tt',task:'video-list',message:'TikTok has more videos than the current page limit'});
  snapshot.status=snapshot.errors.length?'partial':'ok';
  await put(env,'snapshot',snapshot);
- return {connected:true,added:t.videos.length,total:videos.length,hasMore:t.hasMore};
+ await put(env,'tt_page_cursor',{cursor:t.hasMore?t.nextCursor:null,hasMore:t.hasMore,pagesLastBatch:t.pages,updatedAt:new Date().toISOString(),complete:!t.hasMore});
+ return {connected:true,added:t.videos.length,total:videos.length,hasMore:t.hasMore,pages:t.pages,complete:!t.hasMore,continued:!!validCheckpoint};
 }
 async function route(req,env){
  const path=new URL(req.url).pathname;
@@ -218,7 +221,9 @@ async function route(req,env){
  }
  if(path==='/api/diagnostics'){
   const s=await get(env,'snapshot');
+  const scan=await get(env,'tt_page_cursor');
   return json({service:'BACK2U Cloud',source:s?.source||'none',generatedAt:s?.generatedAt||null,
+   tiktokScan:{updatedAt:scan?.updatedAt||null,hasMore:scan?.hasMore??null,complete:scan?.complete??null,pagesLastBatch:scan?.pagesLastBatch||null},
    platforms:[{platform:'YouTube',videos:s?.platforms?.yt?.videos?.length||0},{platform:'Instagram',videos:s?.platforms?.ig?.videos?.length||0},
     {platform:'TikTok',videos:s?.platforms?.tt?.videos?.length||0}]});
  }
