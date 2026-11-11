@@ -39,13 +39,14 @@ function back2uYouTubeDailyRepair() {
   const formatDay = d => Utilities.formatDate(d, 'UTC', 'yyyy-MM-dd');
   const from = formatDay(earliest), to = formatDay(lastCompleted);
 
-  const response = YouTubeAnalytics.Reports.query(
-    'channel==' + mine.id,
-    from,
-    to,
-    'views,likes,comments,subscribersGained,subscribersLost',
-    {dimensions: 'day', sort: 'day'}
-  );
+  const response = YouTubeAnalytics.Reports.query({
+    ids: 'channel==' + mine.id,
+    startDate: from,
+    endDate: to,
+    metrics: 'views,likes,comments,subscribersGained,subscribersLost',
+    dimensions: 'day',
+    sort: 'day'
+  });
 
   if (!response || !response.rows || !response.rows.length) {
     throw new Error('YouTube Analytics liefert derzeit keine vollständigen Tagesdaten.');
