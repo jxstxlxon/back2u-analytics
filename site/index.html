@@ -299,7 +299,7 @@ async function syncTiktokNow(){
  finally{btn.disabled=false;btn.textContent='↻ TikTok jetzt synchronisieren'}
 }
 function bind(){
- $('[data-platform]').forEach(el=>el.addEventListener('click',()=>setPlatform(el.dataset.platform)));
+ $$('[data-platform]').forEach(el=>el.addEventListener('click',()=>setPlatform(el.dataset.platform)));
  $$('[data-days]').forEach(el=>el.addEventListener('click',()=>setPeriod(Number(el.dataset.days))));
  $$('[data-section]').forEach(el=>el.addEventListener('click',()=>setSection(el.dataset.section)));
  $$('[data-go]').forEach(el=>el.addEventListener('click',()=>setSection(el.dataset.go)));
