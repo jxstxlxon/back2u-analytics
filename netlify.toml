@@ -42,6 +42,12 @@
   status = 200
   force = true
 
+[[redirects]]
+  from = "/api/tiktok/start"
+  to = "/.netlify/functions/tiktok-start"
+  status = 200
+  force = true
+
 [[headers]]
   for = "/api/*"
   [headers.values]
