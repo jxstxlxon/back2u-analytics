@@ -15,6 +15,9 @@
     }
   ],
   "triggers": {
-    "crons": ["*/30 * * * *"]
-  }
+    "crons": [
+      "*/30 * * * *"
+    ]
+  },
+  "keep_vars": true
 }
