@@ -11,7 +11,7 @@
     {
       "binding": "DB",
       "database_name": "back2u-cloud",
-      "database_id": "REPLACE_WITH_YOUR_D1_DATABASE_ID"
+      "database_id": "7ce4f8ca-8198-4be9-9543-aa12a7dc1992"
     }
   ],
   "triggers": {
