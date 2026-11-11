@@ -28,3 +28,7 @@ The current Netlify project publishes `site/`, with `netlify/functions/api.mjs` 
 Cloudflare Worker source is in `cloudflare/worker.js`. The JavaScript syntax was checked, but a live deployment and end-to-end testing are still outstanding. Do not replace the functioning Netlify URL until the new Worker has been tested.
 
 **Limits:** Free plans are subject to quotas. TikTok production app review may still be necessary.
+
+## First Cloudflare build
+
+After connecting the `cloudflare-migration` branch to Cloudflare Workers Builds, this branch-only commit triggers the first build. Existing Netlify site remains on `main`. Before the new site is used, configure Worker secrets and verify D1 and login; no Google Sheets endpoint should be redirected until tested.
