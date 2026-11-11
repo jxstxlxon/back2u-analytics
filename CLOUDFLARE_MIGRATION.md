@@ -25,6 +25,6 @@ The current Netlify project publishes `site/`, with `netlify/functions/api.mjs` 
 5. Set Worker secrets and verify the protected dashboard, then activate Google Sheets dual-push.
 6. Re-authorize TikTok; verify its video count. Do not shut down Netlify until all tests pass.
 
-The Worker's own source code has been prepared as a separate transferable artifact pending Cloudflare account setup.
+Cloudflare Worker source is in `cloudflare/worker.js`. The JavaScript syntax was checked, but a live deployment and end-to-end testing are still outstanding. Do not replace the functioning Netlify URL until the new Worker has been tested.
 
 **Limits:** Free plans are subject to quotas. TikTok production app review may still be necessary.
