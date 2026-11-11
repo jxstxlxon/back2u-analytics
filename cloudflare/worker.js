@@ -47,6 +47,11 @@ async function put(env,key,value){
 async function hydratedSnapshot(env){
  const s=await get(env,'snapshot');
  if(!s?.platforms?.yt)return s;
+ const instagramProfile=await get(env,'ig_profile');
+ if(instagramProfile?.username==='lxon_jxmpstyle'&&Number.isSafeInteger(instagramProfile.followers)&&instagramProfile.followers>=0){
+  s.platforms.ig.profile={...s.platforms.ig.profile,followers:instagramProfile.followers,username:instagramProfile.username,
+   asOf:instagramProfile.updatedAt,source:'Instagram Graph API',history:instagramProfile.history||[]};
+ }
  const verified=await get(env,'yt_analytics_daily');
  if(!verified?.daily?.length)return s;
  const byDate=new Map((s.platforms.yt.daily||[]).map(r=>[r.d,r]));
@@ -58,6 +63,29 @@ async function hydratedSnapshot(env){
  s.dataThrough=s.platforms.yt.daily.at(-1)?.d||s.dataThrough;
  return s;
 }
+
+async function ingestInstagramProfile(req,env){
+ if(req.method!=='POST')return json({error:'POST only'},405);
+ const configured=env.BACK2U_GOOGLE_FEED_SECRET;
+ if(!configured||configured.length<24)return json({error:'Feed secret missing'},503);
+ const token=(req.headers.get('authorization')||'').replace(/^Bearer\s+/i,'');
+ if(!token||!(await equal(token,configured)))return json({error:'Forbidden'},403);
+ const raw=await req.text();
+ if(raw.length>16000)return json({error:'Payload too large'},413);
+ let data;try{data=JSON.parse(raw)}catch{return json({error:'Bad JSON'},400)}
+ if(data?.schema!==1||String(data.username||'').trim().toLowerCase()!=='lxon_jxmpstyle')return json({error:'Instagram account mismatch'},422);
+ const followers=Number(data.followers_count);
+ if(data.followers_count===null||data.followers_count===undefined||!Number.isSafeInteger(followers)||followers<0)return json({error:'Invalid followers_count'},422);
+ const old=await get(env,'ig_profile');
+ const now=new Date().toISOString();
+ const today=now.slice(0,10);
+ const history=new Map((old?.history||[]).filter(x=>/^\d{4}-\d\d-\d\d$/.test(x.date)&&Number.isSafeInteger(x.followers)).map(x=>[x.date,x]));
+ history.set(today,{date:today,followers});
+ const profile={username:'lxon_jxmpstyle',followers,updatedAt:now,history:[...history.values()].sort((a,b)=>a.date.localeCompare(b.date)).slice(-120)};
+ await put(env,'ig_profile',profile);
+ return json({ok:true,platform:'Instagram',followers,asOf:now,historyDays:profile.history.length});
+}
+
 async function ingestYoutubeDaily(req,env){
  if(req.method!=='POST')return json({error:'POST only'},405);
  if(!env.BACK2U_GOOGLE_FEED_SECRET||env.BACK2U_GOOGLE_FEED_SECRET.length<24)return json({error:'Feed secret missing'},503);
@@ -247,6 +275,7 @@ async function route(req,env){
   loginReady:!!env.DASHBOARD_PASSWORD,sourceReady:!!env.BACK2U_GOOGLE_FEED_SECRET});
  if(path==='/api/login')return req.method==='POST'?issueToken(req,env):json({error:'POST only'},405);
  if(path==='/api/youtube-daily/ingest')return ingestYoutubeDaily(req,env);
+ if(path==='/api/instagram-profile/ingest')return ingestInstagramProfile(req,env);
  if(path==='/api/ingest'){
   if(req.method!=='POST')return json({error:'POST only'},405);
   if(!env.BACK2U_GOOGLE_FEED_SECRET||env.BACK2U_GOOGLE_FEED_SECRET.length<24)return json({error:'Ingest secret missing'},503);
@@ -276,7 +305,7 @@ async function route(req,env){
   const scan=await get(env,'tt_page_cursor');
   return json({service:'BACK2U Cloud',source:s?.source||'none',generatedAt:s?.generatedAt||null,
    tiktokScan:{updatedAt:scan?.updatedAt||null,hasMore:scan?.hasMore??null,complete:scan?.complete??null,pagesLastBatch:scan?.pagesLastBatch||null},
-   youtubeDailyVerified:s?.verifiedYouTubeDaily||null,dailyThrough:{youtube:s?.platforms?.yt?.daily?.at(-1)?.d||null,instagram:s?.platforms?.ig?.daily?.at(-1)?.d||null},
+   youtubeDailyVerified:s?.verifiedYouTubeDaily||null,instagramFollowers:{known:Number.isSafeInteger(s?.platforms?.ig?.profile?.followers),asOf:s?.platforms?.ig?.profile?.asOf||null},dailyThrough:{youtube:s?.platforms?.yt?.daily?.at(-1)?.d||null,instagram:s?.platforms?.ig?.daily?.at(-1)?.d||null},
    platforms:[{platform:'YouTube',videos:s?.platforms?.yt?.videos?.length||0},{platform:'Instagram',videos:s?.platforms?.ig?.videos?.length||0},
     {platform:'TikTok',videos:s?.platforms?.tt?.videos?.length||0}]});
  }
