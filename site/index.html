@@ -6,6 +6,22 @@
 .follower-card .follower-note{font-size:11px;color:#a5b8d3;line-height:1.55;margin-top:7px}
 .daily-freshness{font-size:12px;color:#fad39f;line-height:1.65;background:#ffca7515;border:1px solid #ffd89f2b;padding:12px 16px;border-radius:14px;margin:0 0 20px}
 .group-platform-split{display:flex;gap:5px 12px;flex-wrap:wrap;margin-top:7px;color:#b8cbe2;font-size:10px;line-height:1.6}
+.follower-cards{display:block;margin:18px 0 20px}
+.follower-aggregate{padding:22px 24px;border:1px solid #b8d2ff3d;border-radius:24px}
+.follower-aggregate-title{font-size:14px;font-weight:680;margin:12px 0 6px}
+.follower-aggregate-total{font-size:clamp(32px,5.5vw,51px);font-weight:790;letter-spacing:-.05em;line-height:1.05;font-variant-numeric:tabular-nums}
+.follower-aggregate-subtitle{font-size:11px;color:#a9bedd;margin-top:9px}
+.follower-aggregate-breakdown{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:18px;padding-top:14px;border-top:1px solid #b1cdfc24}
+.follower-breakdown-item{font-size:11px;color:#b4c8e4;display:flex;flex-direction:column;gap:4px;min-width:0}
+.follower-breakdown-item>b{font-size:clamp(15px,2vw,21px);font-variant-numeric:tabular-nums;color:var(--ink)}
+.follower-breakdown-item>small{font-size:10px;color:#91a9ca}
+.follower-aggregate-note{font-size:11px;line-height:1.5;color:#a3b5cf;margin-top:14px}
+.grouped-row .list-name{max-height:60px}
+.grouped-row .list-number.grouped-total{white-space:normal;max-width:175px;min-width:112px;font-size:16px}
+.grouped-total .group-platform-split{display:flex;flex-direction:column;gap:3px;align-items:flex-end;margin-top:8px;line-height:1.2}
+.grouped-total .group-platform-split>span{font-size:10px;font-weight:540;white-space:nowrap;color:#a7bdd8}
+@media(max-width:500px){.follower-aggregate{padding:18px 16px}.follower-aggregate-breakdown{gap:6px}.follower-breakdown-item{font-size:10px}.follower-breakdown-item>b{font-size:16px}.grouped-row .list-number.grouped-total{min-width:98px;max-width:120px;font-size:14px}.grouped-row{gap:8px;grid-template-columns:17px 36px minmax(0,1fr) auto}.grouped-row .list-thumb{width:36px;height:36px}.grouped-total .group-platform-split>span{font-size:9px}}
+
 .group-total-caption{display:block;font-size:10px;color:#afc5df;margin-top:5px}
 .group-detail-platform{display:flex;justify-content:space-between;align-items:center;gap:10px;border-top:1px solid #abc9ef20;padding:12px 2px;font-size:12px;flex-wrap:wrap}
 .group-detail-platform strong{font-size:13px}
@@ -193,21 +209,41 @@ function percentString(p){if(p===null)return null;return (p>=0?'+':'')+dec(p)+' 
 function setSyncStatus(){const has=!!state.live, x=$('#syncDot');x.classList.toggle('is-live',has);x.classList.toggle('is-error',!!state.lastError&&!has);$('#syncShort').textContent=has?`Datenabgleich: ${new Date(state.live.generatedAt||Date.now()).toLocaleString('de-DE',{dateStyle:'short',timeStyle:'short'})}`:'Archivdaten · Offline';const live=['yt','ig','tt'].filter(p=>(state.live?.platforms?.[p]?.daily?.length||0)>0||(state.live?.platforms?.[p]?.videos?.length||0)>0).map(p=>NAMES[p]);const stamp=live.length?live.join(' + ')+' live':'Noch keine Plattform live';$('#sourceStamp').textContent=has?stamp+' · YouTube-Daten bis '+(state.live.dataThrough||'–'):'Historische Exporte bis 10.11.2026';$('#footVersion').textContent=has?stamp+' · privates Google Sheet · letzter Sync '+new Date(state.live.generatedAt).toLocaleString('de-DE'):'Stand: Archivexport 10.11.2026';}
 function sparkSvg(items,color='#64afff'){const a=items.map(x=>typeof x==='number'?x:0);if(a.length<2)return '';const max=Math.max(...a,1),w=440,h=80;const pts=a.map((v,i)=>[i*w/(a.length-1),h-(v/max)*(h-8)]);const line=pts.map((p,i)=>`${i?'L':'M'}${p[0].toFixed(1)} ${p[1].toFixed(1)}`).join(' ');return `<svg viewBox="0 0 440 80" preserveAspectRatio="none"><defs><linearGradient id="spgrad" x1="0" y1="0" x2="0" y2="1"><stop stop-color="${color}" stop-opacity=".35"/><stop offset="1" stop-color="${color}" stop-opacity="0"/></linearGradient></defs><path d="${line} L${w} ${h} L0 ${h} Z" fill="url(#spgrad)"/><path d="${line}" fill="none" stroke="${color}" stroke-width="2.3"/></svg>`}
 
-function renderFollowerCards(){
- const ps=['yt','ig','tt'];
- const titles={yt:'Abonnenten',ig:'Follower',tt:'Follower'};
- $('#followerCards').innerHTML=ps.map(p=>{
-   const profile=state.live?.platforms?.[p]?.profile||{};
-   const liveN=profile.followers??profile.subscribers??profile.follower_count??profile.subscriberCount;
-   const isLive=liveN!==null&&liveN!==undefined&&Number.isFinite(Number(liveN));
-   const archiveN=p==='yt'?SEED.checks?.youtube?.subscriberSnapshot:p==='tt'?SEED.snapshots?.tt?.followers:null;
-   const available=isLive?Number(liveN):(typeof archiveN==='number'?archiveN:null);
-   const stamp=isLive?'Aktueller API-Kontostand · '+(state.live?.generatedAt?new Date(state.live.generatedAt).toLocaleDateString('de-DE'):'Abruf') : available!==null?'Archivstand vom '+(p==='yt'?(SEED.checks?.youtube?.checked||SEED.asOf):SEED.asOf).split('-').reverse().join('.'):'Kontostand noch nicht übermittelt';
-   const history=SEED.snapshots?.[p]?.follows;
-   const archivedHistory=(typeof history==='number')?(p==='ig'?'Archiv: '+fmt(history)+' Follows in 27 Tagen':p==='yt'?'Archiv: '+fmt(history)+' Netto-Abos im Exportzeitraum':'Archiv: '+fmt(history)+' Netto-Follower im Exportzeitraum'):'';
-   return '<article class="follower-card glass"><div class="platform-name">'+tagPlatform(p)+'</div><div class="follower-label">'+titles[p]+' gesamt</div><div class="follower-number">'+fmt(available)+'</div><div class="follower-note">'+esc(stamp)+(archivedHistory?'<div>'+esc(archivedHistory)+'</div>':'')+'</div></article>';
- }).join('');
+function getFollowerStand(p){
+ const profile=state.live?.platforms?.[p]?.profile||{};
+ const liveRaw=profile.followers??profile.subscribers??profile.follower_count??profile.subscriberCount;
+ const hasLive=liveRaw!==null&&liveRaw!==undefined&&liveRaw!==''&&Number.isSafeInteger(Number(liveRaw))&&Number(liveRaw)>=0;
+ let historical=null,historicalDate=SEED.asOf;
+ if(p==='yt'){historical=SEED.checks?.youtube?.subscriberSnapshot??null;historicalDate=SEED.checks?.youtube?.checked||SEED.asOf;}
+ if(p==='tt')historical=SEED.snapshots?.tt?.followers??null;
+ const hasArchive=typeof historical==='number'&&Number.isSafeInteger(historical)&&historical>=0;
+ const count=hasLive?Number(liveRaw):hasArchive?historical:null;
+ const asOf=hasLive?(profile.asOf||state.live?.generatedAt||null):hasArchive?historicalDate:null;
+ return {p,count,asOf,source:hasLive?'api':hasArchive?'archiv':'fehlt'};
 }
+function renderFollowerCards(){
+ const container=$('#followerCards');
+ const names={yt:'YouTube',ig:'Instagram',tt:'TikTok'};
+ const selected=state.platform==='all'?['yt','ig','tt']:[state.platform];
+ const items=selected.map(getFollowerStand);
+ const known=items.filter(x=>x.count!==null);
+ const total=known.length?known.reduce((sum,x)=>sum+x.count,0):null;
+ const incomplete=known.length!==selected.length;
+ const archival=known.some(x=>x.source==='archiv');
+ const title=selected.length===3?'Follower und Abonnenten · Alle':names[selected[0]]+(selected[0]==='yt'?' · Abonnenten':' · Follower');
+ const dateLabel=s=>!s?'Stand unbekannt':/^\d{4}-\d\d-\d\d$/.test(s)?s.split('-').reverse().join('.'):new Date(s).toLocaleString('de-DE',{dateStyle:'short',timeStyle:'short'});
+ const breakdown=items.map(x=>{
+  const source=x.source==='api'?'API':x.source==='archiv'?'Archiv':'fehlt';
+  const value=x.count===null?'–':fmt(x.count);
+  return '<div class="follower-breakdown-item"><span>'+tagPlatform(x.p)+'</span><b>'+value+'</b><small>'+source+(x.asOf?' · '+esc(dateLabel(x.asOf)):'')+'</small></div>';
+ }).join('');
+ let note=selected.length===3?'Summe der erfassten Kontostände – keine eindeutigen Personen.':'Kontostand laut verfügbarer Quelle.';
+ if(incomplete)note+=' Mindestens ein aktueller Kontostand fehlt; die Zahl ist nur ein Teilstand.';
+ if(archival)note+=' Archivwerte sind nicht live und haben einen anderen Stichtag.';
+ if(!incomplete&&!archival)note+=' Alle drei Kontostände stammen aus API-Abrufen.';
+ container.innerHTML='<article class="follower-aggregate glass"><div class="eyebrow">FOLLOWER INTELLIGENCE</div><div class="follower-aggregate-title">'+esc(title)+'</div><div class="follower-aggregate-total">'+fmt(total)+'</div><div class="follower-aggregate-subtitle">'+(incomplete?'Erfasster Teilstand':archival?'Summe mit Archivstand':'Aktueller erfasster Stand')+'</div><div class="follower-aggregate-breakdown">'+breakdown+'</div><div class="follower-aggregate-note">'+esc(note)+'</div></article>';
+}
+
 function renderDailyFreshness(){
  const el=$('#dailyFreshness');
  if(!state.live){el.textContent='Tageswerte sind Archivdaten. Noch kein bestätigter Live-Abgleich.';return;}
@@ -350,7 +386,7 @@ function renderGroupedVideos(){
  $('#videoList').innerHTML=show.length?show.map((g,i)=>{
   const selected=state.selected?.groupKey===g.groupKey?' active':'';
   const split='<span class="group-platform-split">'+groupPlatformLabel(g,state.sort==='recent'?'views':state.sort)+'</span>';
-  return '<button class="list-row'+selected+'" data-vid-index="'+(start+i)+'"><span class="list-num">'+(start+i+1)+'</span><span class="list-thumb">'+image(g.first)+'</span><span class="list-name">'+esc(g.title)+'<small>'+g.members.length+' '+(g.members.length===1?'Plattform':'Plattformen')+' · '+esc(g.date)+'</small>'+split+'</span><span class="list-number">'+fmt(state.sort==='recent'?g.views:g[state.sort])+'<small>Summe · '+(state.sort==='recent'?'Aufrufe':state.sort)+'</small></span></button>';
+  return '<button class="list-row grouped-row'+selected+'" data-vid-index="'+(start+i)+'"><span class="list-num">'+(start+i+1)+'</span><span class="list-thumb">'+image(g.first)+'</span><span class="list-name">'+esc(g.title)+'<small>'+g.members.length+' '+(g.members.length===1?'Plattform':'Plattformen')+' · '+esc(g.date)+'</small></span><span class="list-number grouped-total">'+fmt(state.sort==='recent'?g.views:g[state.sort])+'<small>Summe · '+(state.sort==='recent'?'Aufrufe':state.sort)+'</small>'+split+'</span></button>';
  }).join(''):'<div class="empty">Keine Treffer für diese Filter.</div>';
  $('#pageLabel').textContent='Seite '+state.page+' von '+numberOfPages;
  $('#prevPage').disabled=state.page===1;$('#nextPage').disabled=state.page===numberOfPages;
