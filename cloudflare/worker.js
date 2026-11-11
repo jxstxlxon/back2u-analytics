@@ -161,8 +161,8 @@ async function ttFetch(env,maxPages=25){
   for(const v of data.data?.videos||[]){
    const id=String(v.id||'');if(!/^\d{12,25}$/.test(id))continue;
    const heading=clamp(v.title||v.video_description)||'TikTok Video';
-   records.set(id,{id,platform:'tt',title:heading,date:new Date(Number(v.create_time||0)*1000).toISOString().slice(0,10),
-    url:url(v.share_url)||'https://www.tiktok.com/',thumb:url(v.cover_image_url),views:num(v.view_count),
+   records.set(id,{id,platform:'tt',title:heading,date:Number(v.create_time)>0?new Date(Number(v.create_time)*1000).toISOString().slice(0,10):'',
+    url:url(v.share_url),thumb:url(v.cover_image_url),views:num(v.view_count),
     likes:num(v.like_count),comments:num(v.comment_count),shares:num(v.share_count),duration:num(v.duration),
     reportType:'lifetime',source:'Official TikTok Display API'});
   }
