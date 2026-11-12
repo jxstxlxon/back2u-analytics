@@ -44,12 +44,34 @@ const byId=Object.fromEntries(presets.map(p=>[p.id,p]));
 const key='back2u-theme-studio-v1';
 let state={id:'n01',edits:{}};
 try{let old=JSON.parse(localStorage.getItem(key)||'null');if(old&&byId[old.id]){state.id=old.id;if(old.edits&&typeof old.edits==='object'&&!Array.isArray(old.edits))state.edits=old.edits}}catch(e){}
-const defaults={tintStrength:14,glow:55,blur:27,sheen:56,radius:25,saturation:130,chartContrast:78};
-const ranges={tintStrength:[0,80],glow:[0,100],blur:[0,64],sheen:[0,100],radius:[12,42],saturation:[80,180],chartContrast:[20,100]};
+const defaults={tintStrength:14,glow:55,blur:27,sheen:56,radius:25,saturation:130,chartContrast:78,backgroundIntensity:76,outlineStrength:55};
+const ranges={tintStrength:[0,80],glow:[0,100],blur:[0,64],sheen:[0,100],radius:[12,42],saturation:[80,180],chartContrast:[20,100],backgroundIntensity:[0,100],outlineStrength:[0,100]};
 let category='all';
 const el=id=>document.getElementById(id);
 const color=(c,d)=>typeof c==='string'&&/^#[\da-f]{6}$/i.test(c)?c:d;
 const rgb=x=>{x=color(x,'#000000');return [1,3,5].map(n=>parseInt(x.slice(n,n+2),16)).join(',')};
+function luminance(hex){
+ let a=[1,3,5].map(i=>parseInt(hex.slice(i,i+2),16)/255).map(v=>v<=.04045?v/12.92:Math.pow((v+.055)/1.055,2.4));
+ return .2126*a[0]+.7152*a[1]+.0722*a[2];
+}
+function colorHue(hex){
+ let r=parseInt(hex.slice(1,3),16)/255,g=parseInt(hex.slice(3,5),16)/255,b=parseInt(hex.slice(5,7),16)/255;
+ let max=Math.max(r,g,b),min=Math.min(r,g,b),delta=max-min;if(!delta)return 206;
+ let h=max===r?((g-b)/delta)%6:max===g?(b-r)/delta+2:(r-g)/delta+4;
+ return ((h*60)+360)%360;
+}
+function adaptiveType(p,v){
+ const aero=p.family==='aero',pearl=p.light,metal=['n02','n10','n25','n27'].includes(p.id);
+ return {
+  fontUI:aero?'"Trebuchet MS","Segoe UI",Verdana,sans-serif':pearl?'"Aptos","Segoe UI Variable Text","Segoe UI",Arial,sans-serif':'"Segoe UI Variable Text","Segoe UI",-apple-system,BlinkMacSystemFont,sans-serif',
+  fontDisplay:aero?'"Trebuchet MS","Arial Rounded MT Bold","Segoe UI",sans-serif':metal?'"Arial Narrow","Segoe UI Variable Display","Segoe UI",sans-serif':pearl?'"Aptos Display","Segoe UI Variable Display","Segoe UI",sans-serif':'"Segoe UI Variable Display",-apple-system,BlinkMacSystemFont,sans-serif',
+  text:p.light?'#102c43':'#f5f8ff',
+  secondary:p.light?'#2e526c':'#c3d5e9',
+  label:p.light?'#1f4661':'#d6e9ff',
+  neutral:p.light?'#244b65':'#b6d0e8',
+  onAccent:luminance(v.accent)>.48?'#132a3f':'#ffffff'
+ };
+}
 const clamp=(v,a,b,def)=>{v=Number(v);return Number.isFinite(v)?Math.min(b,Math.max(a,v)):def};
 const save=()=>{try{localStorage.setItem(key,JSON.stringify(state))}catch(e){}};
 function settings(){
@@ -59,7 +81,11 @@ function settings(){
  v.bgmode=['aurora','soft','quiet','bubbles'].includes(o.bgmode)?o.bgmode:(p.family==='aero'?'bubbles':'aurora');
  v.layout=['auto','sidebar','wide'].includes(o.layout)?o.layout:'auto';
  v.finish=['original','gem','chrome','frost','iridescent','spectral','obsidian','sunset','neon'].includes(o.finish)?o.finish:'original';
- v.density=o.density==='compact'?'compact':'normal';v.motion=o.motion!==false;
+ v.density=o.density==='compact'?'compact':'normal';
+ v.typography=['original','modern','tech','aero','elegant'].includes(o.typography)?o.typography:'original';
+ v.readability=['auto','strong'].includes(o.readability)?o.readability:'auto';
+ v.chartMode=['line','area','bar'].includes(o.chartMode)?o.chartMode:'line';
+ v.motion=o.motion!==false;
  return v;
 }
 function setvar(k,v){document.documentElement.style.setProperty(k,String(v))}
@@ -81,6 +107,29 @@ function apply(){
  document.body.dataset.themeBackground=v.bgmode;
  document.body.classList.toggle('t-dense',v.density==='compact');
  document.body.classList.toggle('t-still',!v.motion);
+ const type=adaptiveType(p,v),mainHue=colorHue(v.accent);
+ const manualFonts={
+  modern:['"Segoe UI Variable Text","Segoe UI",sans-serif','"Segoe UI Variable Display","Segoe UI",sans-serif'],
+  tech:['"Arial Narrow","Segoe UI",sans-serif','"Arial Narrow","Segoe UI Variable Display",sans-serif'],
+  aero:['"Trebuchet MS",Verdana,sans-serif','"Trebuchet MS","Arial Rounded MT Bold",sans-serif'],
+  elegant:['"Aptos","Segoe UI",sans-serif','"Aptos Display","Segoe UI Variable Display",sans-serif']
+ };
+ if(manualFonts[v.typography]){type.fontUI=manualFonts[v.typography][0];type.fontDisplay=manualFonts[v.typography][1]}
+ if(v.readability==='strong'){
+  type.secondary=p.light?'#183b55':'#e3f0ff';
+  type.label=p.light?'#17334b':'#f3faff';
+ }
+ setvar('--t-font-ui',type.fontUI);setvar('--t-font-display',type.fontDisplay);
+ setvar('--t-ink-strong',type.text);setvar('--t-ink-muted',type.secondary);setvar('--t-ink-label',type.label);
+ setvar('--t-on-accent',type.onAccent);
+ setvar('--t-accent-readable','hsl('+mainHue+' 79% '+(p.light?'31':'75')+'%)');
+ setvar('--t-secondary-readable','hsl('+colorHue(v.secondary)+' 76% '+(p.light?'34':'77')+'%)');
+ setvar('--t-chart-axis',type.neutral);setvar('--t-chart-grid',p.light?'rgba(33,72,100,.42)':'rgba(193,216,245,.25)');
+ ['yt','ig','tt'].forEach((k,i)=>{
+  let hue=(mainHue+[0,112,219][i])%360;
+  let l=p.light?([33,35,32][i]):([68,73,71][i]);
+  setvar('--chart-'+k,'hsl('+hue+' 78% '+l+'%)');
+ });
  setvar('--t-bg',p.bg);setvar('--t-bg2',p.bg2);setvar('--t-card',rgb(p.card));
  setvar('--t-accent',v.accent);setvar('--t-accent-rgb',rgb(v.accent));
  setvar('--t-secondary',v.secondary);setvar('--t-secondary-rgb',rgb(v.secondary));
@@ -90,12 +139,15 @@ function apply(){
  setvar('--t-edge-alpha',(.15+v.sheen*.0034).toFixed(3));setvar('--t-top-alpha',(.27+v.sheen*.004).toFixed(3));setvar('--t-reflect-alpha',(.10+v.sheen*.0028).toFixed(3));
  setvar('--t-shadow-size',(v.glow*.29).toFixed(1)+'px');setvar('--t-shadow-alpha',(v.glow*.0018).toFixed(3));
  setvar('--t-radius',v.radius+'px');setvar('--t-saturation',v.saturation+'%');setvar('--t-chart-contrast',(v.chartContrast/100).toFixed(2));
+ setvar('--t-background-veil',((100-v.backgroundIntensity)/100*.72).toFixed(3));
+ setvar('--t-outline-alpha',(.17+.0063*v.outlineStrength).toFixed(3));
  setvar('--ink',p.light?'#102c43':'#edf6ff');setvar('--muted',p.light?'#33556f':'#b4c7da');setvar('--soft',p.light?'#556b81':'#8da9c3');
  setvar('--t-label',p.light?'#21435e':'#d9ecfa');setvar('--t-grid',p.light?'#426c93':'#95bde8');
  document.documentElement.style.colorScheme=p.light?'light':'dark';
  const label=el('themeCurrentName');if(label)label.textContent=p.name;
  const trigger=el('themeStudioToggle');if(trigger)trigger.title='Theme: '+p.name;
  refreshEditor();
+ window.dispatchEvent(new CustomEvent('back2u-theme-changed',{detail:{id:p.id,accent:v.accent,secondary:v.secondary,light:p.light}}));
 }
 function edit(k,value){
  let o=state.edits[state.id]||{},p=byId[state.id];
@@ -103,6 +155,9 @@ function edit(k,value){
  else if(['accent','secondary','tint'].includes(k))o[k]=color(value,p.accent);
  else if(k==='bgmode')o[k]=['aurora','soft','quiet','bubbles'].includes(value)?value:'aurora';
  else if(k==='density')o[k]=value==='compact'?'compact':'normal';
+ else if(k==='typography')o[k]=['original','modern','tech','aero','elegant'].includes(value)?value:'original';
+ else if(k==='readability')o[k]=['auto','strong'].includes(value)?value:'auto';
+ else if(k==='chartMode')o[k]=['line','area','bar'].includes(value)?value:'line';
  else if(k==='layout')o[k]=['auto','sidebar','wide'].includes(value)?value:'auto';
  else if(k==='finish')o[k]=['original','gem','chrome','frost','iridescent','spectral','obsidian','sunset','neon'].includes(value)?value:'original';
  else if(k==='motion')o[k]=!!value;
@@ -111,7 +166,7 @@ function edit(k,value){
 }
 function refreshEditor(){
  const v=settings();
- ['accent','secondary','tint','bgmode','density','layout','finish'].concat(Object.keys(defaults)).forEach(k=>{
+ ['accent','secondary','tint','bgmode','density','layout','finish','typography','readability','chartMode'].concat(Object.keys(defaults)).forEach(k=>{
   if(el('theme_'+k))el('theme_'+k).value=v[k];
   if(el('theme_out_'+k))el('theme_out_'+k).textContent=v[k]+(['blur','radius'].includes(k)?' px':'%');
  });
@@ -142,7 +197,7 @@ const rangeControl=(key,label,min,max)=>'<label class="theme-slider">'+label+' <
 const colorControl=(key,label)=>'<label class="theme-color">'+label+'<input id="theme_'+key+'" data-setting="'+key+'" type="color"></label>';
 function setup(){
  const panel=document.createElement('div');panel.id='themeStudioPanel';panel.hidden=true;
- const controls=Object.keys(ranges).map(k=>rangeControl(k,({tintStrength:'Farb-Layer',glow:'Glow & Licht',blur:'Unschärfe',sheen:'Kantenglanz',radius:'Eckenradius',saturation:'Farbsättigung',chartContrast:'Diagrammkontrast'})[k],ranges[k][0],ranges[k][1])).join('');
+ const controls=Object.keys(ranges).map(k=>rangeControl(k,({tintStrength:'Farb-Layer',glow:'Glow & Licht',blur:'Unschärfe',sheen:'Kantenglanz',radius:'Eckenradius',saturation:'Farbsättigung',chartContrast:'Diagrammkontrast',backgroundIntensity:'Hintergrundmotiv',outlineStrength:'Rahmenintensität'})[k],ranges[k][0],ranges[k][1])).join('');
  panel.innerHTML=[
  '<div id="themeBackdrop" class="theme-backdrop"></div>',
  '<section class="theme-dialog glass" role="dialog" aria-modal="true" aria-labelledby="themeDialogTitle">',
@@ -156,6 +211,9 @@ function setup(){
  '<label class="theme-choice">Hintergrund<select id="theme_bgmode" data-setting="bgmode"><option value="aurora">Aurora</option><option value="soft">Weicher Verlauf</option><option value="quiet">Ruhig</option><option value="bubbles">Glass Bubbles</option></select></label>',
  '<label class="theme-choice">Bild-Layout<select id="theme_layout" data-setting="layout"><option value="auto">Wie die Vorlage</option><option value="sidebar">Leuchtende Seitenleiste</option><option value="wide">Breites Dashboard</option></select></label>',
  '<label class="theme-choice">Glasoberfläche<select id="theme_finish" data-setting="finish"><option value="original">Wie die Vorlage</option><option value="neon">Neon Liquid</option><option value="gem">Crystal Gem</option><option value="chrome">Chrome</option><option value="frost">Frosted</option><option value="iridescent">Iridescent</option><option value="spectral">Holographic</option><option value="obsidian">Obsidian</option><option value="sunset">Sunset Pearl</option></select></label>',
+ '<label class="theme-choice">Schriftstil<select id="theme_typography" data-setting="typography"><option value="original">Wie die Vorlage</option><option value="modern">Modern / Clean</option><option value="tech">Technical / Narrow</option><option value="aero">Frutiger Aero / Rund</option><option value="elegant">Elegant / Editorial</option></select></label>',
+ '<label class="theme-choice">Diagrammstil<select id="theme_chartMode" data-setting="chartMode"><option value="line">Linien</option><option value="area">Flächen</option><option value="bar">Balken</option></select></label>',
+ '<label class="theme-choice">Textkontrast<select id="theme_readability" data-setting="readability"><option value="auto">Automatisch lesbar</option><option value="strong">Extra deutlich</option></select></label>',
  '<label class="theme-choice">Abstände<select id="theme_density" data-setting="density"><option value="normal">Komfortabel</option><option value="compact">Kompakt</option></select></label>',
  '<label class="theme-checkbox"><input id="theme_motion" type="checkbox" data-setting="motion"> Animationen</label>',
  '<div class="theme-dialog-footer"><button id="themeReset" type="button">Dieses Theme zurücksetzen</button><button id="themeDone" type="button">Fertig</button></div><small id="themeStatus" aria-live="polite"></small>',
@@ -188,6 +246,17 @@ function setup(){
  document.querySelectorAll('[data-glass-preset]').forEach(b=>b.addEventListener('click',()=>requestAnimationFrame(apply)));
  apply();renderGrid();
 }
+window.BACK2U_THEMES={
+ list:()=>presets.map(p=>({id:p.id,name:p.name,family:p.family,light:p.light})),
+ current:()=>state.id,
+ get:id=>{let p=byId[id]||byId[state.id];let o=state.edits[p.id]||{};return {...p,
+  accent:color(o.accent,p.accent),secondary:color(o.secondary,p.secondary),
+  tint:color(o.tint,p.accent),chartMode:['line','area','bar'].includes(o.chartMode)?o.chartMode:'line',
+  backgroundIntensity:clamp(o.backgroundIntensity,0,100,76),outlineStrength:clamp(o.outlineStrength,0,100,55),readability:o.readability==='strong'?'strong':'auto',
+  fontProfile:['aero','elegant','tech','modern'].includes(o.typography)?o.typography:(p.family==='aero'?'aero':p.light?'elegant':'futuristic')};},
+ use:id=>{if(byId[id]){state.id=id;save();apply();renderGrid();return true}return false},
+ setChartMode:mode=>{if(['line','area','bar'].includes(mode))edit('chartMode',mode)}
+};
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',setup,{once:true});
 else setup();
 })();
