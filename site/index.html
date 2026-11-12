@@ -817,6 +817,8 @@ function bind(){
  $('#globalVideoSearchForm').addEventListener('submit',e=>{
   e.preventDefault();
   state.query=$('#globalVideoSearch').value.trim();$('#videoSearch').value=state.query;state.page=1;
+  state.platform='all';$$('[data-platform]').forEach(x=>x.classList.toggle('selected',x.dataset.platform==='all'));
+  try{localStorage.setItem('back2u_view_preferences_v5',JSON.stringify({platform:state.platform,days:state.days}))}catch{}
   setSection('videos');
  });
  $$('[data-platform]').forEach(el=>el.addEventListener('click',()=>setPlatform(el.dataset.platform)));
