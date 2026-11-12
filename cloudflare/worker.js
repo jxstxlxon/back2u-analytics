@@ -298,14 +298,34 @@ async function ttSync(env){
  const byId=new Map(prior.map(v=>[String(v.id),v]));
  for(const v of t.videos)byId.set(v.id,v);
  const videos=[...byId.values()];
+ // Preserve every known video. Compare only when this run fetched from the newest
+ // page through has_more=false; partial/resumed runs cannot establish absences.
+ const fullInventoryComparison=!validCheckpoint&&!t.hasMore;
+ const fetchedIds=new Set(t.videos.map(v=>String(v.id)));
+ const retainedOnly=fullInventoryComparison?prior.filter(v=>!fetchedIds.has(String(v.id))):[];
+ const inventory={
+  updatedAt:new Date().toISOString(),fullScan:fullInventoryComparison,
+  startedFromNewest:!validCheckpoint,pages:t.pages,hasMore:t.hasMore,
+  fetchedThisRun:t.videos.length,storedAfterMerge:videos.length,
+  previouslyStoredNotReturned:fullInventoryComparison?retainedOnly.length:null,
+  samplePreviouslyStoredNotReturned:fullInventoryComparison?retainedOnly.slice(0,8).map(v=>({
+    id:clamp(v.id),date:day(v.date),title:clamp(v.title)
+  })):[],
+  note:fullInventoryComparison?
+    'Not returned in one full API scan is not proof of deletion, privacy or unavailability.':
+    'Partial or continued scan; do not infer video absences.'
+ };
  snapshot.platforms.tt={...snapshot.platforms.tt,daily:snapshot.platforms.tt?.daily||[],videos,profile:snapshot.platforms.tt?.profile||{}};
  snapshot.generatedAt=new Date().toISOString();
  snapshot.errors=(snapshot.errors||[]).filter(x=>x.platform!=='tt');
  if(t.hasMore)snapshot.errors.push({platform:'tt',task:'video-list',message:'TikTok has more videos than the current page limit'});
  snapshot.status=snapshot.errors.length?'partial':'ok';
  await put(env,'snapshot',snapshot);
+ await put(env,'tt_scan_reconciliation',inventory);
  await put(env,'tt_page_cursor',{cursor:t.hasMore?t.nextCursor:null,hasMore:t.hasMore,pagesLastBatch:t.pages,updatedAt:new Date().toISOString(),complete:!t.hasMore});
  return {connected:true,added:t.videos.length,total:videos.length,hasMore:t.hasMore,pages:t.pages,complete:!t.hasMore,continued:!!validCheckpoint,
+   fetchedThisRun:inventory.fetchedThisRun,previouslyStoredNotReturned:inventory.previouslyStoredNotReturned,
+   fullInventoryComparison:inventory.fullScan,
    tiktokFollowersUpdated:profileSync.known,statsScopeRequired:profileSync.reason==='user.info.stats not granted'};
 }
 async function route(req,env){
@@ -342,6 +362,7 @@ async function route(req,env){
  if(path==='/api/diagnostics'){
   const s=await hydratedSnapshot(env);
   const scan=await get(env,'tt_page_cursor');
+  const inventory=await get(env,'tt_scan_reconciliation');
   const tt=s?.platforms?.tt?.videos||[];
   const ttOauth=await get(env,'tt_oauth');
   const ttProfile=s?.platforms?.tt?.profile||{};
@@ -354,6 +375,11 @@ async function route(req,env){
   return json({service:'BACK2U Cloud',source:s?.source||'none',generatedAt:s?.generatedAt||null,
    tiktokScan:{updatedAt:scan?.updatedAt||null,hasMore:scan?.hasMore??null,complete:scan?.complete??null,pagesLastBatch:scan?.pagesLastBatch||null},
    tiktokVideoDateRange:ttDates,
+   tiktokVideoReconciliation:inventory?{
+    ...inventory,
+    officialPublicVideoCount:Number.isSafeInteger(ttProfile.videoCount)?ttProfile.videoCount:null,
+    storedVsOfficialDifference:Number.isSafeInteger(ttProfile.videoCount)?tt.length-ttProfile.videoCount:null
+   }:null,
    tiktokFollowers:{known:Number.isSafeInteger(ttProfile.followers),asOf:ttProfile.asOf||null,
      statsScopeGranted:String(ttOauth?.scope||'').split(/[\s,]+/).includes('user.info.stats'),
      officialPublicVideoCount:Number.isSafeInteger(ttProfile.videoCount)?ttProfile.videoCount:null},
