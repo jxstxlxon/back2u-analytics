@@ -64,6 +64,15 @@ function setvar(k,v){document.documentElement.style.setProperty(k,String(v))}
 function apply(){
  let p=byId[state.id],v=settings(),glass=el('glassSlider');
  let strength=glass?clamp(glass.value,0,100,48):48,alpha=p.light?.45+strength*.0039:.22+strength*.0056;
+ const artEngine=window.BACK2U_REFERENCE_ART;
+ const themeArt=typeof artEngine==='function'?artEngine({...p,accent:v.accent,secondary:v.secondary}):null;
+ if(themeArt){
+  document.body.dataset.referenceLayout=themeArt.layout;
+  document.body.dataset.themeFinish=themeArt.finish;
+  document.body.dataset.themeMotif=themeArt.type;
+  document.body.dataset.themeArtwork='on';
+  setvar('--t-scene-url','url("'+themeArt.url+'")');
+ }
  document.body.dataset.themeTone=p.light?'light':'dark';
  document.body.dataset.themeId=p.id;
  document.body.dataset.themeFamily=p.family;
@@ -112,6 +121,9 @@ function renderGrid(){
  presets.filter(p=>(category==='all'||p.family===category)&&p.name.toLowerCase().includes(query)).forEach(p=>{
   const b=document.createElement('button');b.type='button';b.className='theme-option';b.dataset.preset=p.id;
   b.style.setProperty('--preview-a',p.bg);b.style.setProperty('--preview-b',p.bg2);b.style.setProperty('--preview-c',p.accent);
+  if(typeof window.BACK2U_REFERENCE_ART==='function'){
+   b.style.setProperty('--ref-preview','url("'+window.BACK2U_REFERENCE_ART(p).url+'")');
+  }
   const art=document.createElement('span');art.className='theme-option-preview';art.setAttribute('aria-hidden','true');
   const name=document.createElement('strong');name.textContent=p.name;
   const desc=document.createElement('small');desc.textContent=p.family==='aero'?'Frutiger Aero':p.family==='light'?'Hell':'Dunkel';
