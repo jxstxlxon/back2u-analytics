@@ -102,12 +102,12 @@ body.story-open{overflow:hidden}
 #back2uLoginOverlay input{display:block;width:100%;padding:15px 16px;border-radius:12px;background:#061326cc;border:1px solid #adcafa5a;color:white;font:inherit;font-size:16px;margin-bottom:12px}
 #back2uLoginOverlay button{border:0;border-radius:12px;background:#449dfb;color:white;font:600 15px system-ui;padding:13px 16px;width:100%;cursor:pointer}
 #back2uLoginOverlay #back2uLoginError{min-height:20px;color:#ffc5c5;font-size:12px;margin-top:14px}
-</style><link rel="stylesheet" href="/theme-studio.css?v=1"><link rel="stylesheet" href="/theme-reference.css?v=2"><link rel="stylesheet" href="/ui-v3.css?v=3"></head>
+</style><link rel="stylesheet" href="/theme-studio.css?v=1"><link rel="stylesheet" href="/theme-reference.css?v=2"><link rel="stylesheet" href="/ui-v3.css?v=3"><link rel="stylesheet" href="/ui-v4.css?v=4"></head>
 <body>
 <div class="ambient ambient-a"></div><div class="ambient ambient-b"></div><div class="ambient ambient-c"></div><div class="grain"></div>
 <div class="shell">
 <header class="topbar glass">
-  <div class="identity"><div class="brand-icon"><img src="/back2u-mark.svg" width="44" height="44" alt="BACK2U-Logo" decoding="async"/></div><div><div class="brand-title" id="back2u-logo-wordmark">BACK2U <span>DASHBOARD</span></div><div class="brand-subtitle">Creator Command Center <span class="version">/ 01</span></div></div></div>
+  <div class="identity"><div class="brand-icon"><img src="/back2u-wordmark.svg" width="132" height="48" alt="BACK2U" decoding="async"/></div><div><div class="brand-title" id="back2u-logo-wordmark">Creator Command Center</div><div class="brand-subtitle">BACK2U Dashboard <span class="version">/ 01</span></div></div></div>
   <div class="top-actions"><button type="button" id="themeStudioToggle" aria-haspopup="dialog" aria-expanded="false" aria-controls="themeStudioPanel">✧ Design & Theme</button><button type="button" class="story-mode-switch" id="storyModeToggle" aria-pressed="false" aria-controls="storyOverlay" title="Story-Modus ein- oder ausschalten">▯ Story-Modus</button><div class="sync-indicator"><span id="syncDot" class="signal-dot"></span><span id="syncShort">Archivdaten</span></div><button class="icon-action" id="refreshBtn" aria-label="Daten neu abrufen" title="Daten neu abrufen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20 11a8 8 0 1 0-2.2 5.5M20 4v7h-7"/></svg></button></div>
 </header>
 <div class="masthead"><div><div class="eyebrow"><span class="tiny-orb"></span> OWN YOUR MOMENTUM <span id="sourceStamp" class="source-stamp">Daten bis 10.11.2026</span></div><h1>Dein Content.<br/><em>Deine Zahlen.</em></h1><p>Ein Ort für deine Videos, dein Wachstum und deine nächsten Entscheidungen.</p></div><div class="mast-right glass"><div class="mini-label">LENS / GLASS INTENSITY</div><div class="glass-toolbar"><button data-glass-preset="10" title="Kristallklar">Clear</button><button data-glass-preset="48" class="selected" title="Milchglas">Glass</button><button data-glass-preset="90" title="Stark getönt">Frost</button></div><input id="glassSlider" type="range" min="0" max="100" value="48" aria-label="Glasintensität einstellen"/><div class="glass-scale"><span>transparent</span><strong id="glassValue">48%</strong><span>tief</span></div></div></div>
@@ -116,13 +116,13 @@ body.story-open{overflow:hidden}
 <div id="notice" class="notice" role="status"></div>
 <main>
 <section id="overview" class="view active">
-  <div class="hero-grid"><div class="hero-main glass"><div class="card-top"><div class="eyebrow">01 / MOMENTUM</div><span class="pill pill-blue" id="rangeLabel">28-Tage-Ansicht</span></div><div class="hero-label" id="heroLabel">Gesamtaufrufe</div><div class="hero-big" id="heroValue">1.727.668</div><div class="hero-bottom"><span class="delta" id="heroDelta">Exportwerte</span><span id="heroFootnote">YouTube, Instagram und TikTok</span></div><div id="heroSpark" class="hero-spark"></div></div>
+  <div class="hero-grid"><div class="hero-main glass"><div class="card-top"><div class="eyebrow">01 / MOMENTUM</div><span class="pill pill-blue" id="rangeLabel">28-Tage-Ansicht</span></div><div class="hero-label" id="heroLabel">Gesamtaufrufe</div><div class="hero-big" id="heroValue">1.727.668</div><div class="hero-bottom"><span class="delta" id="heroDelta">Exportwerte</span><details class="hero-source-details"><summary>Datenbasis anzeigen</summary><span id="heroFootnote">YouTube, Instagram und TikTok</span></details></div><button type="button" id="heroChartJump" class="hero-chart-link" aria-label="Zum großen Tagesdiagramm wechseln">Tagesdiagramm ansehen ↗</button><div id="heroSpark" class="hero-spark"></div></div>
     <div class="platform-stack" id="platformStack"></div></div>
   <section id="lifetimeViewsCard" class="lifetime-views-card glass" aria-label="All-Time Videoaufrufe"><div class="eyebrow">ALL TIME / VIDEO-AUFRUFE</div><div class="lifetime-views-heading">Alle bisher erfassten Videoaufrufe</div><div class="lifetime-views-total" id="lifetimeViewsTotal">–</div><div class="lifetime-views-subtitle" id="lifetimeViewsSubtitle">Lade offizielle Video-Gesamtwerte …</div><div class="lifetime-views-breakdown" id="lifetimeViewsBreakdown"></div><div class="lifetime-views-note" id="lifetimeViewsNote">Gesamtaufrufe der verfügbaren Videos, nicht die vollständige Historie des Kontos.</div></section>
   <div id="followerCards" class="follower-cards" aria-label="Follower und Abonnenten"></div>
   <div id="dailyFreshness" class="daily-freshness" role="status"></div>
   <div class="section-heading"><div><div class="eyebrow">02 / SIGNAL</div><h2>Deine Entwicklung</h2><p>Die Aufrufe im Zeitverlauf – unterschiedliche Messgrößen werden gekennzeichnet.</p></div><div id="trendLegend" class="legend"></div></div>
-  <div class="chart-card glass"><div class="chart-head"><div><strong id="chartTitle">Tägliche Aufrufe</strong><span id="chartSubtitle">Auf Basis der vorhandenen Tageswerte</span></div><div class="tooltip-n" id="chartHoverLabel">Zum Vergleichen über das Diagramm fahren</div></div><div id="chartKpis" class="chart-kpis" aria-label="Auswertung vorhandener Tageswerte"></div><div id="chartModes" class="chart-mode-group" role="group" aria-label="Diagrammart"><button type="button" data-chart-mode="line" aria-pressed="true">Linie</button><button type="button" data-chart-mode="area" aria-pressed="false">Fläche</button><button type="button" data-chart-mode="bar" aria-pressed="false">Balken</button></div><div class="line-chart-wrap" id="trendChart"></div><div id="chartSummaryNote" class="chart-summary-note"></div><div class="chart-foot" id="chartFoot"></div></div>
+  <div class="chart-card glass"><div class="chart-head"><div><strong id="chartTitle">Tägliche Aufrufe</strong><span id="chartSubtitle">Auf Basis der vorhandenen Tageswerte</span></div><div class="tooltip-n" id="chartHoverLabel">Zum Vergleichen über das Diagramm fahren</div></div><div id="chartKpis" class="chart-kpis" aria-label="Auswertung vorhandener Tageswerte"></div><div id="chartDayBreakdown" class="chart-day-breakdown" aria-live="polite" aria-atomic="true"></div><div id="chartModes" class="chart-mode-group" role="group" aria-label="Diagrammart"><button type="button" data-chart-mode="line" aria-pressed="true">Linie</button><button type="button" data-chart-mode="area" aria-pressed="false">Fläche</button><button type="button" data-chart-mode="bar" aria-pressed="false">Balken</button></div><div class="line-chart-wrap" id="trendChart"></div><div id="chartSummaryNote" class="chart-summary-note"></div><div class="chart-foot" id="chartFoot"></div></div>
   <div class="section-heading"><div><div class="eyebrow">03 / STANDOUTS</div><h2>Videos, die herausstechen</h2><p>Nach bisherigen Aufrufen der im Zeitraum veröffentlichten Videos.</p></div><button class="subtle-link" data-go="videos">Alle Videos ansehen <span>↗</span></button></div>
   <div id="topCards" class="top-grid"></div>
   <div class="insight-strip glass"><div class="insight-symbol">✦</div><div><b id="headlineInsight">Datenbasiert statt Bauchgefühl.</b><p id="headlineInsightText">Die nächsten Empfehlungen werden anhand deiner Videos berechnet.</p></div><button data-go="experiments">Experimente prüfen <span>→</span></button></div>
@@ -133,7 +133,7 @@ body.story-open{overflow:hidden}
   <label class="tiktok-archive-control" id="tiktokArchiveRow" hidden><input type="checkbox" id="showArchivedTikTok"/> <span>119 TikTok-Screenshot-Archiveinträge zusätzlich anzeigen (können API-Videos doppeln)</span></label>
   <div class="video-period-info" id="videoPeriodInfo" role="status"></div>
   <div class="tools glass"><label class="search-wrap"><span>⌕</span><input id="videoSearch" placeholder="Titel, Song, Format suchen ..." aria-label="Videos suchen" /></label><select id="videoSort" aria-label="Videos sortieren"><option value="views">Meiste Aufrufe</option><option value="likes">Meiste Likes</option><option value="comments">Meiste Kommentare</option><option value="follows">Meiste Follows</option><option value="recent">Neueste zuerst</option></select><select id="formatFilter" aria-label="Videoformat filtern"><option value="all">Alle Formate</option><option>Trend</option><option>Edit</option><option>Jumpstyle</option><option>Hakken</option><option>Training</option><option>Outfit</option><option>Outdoor</option></select></div>
-  <div class="video-layout"><div class="glass video-list-panel"><div class="panel-caption">VIDEO LIBRARY <small id="listCount"></small></div><div id="videoList"></div><div class="pager"><button id="prevPage">← Zurück</button><span id="pageLabel"></span><button id="nextPage">Weiter →</button></div></div><div id="detailPanel" class="glass detail-panel"></div></div>
+  <div class="video-layout"><div class="glass video-list-panel"><div class="panel-caption">VIDEO LIBRARY <small id="listCount"></small></div><div id="videoList"></div><button type="button" id="videoExpand" class="library-expand" aria-controls="videoList" aria-expanded="false">Mehr Videos anzeigen</button><div class="pager"><button id="prevPage">← Zurück</button><span id="pageLabel"></span><button id="nextPage">Weiter →</button></div></div><div id="detailPanel" class="glass detail-panel"></div></div>
   <div class="glass note-panel"><strong>Vergleich richtig lesen</strong><p id="videoDisclosure">YouTube-Aufrufe sind im historischen Export auf den Analysezeitraum bezogen; Instagram und TikTok verwenden bisherige Gesamtaufrufe. Ein plattformübergreifender Platz bedeutet nicht dieselben ersten 24 Stunden.</p></div>
 </section>
 <section id="experiments" class="view"><div class="section-heading"><div><div class="eyebrow">01 / EXPERIMENT LAB</div><h2>Mehr posten. Besser verstehen.</h2><p>Die Häufigkeit ist messbar – ein direkter Kausalbeweis für mehr Reichweite ist sie nicht.</p></div></div>
@@ -175,7 +175,7 @@ const SEED = window.SEED;
 if(!SEED){document.body.textContent='Datensatz fehlt: seed.js wurde nicht geladen.';return;}
 const COLORS={yt:'#ff849b',ig:'#b29bff',tt:'#63e7db'};
 const NAMES={yt:'YouTube',ig:'Instagram',tt:'TikTok'};
-const state={platform:'all',days:28,section:'overview',glass:48,sort:'views',fmt:'all',query:'',page:1,selected:null,live:null,loading:false,lastError:null,includeTiktokArchive:false,storyMode:false};
+const state={platform:'all',days:28,section:'overview',glass:48,sort:'views',fmt:'all',query:'',page:1,listExpanded:false,selected:null,live:null,loading:false,lastError:null,includeTiktokArchive:false,storyMode:false};
 try{const saved=Number(localStorage.getItem('back2u_glass'));if(Number.isFinite(saved)&&saved>=0&&saved<=100)state.glass=saved}catch{}
 const $=q=>document.querySelector(q), $$=q=>[...document.querySelectorAll(q)];
 const fmt=n=>n===null||n===undefined||Number.isNaN(Number(n))?'–':new Intl.NumberFormat('de-DE',{maximumFractionDigits:0}).format(Number(n));
@@ -197,7 +197,9 @@ function mergedDaily(p){
  return [...map.values()].sort((a,b)=>a.d.localeCompare(b.d));
 }
 function guessFormat(t){t=(t||'').toLowerCase();return t.includes('captain')?'Trend':t.includes('ianrock')||t.includes('ian rocks')||t.includes('edit')?'Edit':t.includes('hakken')?'Hakken':/tutorial|mistake|cleaner|practice/.test(t)?'Training':/phat|pant|outfit/.test(t)?'Outfit':/castle|lost|abandoned/.test(t)?'Outdoor':'Jumpstyle'}
+let videoMergeCache=null;
 function mergedVideos(){
+ if(videoMergeCache&&videoMergeCache.live===state.live&&videoMergeCache.archive===state.includeTiktokArchive)return videoMergeCache.items;
  const m=new Map();
  const key=v=>{
   if(v.platform==='yt'){let id=v.id||/youtube\.com\/(?:shorts\/|watch\?v=)([\w-]{11})/.exec(v.url||'')?.[1];if(id)return 'yt:'+id}
@@ -216,7 +218,7 @@ function mergedVideos(){
   if(fallback&&!a.thumb)a.thumb=fallback.thumb;
   m.set(lookup,{...fallback,...a});
  }
- return [...m.values()];
+ const items=[...m.values()];videoMergeCache={live:state.live,archive:state.includeTiktokArchive,items};return items;
 }
 function anchorDate(){
  const now=new Date().toLocaleDateString('sv-SE',{timeZone:'Europe/Berlin'});
@@ -266,14 +268,14 @@ function videoFiltered(){let arr=mergedVideos().filter(v=>platforms().includes(v
 function allVideosNoSearch(){const {start,end}=allVideoWindow();return mergedVideos().filter(v=>platforms().includes(v.platform)&&v.date>=start&&v.date<=end).sort((a,b)=>(b.views||0)-(a.views||0))}
 const metricDesc=p=>p==='yt'?(state.live?.platforms?.yt?.videos?.length?'YouTube: Gesamtaufrufe pro Video aus der offiziellen Data API':'YouTube: bisheriger Studio-Export (Aufrufe im Analysezeitraum)'):p==='ig'?'Instagram: bisherige Gesamtaufrufe':(state.live?.platforms?.tt?.videos?.length?'TikTok: Gesamtwerte über offizielle Display API':'TikTok: Archiv-Screenshots');
 function tagPlatform(p){return `<span class="platform-dot ${p}dot"></span>${esc(NAMES[p])}`}
-function image(v){const u=cleanUrl(v.thumb);return u?`<img src="${esc(u)}" alt="Vorschau" loading="lazy" onerror="this.parentElement.innerHTML='<div class=poster-fallback>BACK2U</div>'">`:`<div class="poster-fallback">${esc((v.format||'B2U').slice(0,1))}</div>`}
+function image(v){const u=cleanUrl(v.thumb);return u?`<img src="${esc(u)}" alt="Vorschau" loading="lazy" decoding="async" fetchpriority="low" onerror="this.parentElement.innerHTML='<div class=poster-fallback>BACK2U</div>'">`:`<div class="poster-fallback">${esc((v.format||'B2U').slice(0,1))}</div>`}
 function toast(s){const el=$('#toast');el.textContent=s;el.classList.add('visible');clearTimeout(toast.h);toast.h=setTimeout(()=>el.classList.remove('visible'),2800)}
 function glassSet(value){state.glass=Math.min(100,Math.max(0,Number(value)||0));const alpha=.12+state.glass/100*.79,blur=9+state.glass/100*51,shine=.06+state.glass/100*.22;
  document.documentElement.style.setProperty('--glass',`rgba(25,38,63,${alpha.toFixed(3)})`);document.documentElement.style.setProperty('--glass-blur',`${blur.toFixed(1)}px`);document.documentElement.style.setProperty('--shine',shine.toFixed(3));
  $('#glassSlider').value=state.glass;$('#glassValue').textContent=state.glass+'%';$$('[data-glass-preset]').forEach(b=>b.classList.toggle('selected',Number(b.dataset.glassPreset)===state.glass));
  try{localStorage.setItem('back2u_glass',state.glass)}catch{}
 }
-function setSection(s){state.section=s;$$('[data-section]').forEach(x=>x.classList.toggle('active',x.dataset.section===s));$$('.view').forEach(x=>x.classList.toggle('active',x.id===s));renderActive();window.scrollTo({top:0,behavior:'smooth'})}
+function setSection(s){state.section=s;document.body.dataset.activeSection=s;$('[data-section]').forEach(x=>x.classList.toggle('active',x.dataset.section===s));$$('.view').forEach(x=>x.classList.toggle('active',x.id===s));renderActive();window.scrollTo({top:0,behavior:'smooth'})}
 function setPeriod(d){state.days=d;$$('[data-days]').forEach(x=>x.classList.toggle('selected',Number(x.dataset.days)===d));state.page=1;state.selected=null;renderActive()}
 function setPlatform(p){state.platform=p;$$('[data-platform]').forEach(x=>x.classList.toggle('selected',x.dataset.platform===p));state.page=1;state.selected=null;renderActive()}
 function fmtGrowth(a,b){if(!b)return null;return 100*(a/b-1)}
@@ -450,8 +452,11 @@ function knownMetric(items,metric){
  const vals=items.map(x=>videoMetricValue(x,metric)).filter(x=>typeof x==='number'&&Number.isFinite(x));
  return vals.length?vals.reduce((a,b)=>a+b,0):null;
 }
+let groupCache=null;
 function crossPlatformVideoGroups(){
- const items=mergedVideos().slice().sort((a,b)=>String(b.date||'').localeCompare(String(a.date||'')));
+ const base=mergedVideos();
+ if(groupCache?.source===base)return groupCache.groups;
+ const items=base.slice().sort((a,b)=>String(b.date||'').localeCompare(String(a.date||'')));
  const groups=[],days=new Map();
  for(const v of items){
   const date=String(v.date||'');
@@ -473,10 +478,11 @@ function crossPlatformVideoGroups(){
   g.members.push(v);
   if(v.platform==='yt'){g.title=v.title;g.first=v;}
  }
- return groups.map((g,i)=>{
+ const finished=groups.map((g,i)=>{
   const members=g.members.sort((a,b)=>['yt','ig','tt'].indexOf(a.platform)-['yt','ig','tt'].indexOf(b.platform));
   return {...g,groupKey:members.map(v=>v.platform+':'+(v.id||v.url||v.title)).join('|'),views:knownMetric(members,'views'),likes:knownMetric(members,'likes'),comments:knownMetric(members,'comments'),follows:knownMetric(members,'follows'),shares:knownMetric(members,'shares')};
  });
+ groupCache={source:base,groups:finished};return finished;
 }
 function groupPlatformLabel(g,metric){
  return g.members.map(v=>'<span>'+tagPlatform(v.platform)+' '+fmt(videoMetricValue(v,metric))+'</span>').join('');
@@ -491,6 +497,13 @@ function renderGroupedVideoDetail(g){
  }).join('');
  $('#detailPanel').innerHTML='<div class="detail-art">'+image(g.first)+'</div><div class="detail-pill">'+(g.members.length>1?g.members.length+' Plattformen':'1 Plattform')+'</div><h3 class="detail-heading">'+esc(g.title)+'</h3><div class="detail-metrics">'+metrics+'</div><div class="detail-note">'+(g.members.length>1?'Summierte Kontoaufrufe, keine eindeutig verschiedenen Zuschauer.':'Einzelvideo-Gesamtwerte.')+' Follows pro Video werden nur addiert, soweit sie übermittelt wurden. „–“ bedeutet fehlende Daten. Automatische Video-Zuordnung erfolgt anhand von Titel und Datum; sie ist nicht durch identische Videodateien verifiziert.</div><div class="group-detail-header">AUFSCHLÜSSELUNG NACH PLATTFORM</div>'+platformRows;
 }
+function updateLibraryExpander(count){
+ const button=$('#videoExpand'),pager=$('#videoList').nextElementSibling?.nextElementSibling;
+ button.hidden=count<=5&& !state.listExpanded;
+ button.textContent=state.listExpanded?'Auf 5 Videos reduzieren':'Weitere Videos anzeigen · bis zu 15 je Seite';
+ button.setAttribute('aria-expanded',String(state.listExpanded));
+ if(pager)pager.hidden=!state.listExpanded;
+}
 function renderGroupedVideos(){
  const all=crossPlatformVideoGroups();
  let groups=all;
@@ -502,7 +515,8 @@ function renderGroupedVideos(){
  $('#videoPeriodInfo').classList.remove('warn');
  $('#videoPeriodInfo').textContent='Alle Plattformen: Das gleiche Video wird bei eindeutiger Titel-/Datumszuordnung als gemeinsame Gruppe dargestellt. Aufrufe, Likes und Kommentare werden addiert; darunter siehst du die Einzelwerte. Unklare Zuordnungen bleiben getrennt. Der 7/28/90-Tage-Schalter verändert nicht die Lifetime-Werte pro Video.';
  $('#videoDisclosure').textContent='Plattformübergreifende Summen sind addierte Aufrufe, keine Unique Viewer. Ein Clip kann auf mehreren Plattformen dieselben Personen erreichen. Einzelvideo-Follows sind nicht überall verfügbar; „–“ statt Schätzung.';
- const perPage=15,numberOfPages=Math.max(1,Math.ceil(groups.length/perPage));state.page=Math.min(numberOfPages,Math.max(1,state.page));const start=(state.page-1)*perPage,show=groups.slice(start,start+perPage);
+ const perPage=state.listExpanded?15:5,numberOfPages=Math.max(1,Math.ceil(groups.length/perPage));state.page=Math.min(numberOfPages,Math.max(1,state.page));const start=(state.page-1)*perPage,show=groups.slice(start,start+perPage);
+ updateLibraryExpander(groups.length);
  $('#videoList').innerHTML=show.length?show.map((g,i)=>{
   const selected=state.selected?.groupKey===g.groupKey?' active':'';
   const split='<span class="group-platform-split">'+groupPlatformLabel(g,state.sort==='recent'?'views':state.sort)+'</span>';
@@ -515,7 +529,7 @@ function renderGroupedVideos(){
  $$('[data-vid-index]').forEach(el=>el.addEventListener('click',()=>{state.selected=groups[Number(el.dataset.vidIndex)];renderGroupedVideoDetail(state.selected);$$('[data-vid-index]').forEach(e=>e.classList.remove('active'));el.classList.add('active')}));
 }
 
-function renderVideos(){if(state.platform==='all'){const hasApi=Boolean(state.live?.platforms?.tt?.videos?.length);$('#tiktokArchiveRow').style.display=hasApi?'flex':'none';$('#showArchivedTikTok').checked=state.includeTiktokArchive;renderGroupedVideos();return;}const hasTikTokApi=Boolean(state.live?.platforms?.tt?.videos?.length);$('#tiktokArchiveRow').style.display=hasTikTokApi?'flex':'none';$('#showArchivedTikTok').checked=state.includeTiktokArchive;const vlist=videoFiltered();$('#videoCount').textContent=fmt(vlist.length)+(state.platform==='yt'?' YouTube-Videos':' Clips');$('#listCount').textContent=fmt(vlist.length)+' im Filter';let pageN=Math.max(1,Math.ceil(vlist.length/15));state.page=Math.min(pageN,Math.max(1,state.page));const start=(state.page-1)*15,show=vlist.slice(start,start+15);
+function renderVideos(){if(state.platform==='all'){const hasApi=Boolean(state.live?.platforms?.tt?.videos?.length);$('#tiktokArchiveRow').style.display=hasApi?'flex':'none';$('#showArchivedTikTok').checked=state.includeTiktokArchive;renderGroupedVideos();return;}const hasTikTokApi=Boolean(state.live?.platforms?.tt?.videos?.length);$('#tiktokArchiveRow').style.display=hasTikTokApi?'flex':'none';$('#showArchivedTikTok').checked=state.includeTiktokArchive;const vlist=videoFiltered();$('#videoCount').textContent=fmt(vlist.length)+(state.platform==='yt'?' YouTube-Videos':' Clips');$('#listCount').textContent=fmt(vlist.length)+' im Filter';const perPage=state.listExpanded?15:5;let pageN=Math.max(1,Math.ceil(vlist.length/perPage));state.page=Math.min(pageN,Math.max(1,state.page));const start=(state.page-1)*perPage,show=vlist.slice(start,start+perPage);
  const feed=state.live?.platforms?.yt?.videos||[];
  const selectedHasYouTube=platforms().includes('yt');
  const sourceDays=Number(state.live?.platforms?.yt?.videoMetricDays||28);
@@ -526,6 +540,7 @@ function renderVideos(){if(state.platform==='all'){const hasApi=Boolean(state.li
  status.textContent=selectedHasYouTube?(hasLifetimeYouTube?'Alle YouTube-Videos bleiben sichtbar – unabhängig vom Upload-Datum. Die aktuellen API-Aufrufe und Likes pro Video sind Gesamtwerte (Lifetime), keine '+state.days+'-Tage-Werte. Für echte Einzelvideo-Zeiträume ist ein zusätzlicher Bericht nötig.':otherPeriod?'Alle Videos bleiben sichtbar – unabhängig vom Upload-Datum. Die YouTube-Quelle enthält derzeit nur '+sourceDays+'-Tage-Kennzahlen. Die Videozahlen bleiben deshalb als '+sourceDays+' Tage beschriftet. Echte '+state.days+'-Tage-Werte benötigen einen separaten Export.':'Alle Videos sichtbar, auch ältere Uploads. YouTube-Aufrufe und Likes: '+sourceDays+'-Tage-Berichtszeitraum'+(state.live?.dataThrough?' · letzter YouTube-Datentag: '+state.live.dataThrough:'')+'.'):state.platform==='ig'&&state.live?.platforms?.ig?.videos?.length?'Alle Instagram-Beiträge bleiben sichtbar – unabhängig vom Upload-Datum. '+state.live.platforms.ig.videos.length+' Einträge aus dem Live-Export. Aufrufe und Likes je Beitrag sind Gesamtwerte, keine reinen '+state.days+'-Tage-Werte.':hasTikTokApi?'TikTok: '+state.live.platforms.tt.videos.length+' eindeutig identifizierte API-Videos mit bisherigen Gesamtwerten (Lifetime). Das historische Screenshot-Archiv vom 10.11.2026 bleibt separat verfügbar.':'Alle Videos sichtbar, unabhängig vom Upload-Datum. Instagram/TikTok zeigen die verfügbaren Gesamtwerte.';
  if(state.platform==='all'&&!state.live?.platforms?.tt?.videos?.length){const archivedTT=SEED.videos.filter(v=>v.platform==='tt').length;if(archivedTT)status.textContent+=' Außerdem '+archivedTT+' TikTok-Videos aus archivierten Studio-Screenshots (Stand 10.11.2026; keine Live-API).';}
  $('#videoDisclosure').textContent=hasLifetimeYouTube?'Das Veröffentlichungsdatum begrenzt die Videoliste nicht. YouTube und Instagram: pro Video bisherige Gesamtaufrufe (Lifetime); der 7/28/90-Tage-Schalter ändert diese Einzelvideo-Gesamtwerte nicht. TikTok: API-Videos werden per ID geführt; 119 ältere Studio-Screenshot-Einträge bleiben als zusätzlich einschaltbares Archiv erhalten.':'Das Veröffentlichungsdatum schränkt die Videoliste nicht ein. YouTube: historische 28-Tage-Berichtswerte. Instagram und TikTok zeigen bisherige Gesamtaufrufe; TikTok-Daten können aus archivierten Screenshots stammen.';
+ updateLibraryExpander(vlist.length);
  $('#videoList').innerHTML=show.length?show.map((v,i)=>`<button class="list-row ${state.selected&&state.selected.platform===v.platform&&state.selected.date===v.date&&state.selected.title===v.title?'active':''}" data-vid-index="${start+i}"><span class="list-num">${start+i+1}</span><span class="list-thumb">${image(v)}</span><span class="list-name">${esc(v.title)}<small>${tagPlatform(v.platform)} · ${esc(v.date)}</small></span><span class="list-number">${fmt(videoMetricValue(v,state.sort==='recent'?'views':state.sort))}<small>${esc(videoMetricLabel(v,state.sort==='recent'?'views':state.sort))}</small></span></button>`).join(''):'<div class="empty">Keine Treffer. Versuche einen anderen Suchbegriff oder Zeitraum.</div>';
  $('#pageLabel').textContent=`Seite ${state.page} von ${pageN}`;$('#prevPage').disabled=state.page===1;$('#nextPage').disabled=state.page===pageN;
  if(!state.selected||!vlist.some(v=>v.title===state.selected.title&&v.date===state.selected.date&&v.platform===state.selected.platform))state.selected=vlist[0]||null;
@@ -695,7 +710,7 @@ async function saveStoryPng(){
  finally{btn.disabled=false;btn.textContent=orig}
 }
 
-function renderActive(){setSyncStatus();$('#notice').textContent=state.days===90&&!state.live?'90 Tage: Die historischen Exporte decken nur rund vier Wochen ab. Angezeigt werden verfügbare Tage – keine hochgerechneten Werte.':'';
+function renderActive(){document.body.dataset.activeSection=state.section;setSyncStatus();$('#notice').textContent=state.days===90&&!state.live?'90 Tage: Die historischen Exporte decken nur rund vier Wochen ab. Angezeigt werden verfügbare Tage – keine hochgerechneten Werte.':'';
  if(state.section==='overview')renderOverview();else if(state.section==='videos')renderVideos();else if(state.section==='experiments')renderExperiments();else if(state.section==='audience')renderAudience();else if(state.section==='system')renderSystem();}
 function exportData(){const b=new Blob([JSON.stringify({seed:SEED,live:state.live},null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='BACK2U_Datenstand.json';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);toast('Daten als JSON gespeichert')}
 
@@ -759,10 +774,12 @@ function bind(){
  $$('[data-days]').forEach(el=>el.addEventListener('click',()=>setPeriod(Number(el.dataset.days))));
  $$('[data-section]').forEach(el=>el.addEventListener('click',()=>setSection(el.dataset.section)));
  $$('[data-go]').forEach(el=>el.addEventListener('click',()=>setSection(el.dataset.go)));
- $('#glassSlider').addEventListener('input',e=>glassSet(e.target.value));$$('[data-glass-preset]').forEach(el=>el.addEventListener('click',()=>glassSet(el.dataset.glassPreset)));
- $('#storyModeToggle').addEventListener('click',toggleStoryMode);$('#storyClose').addEventListener('click',()=>setStoryMode(false));$('#storySave').addEventListener('click',saveStoryPng);document.addEventListener('keydown',e=>{if(e.key==='Escape'&&state.storyMode)setStoryMode(false)});$('#refreshBtn').addEventListener('click',()=>loadLive(true));$('#tiktokSyncNow').addEventListener('click',syncTiktokNow);$('#tiktokAuditNow').addEventListener('click',auditTiktokNow);$('#showArchivedTikTok').addEventListener('change',e=>{state.includeTiktokArchive=e.target.checked;state.page=1;state.selected=null;renderActive()});$('#videoSearch').addEventListener('input',e=>{state.query=e.target.value;state.page=1;renderVideos()});$('#videoSort').addEventListener('change',e=>{state.sort=e.target.value;state.page=1;renderVideos()});$('#formatFilter').addEventListener('change',e=>{state.fmt=e.target.value;state.page=1;renderVideos()});$('#prevPage').addEventListener('click',()=>{state.page--;renderVideos()});$('#nextPage').addEventListener('click',()=>{state.page++;renderVideos()});$('#exportJson').addEventListener('click',exportData);
+ $('#heroChartJump').addEventListener('click',()=>$('#chartTitle').scrollIntoView({behavior:'smooth',block:'center'}));$('#glassSlider').addEventListener('input',e=>glassSet(e.target.value));$$('[data-glass-preset]').forEach(el=>el.addEventListener('click',()=>glassSet(el.dataset.glassPreset)));
+ $('#storyModeToggle').addEventListener('click',toggleStoryMode);$('#storyClose').addEventListener('click',()=>setStoryMode(false));$('#storySave').addEventListener('click',saveStoryPng);document.addEventListener('keydown',e=>{if(e.key==='Escape'&&state.storyMode)setStoryMode(false)});$('#refreshBtn').addEventListener('click',()=>loadLive(true));$('#tiktokSyncNow').addEventListener('click',syncTiktokNow);$('#tiktokAuditNow').addEventListener('click',auditTiktokNow);$('#showArchivedTikTok').addEventListener('change',e=>{state.includeTiktokArchive=e.target.checked;state.page=1;state.selected=null;renderActive()});let videoSearchTimer=0;
+ $('#videoSearch').addEventListener('input',e=>{state.query=e.target.value;state.page=1;clearTimeout(videoSearchTimer);videoSearchTimer=setTimeout(()=>{if(state.section==='videos')renderVideos()},165)});
+ $('#videoExpand').addEventListener('click',()=>{state.listExpanded=!state.listExpanded;state.page=1;renderVideos()});$('#videoSort').addEventListener('change',e=>{state.sort=e.target.value;state.page=1;renderVideos()});$('#formatFilter').addEventListener('change',e=>{state.fmt=e.target.value;state.page=1;renderVideos()});$('#prevPage').addEventListener('click',()=>{state.page--;renderVideos()});$('#nextPage').addEventListener('click',()=>{state.page++;renderVideos()});$('#exportJson').addEventListener('click',exportData);
 }
 window.BACK2U_REFRESH_CHART=()=>{if(state.section==='overview')renderTrend()};glassSet(state.glass);bind();renderActive();loadLive(false);
 })();
-</script><script src="/reference-theme-art.js?v=2" defer></script><script src="/theme-studio.js?v=3" defer></script><script src="/chart-v3.js?v=3" defer></script><script src="/story-composer-v3.js?v=3" defer></script>
+</script><script src="/reference-theme-art.js?v=4" defer></script><script src="/theme-studio.js?v=4" defer></script><script src="/chart-v3.js?v=4" defer></script><script src="/story-composer-v3.js?v=4" defer></script>
 </body></html>

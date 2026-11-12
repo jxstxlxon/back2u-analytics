@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 106" width="400" height="106" role="img" aria-label="BACK2U Creator Command Center">
+<defs><linearGradient id="aqua" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#faffff"/><stop offset=".25" stop-color="#c8fbff"/><stop offset=".53" stop-color="#54cbff"/><stop offset=".75" stop-color="#4582fe"/><stop offset="1" stop-color="#9dd1ff"/></linearGradient>
+<linearGradient id="glint" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#fff" stop-opacity=".96"/><stop offset=".53" stop-color="#e5faff" stop-opacity=".4"/><stop offset="1" stop-color="#61b6ed" stop-opacity=".0"/></linearGradient><filter id="shadow" x="-15%" y="-50%" width="150%" height="200%"><feGaussianBlur in="SourceAlpha" stdDeviation="3"/><feOffset dy="2"/><feComponentTransfer><feFuncA type="linear" slope=".6"/></feComponentTransfer><feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>
+<path d="M4 32 C16 11 48 9 63 22 M293 20 C315 9 348 13 370 24" fill="none" stroke="#d7fdff" stroke-width="4" stroke-linecap="round" opacity=".9"/>
+<path d="M3 77 C75 95 134 94 225 84 C281 78 337 67 396 79" stroke="#61d9fa" stroke-width="5" fill="none" opacity=".87"/>
+<path d="M15 88 C81 100 165 99 246 85" stroke="#ffffff" stroke-width="2.5" fill="none" opacity=".8"/>
+<g filter="url(#shadow)" transform="skewX(-11)">
+<text x="20" y="73" font-family="Trebuchet MS,Segoe UI,Arial,sans-serif" font-size="70" font-style="italic" font-weight="1000" letter-spacing="-5.6" fill="#102c7e" stroke="#07366d" stroke-width="5" paint-order="stroke">BACK2U</text>
+<text x="20" y="73" font-family="Trebuchet MS,Segoe UI,Arial,sans-serif" font-size="70" font-style="italic" font-weight="1000" letter-spacing="-5.6" fill="url(#aqua)" stroke="#ebfcff" stroke-width="2.1" paint-order="stroke">BACK2U</text>
+<text x="20" y="73" font-family="Trebuchet MS,Segoe UI,Arial,sans-serif" font-size="70" font-style="italic" font-weight="1000" letter-spacing="-5.6" fill="url(#glint)" opacity=".64">BACK2U</text></g>
+<path d="M341 15 Q354 9 367 17" fill="none" stroke="#e4fbff" stroke-width="3" stroke-linecap="round"/><path d="M367 12 v12 M361 18 h12" stroke="#f6ffff" stroke-width="2" stroke-linecap="round"/>
+</svg>

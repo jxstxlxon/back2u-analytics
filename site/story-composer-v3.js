@@ -18,6 +18,7 @@ const esc=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&
 const fmt=n=>typeof n==='number'&&Number.isFinite(n)?new Intl.NumberFormat('de-DE',{maximumFractionDigits:0}).format(n):'–';
 const rgb=x=>[1,3,5].map(i=>parseInt(x.slice(i,i+2),16)).join(',');
 const P_NAMES={all:'Alle Plattformen',yt:'YouTube',ig:'Instagram',tt:'TikTok'};
+const HEADINGS=['Mein Creator-Update','Meine Zahlen im Überblick','So läuft’s gerade','Mein Wachstum'];
 const defaults=()=>({title:'Mein Creator-Update',theme:'auto',platform:'all',days:28,layout:'balanced',slots:['views','followers','trend']});
 const safeSlide=x=>{
  const d=defaults();if(!x||typeof x!=='object')return d;
@@ -41,19 +42,21 @@ const selected=()=>composer.slides[composer.selected];
 const persist=()=>{try{localStorage.setItem(KEY,JSON.stringify(composer))}catch(e){}};
 const typeOptions=sel=>TYPES.map(([v,label])=>'<option value="'+v+'"'+(v===sel?' selected':'')+'>'+esc(label)+'</option>').join('');
 const themeOptions=()=>'<option value="auto">Wie mein Dashboard</option>'+themes.list().map(x=>'<option value="'+esc(x.id)+'">'+esc(x.name)+'</option>').join('');
-const logo='<img src="/back2u-mark.svg" alt="" width="48" height="48" decoding="async"/>';
+const logo='<img src="/back2u-wordmark.svg" alt="BACK2U" width="128" height="38" decoding="async"/>';
 const root=document.createElement('div');root.id='storyEditorRoot';root.className='story-editor-shell';
 root.innerHTML='<section class="story-editor-controls" aria-label="Story-Bilder bearbeiten">'
  +'<h2>Story Studio <span style="opacity:.65">/ 9:16</span></h2>'
  +'<p>Jedes Bild erhält eigene Inhalte, Zeitraum, Plattform und ein frei wählbares Liquid-Glass-Theme. Nur vorhandene Werte werden angezeigt.</p>'
  +'<div class="story-tabs" id="scTabs" role="group" aria-label="Story-Seite auswählen"></div>'
+ +'<div class="story-active-theme" id="scThemeNow" aria-live="polite">Aktuelles Theme wird geladen …</div>'
  +'<div class="story-input-grid">'
  +'<label>Theme<select id="scTheme">'+themeOptions()+'</select></label>'
  +'<label>Layout<select id="scLayout"><option value="balanced">Balanced</option><option value="bold">Bold</option><option value="compact">Compact</option></select></label>'
  +'<label>Plattform<select id="scPlatform"><option value="all">Alle</option><option value="yt">YouTube</option><option value="ig">Instagram</option><option value="tt">TikTok</option></select></label>'
  +'<label>Zeitraum<select id="scDays"><option value="7">7 Tage</option><option value="28">28 Tage</option><option value="90">90 Tage</option></select></label>'
  +'</div>'
- +'<label>Story-Überschrift<input id="scTitle" maxlength="56" placeholder="Dein Story-Titel" style="width:100%;min-height:40px;border:1px solid #9abde16b;border-radius:11px;background:#132844;color:#fff;padding:9px;font-size:12px"/></label>'
+ +'<label>Überschrift auswählen<select id="scTitlePreset" aria-label="Vorgefertigte Story-Überschrift wählen"><option value="custom">Eigene Überschrift</option>'+HEADINGS.map((t,i)=>'<option value="'+i+'">'+esc(t)+'</option>').join('')+'</select></label>'
+ +'<label>Überschrift frei bearbeiten<input id="scTitle" maxlength="56" placeholder="Dein Story-Titel" style="width:100%;min-height:40px;border:1px solid #9abde16b;border-radius:11px;background:#132844;color:#fff;padding:9px;font-size:12px"/></label>'
  +'<label>Obere Karte<select id="scSlot0">'+typeOptions('views')+'</select></label>'
  +'<label>Mittlere Karte<select id="scSlot1">'+typeOptions('followers')+'</select></label>'
  +'<label>Untere Karte<select id="scSlot2">'+typeOptions('trend')+'</select></label>'
@@ -137,9 +140,19 @@ function render(){
  refreshTabs();
  $('scTheme').value=s.theme;$('scPlatform').value=s.platform;$('scDays').value=String(s.days);
  $('scLayout').value=s.layout;$('scTitle').value=s.title;
+ const headingIndex=HEADINGS.indexOf(s.title);
+ $('scTitlePreset').value=headingIndex>=0?String(headingIndex):'custom';
+ const actualTheme=s.theme==='auto'?themes.current():s.theme;
+ const displayTheme=themes.get(actualTheme);
+ const themeInfo=$('scThemeNow');
+ themeInfo.replaceChildren();
+ const swatch=document.createElement('span');swatch.className='story-theme-swatch';
+ swatch.style.background='linear-gradient(120deg,'+displayTheme.accent+','+displayTheme.secondary+')';
+ const label=document.createElement('span');label.textContent='Aktuell: '+displayTheme.name+(s.theme==='auto'?' · mit Dashboard gekoppelt':' · eigenständig ausgewählt');
+ themeInfo.append(swatch,label);
  for(let i=0;i<3;i++)$('scSlot'+i).value=s.slots[i];
  const preview=$('scPreview');
- const typography=p.fontProfile==='aero'?'"Trebuchet MS",Verdana,sans-serif':p.fontProfile==='tech'?'"Arial Narrow","Segoe UI",sans-serif':p.light||p.fontProfile==='elegant'?'"Aptos","Segoe UI",sans-serif':'"Segoe UI",-apple-system,sans-serif';
+ const typography=p.fontProfile==='aero'?'"Trebuchet MS",Verdana,sans-serif':p.fontProfile==='tech'?'"Arial Narrow","Segoe UI",sans-serif':p.fontProfile==='glass'?'"Helvetica Neue","Segoe UI",sans-serif':p.fontProfile==='geometric'?'"Century Gothic","Aptos","Trebuchet MS",sans-serif':p.light||p.fontProfile==='elegant'?'"Aptos","Segoe UI",sans-serif':'"Segoe UI",-apple-system,sans-serif';
  const storyArt=window.BACK2U_REFERENCE_ART?window.BACK2U_REFERENCE_ART(p):null;
  preview.dataset.storyLayout=s.layout;
  preview.style.setProperty('--story-image',storyArt?'url("'+storyArt.url+'")':'none');
@@ -153,7 +166,7 @@ function render(){
  preview.style.setProperty('--story-muted',p.light?(p.readability==='strong'?'#203c54':'#345672'):(p.readability==='strong'?'#f0f7ff':'#d7e7fc'));
  preview.style.setProperty('--story-ui',typography);preview.style.setProperty('--story-display',typography);
  preview.innerHTML='<div class="story-slide-inner">'
- +'<div class="story-slide-header"><span class="story-slide-mark">'+logo+'</span><span class="story-slide-brand">BACK2U<small>CREATOR COMMAND CENTER</small></span></div>'
+ +'<div class="story-slide-header"><span class="story-slide-mark">'+logo+'</span><span class="story-slide-brand">DASHBOARD<small>CREATOR COMMAND CENTER</small></span></div>'
  +'<div class="story-slide-headline"><h2>'+esc(s.title)+'</h2><p>'+esc(P_NAMES[s.platform])+' · '+s.days+' Tage · '+esc(p.name)+'</p></div>'
  +s.slots.map((k,i)=>displaySlot(k,{p,data,s},i)).join('')
  +'<div class="story-slide-footer"><span>BACK2U DASHBOARD</span><span>'+esc(data.apiLoaded?'API-Stand':'Archivstand')+' '+esc(data.updated)+(data.complete?'':' · Teilwerte')+'</span></div>'
@@ -178,7 +191,8 @@ function hide(){overlay.classList.remove('story-composer-active');root.hidden=tr
 $('scAdd').addEventListener('click',()=>{if(composer.slides.length>=MAX)return;composer.slides.push({...safeSlide(selected()),title:'Mein Creator-Update '+(composer.slides.length+1),slots:[...selected().slots]});composer.selected=composer.slides.length-1;persist();render()});
 $('scRemove').addEventListener('click',()=>{if(composer.slides.length<=1)return;composer.slides.splice(composer.selected,1);composer.selected=Math.max(0,Math.min(composer.selected,composer.slides.length-1));persist();render()});
 [['scTheme','theme'],['scPlatform','platform'],['scDays','days'],['scLayout','layout'],['scSlot0','slot0'],['scSlot1','slot1'],['scSlot2','slot2']].forEach(([id,k])=>$(id).addEventListener('change',e=>changed(k,e.target.value)));
-$('scTitle').addEventListener('change',e=>changed('title',e.target.value));
+$('scTitlePreset').addEventListener('change',e=>{if(e.target.value!=='custom'){const index=Number(e.target.value);if(HEADINGS[index])changed('title',HEADINGS[index])}});
+ $('scTitle').addEventListener('change',e=>changed('title',e.target.value));
 document.getElementById('storyModeToggle').addEventListener('click',()=>{if(!overlay.hidden)show();else hide()});
 document.getElementById('storyClose').addEventListener('click',hide);
 window.addEventListener('back2u-theme-changed',()=>{if(!overlay.hidden&&selected().theme==='auto')render()});
@@ -186,7 +200,7 @@ function download(canvas){
  return new Promise((resolve,reject)=>canvas.toBlob(blob=>blob?resolve(blob):reject(Error('Bild konnte nicht gerendert werden')),'image/png'));
 }
 function loadImg(src){return new Promise((resolve,reject)=>{const img=new Image();img.onload=()=>resolve(img);img.onerror=()=>reject(Error('Bild nicht verfügbar'));img.src=src})}
-const styleFont=(p)=>p.fontProfile==='aero'?'Trebuchet MS':p.fontProfile==='tech'?'Arial Narrow':p.light||p.fontProfile==='elegant'?'Aptos, Segoe UI':'Segoe UI';
+const styleFont=(p)=>p.fontProfile==='aero'?'Trebuchet MS':p.fontProfile==='tech'?'Arial Narrow':p.fontProfile==='glass'?'Helvetica Neue, Segoe UI':p.fontProfile==='geometric'?'Century Gothic, Aptos':p.light||p.fontProfile==='elegant'?'Aptos, Segoe UI':'Segoe UI';
 function drawCard(c,x,y,w,h,item,context,index){
  const p=context.p,light=p.light,ink=light?'#102b43':'#f6f8ff',muted=light?'#31516c':'#d0dff3';
  c.fillStyle=light?'rgba(255,255,255,.75)':'rgba(10,20,43,.73)';
@@ -232,10 +246,10 @@ async function canvasStory(){
  const bgVeil=((100-(p.backgroundIntensity??76))/100*.59);
  if(bgVeil>0){c.fillStyle='rgba('+rgb(p.card)+','+bgVeil.toFixed(3)+')';c.fillRect(0,0,360,640)}
  const shade=c.createLinearGradient(0,0,360,640);shade.addColorStop(0,p.light?'rgba(255,255,255,.28)':'rgba(5,12,31,.18)');shade.addColorStop(1,p.light?'rgba(255,255,255,.16)':'rgba(1,5,22,.31)');c.fillStyle=shade;c.fillRect(0,0,360,640);
- c.fillStyle=p.accent;c.strokeStyle='#ffffff9c';c.lineWidth=1;c.beginPath();c.roundRect(25,22,40,40,11);c.fill();c.stroke();
- try{const mark=await loadImg('/back2u-mark.svg');c.drawImage(mark,26,23,38,38)}catch(e){c.fillStyle='#fff';c.font='900 22px '+font;c.fillText('B2',31,49)}
- c.fillStyle=ink;c.font='850 23px '+font;c.fillText('BACK2U',76,41);
- c.fillStyle=muted;c.font='700 8.5px '+font;c.fillText('CREATOR COMMAND CENTER',76,54);
+ c.fillStyle='rgba(20,59,101,.27)';c.strokeStyle='#ffffff9c';c.lineWidth=1;c.beginPath();c.roundRect(25,22,133,40,11);c.fill();c.stroke();
+ try{const mark=await loadImg('/back2u-wordmark.svg');c.drawImage(mark,28,24,126,34)}catch(e){c.fillStyle='#fff';c.font='900 21px '+font;c.fillText('BACK2U',32,49)}
+ c.fillStyle=ink;c.font='850 14px '+font;c.fillText('DASHBOARD',168,41);
+ c.fillStyle=muted;c.font='700 7.7px '+font;c.fillText('CREATOR COMMAND CENTER',168,54);
  c.font='850 28px '+font;c.fillStyle=ink;
  const title=String(s.title).slice(0,56),words=title.split(/\s+/);
  let line='',titleRows=[];
