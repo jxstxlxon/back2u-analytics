@@ -1,0 +1,641 @@
+{
+  "schema": 1,
+  "snapshotDate": "2026-11-12",
+  "identities": {
+    "youtube": {
+      "channelId": "UCBnnaMohI_VfKihekEwaQEw",
+      "channelName": "Back2u"
+    },
+    "tiktok": {
+      "username": "back2u.mp3"
+    }
+  },
+  "youtube": {
+    "audienceAge": {
+      "source": "YouTube Analytics API über Windsor.ai",
+      "from": "2026-10-15",
+      "through": "2026-11-11",
+      "unit": "viewerPercentage",
+      "data": [
+        {
+          "viewer_age_group": "age13-17",
+          "viewer_percentage": 18.4
+        },
+        {
+          "viewer_age_group": "age18-24",
+          "viewer_percentage": 7.7
+        },
+        {
+          "viewer_age_group": "age25-34",
+          "viewer_percentage": 24.8
+        },
+        {
+          "viewer_age_group": "age35-44",
+          "viewer_percentage": 29.7
+        },
+        {
+          "viewer_age_group": "age45-54",
+          "viewer_percentage": 14.6
+        },
+        {
+          "viewer_age_group": "age55-64",
+          "viewer_percentage": 3.1
+        },
+        {
+          "viewer_age_group": "age65-",
+          "viewer_percentage": 1.7
+        }
+      ]
+    },
+    "audienceGender": {
+      "source": "YouTube Analytics API über Windsor.ai",
+      "from": "2026-10-15",
+      "through": "2026-11-11",
+      "unit": "viewerPercentage",
+      "data": [
+        {
+          "viewer_gender": "female",
+          "viewer_percentage": 32.8
+        },
+        {
+          "viewer_gender": "male",
+          "viewer_percentage": 66.9
+        },
+        {
+          "viewer_gender": "genderUserSpecified",
+          "viewer_percentage": 0.3
+        }
+      ]
+    },
+    "countries": {
+      "source": "YouTube Analytics API über Windsor.ai",
+      "from": "2026-10-15",
+      "through": "2026-11-11",
+      "unit": "views",
+      "description": "Country-attributed views, not unique viewers. Percent share denominator = sum of country rows.",
+      "countryAttributedViewTotal": 1171058,
+      "countryCount": 131,
+      "data": [
+        {
+          "country": "Germany",
+          "views": 466825
+        },
+        {
+          "country": "United States",
+          "views": 158106
+        },
+        {
+          "country": "Brazil",
+          "views": 34196
+        },
+        {
+          "country": "Poland",
+          "views": 31286
+        },
+        {
+          "country": "United Kingdom",
+          "views": 29202
+        },
+        {
+          "country": "Indonesia",
+          "views": 27844
+        },
+        {
+          "country": "Austria",
+          "views": 25981
+        },
+        {
+          "country": "Philippines",
+          "views": 25838
+        },
+        {
+          "country": "Russia",
+          "views": 21863
+        },
+        {
+          "country": "Mexico",
+          "views": 17143
+        },
+        {
+          "country": "France",
+          "views": 15895
+        },
+        {
+          "country": "Netherlands",
+          "views": 15864
+        },
+        {
+          "country": "Romania",
+          "views": 15176
+        },
+        {
+          "country": "Canada",
+          "views": 13364
+        },
+        {
+          "country": "Switzerland",
+          "views": 12954
+        },
+        {
+          "country": "India",
+          "views": 12879
+        },
+        {
+          "country": "Czech Republic",
+          "views": 12686
+        },
+        {
+          "country": "Ukraine",
+          "views": 12483
+        },
+        {
+          "country": "Italy",
+          "views": 11258
+        },
+        {
+          "country": "Sweden",
+          "views": 9020
+        },
+        {
+          "country": "South Africa",
+          "views": 8941
+        },
+        {
+          "country": "Hungary",
+          "views": 8901
+        },
+        {
+          "country": "Australia",
+          "views": 8859
+        },
+        {
+          "country": "Vietnam",
+          "views": 8740
+        },
+        {
+          "country": "Thailand",
+          "views": 7321
+        },
+        {
+          "country": "Argentina",
+          "views": 7294
+        },
+        {
+          "country": "Malaysia",
+          "views": 7038
+        },
+        {
+          "country": "Spain",
+          "views": 6737
+        },
+        {
+          "country": "Saudi Arabia",
+          "views": 6112
+        },
+        {
+          "country": "Türkiye",
+          "views": 5473
+        },
+        {
+          "country": "Japan",
+          "views": 5271
+        },
+        {
+          "country": "Slovakia",
+          "views": 4959
+        },
+        {
+          "country": "Belgium",
+          "views": 4938
+        },
+        {
+          "country": "Finland",
+          "views": 4870
+        },
+        {
+          "country": "Denmark",
+          "views": 4376
+        },
+        {
+          "country": "Israel",
+          "views": 4304
+        },
+        {
+          "country": "Colombia",
+          "views": 3954
+        },
+        {
+          "country": "Chile",
+          "views": 3581
+        },
+        {
+          "country": "United Arab Emirates",
+          "views": 3564
+        },
+        {
+          "country": "Croatia",
+          "views": 3240
+        },
+        {
+          "country": "Peru",
+          "views": 3041
+        },
+        {
+          "country": "Greece",
+          "views": 3032
+        },
+        {
+          "country": "Bangladesh",
+          "views": 2705
+        },
+        {
+          "country": "Kazakhstan",
+          "views": 2699
+        },
+        {
+          "country": "Norway",
+          "views": 2489
+        },
+        {
+          "country": "Venezuela",
+          "views": 2399
+        },
+        {
+          "country": "South Korea",
+          "views": 2389
+        },
+        {
+          "country": "Lithuania",
+          "views": 2351
+        },
+        {
+          "country": "Uzbekistan",
+          "views": 2317
+        },
+        {
+          "country": "Iraq",
+          "views": 2243
+        },
+        {
+          "country": "Belarus",
+          "views": 2033
+        },
+        {
+          "country": "Armenia",
+          "views": 2006
+        },
+        {
+          "country": "Bulgaria",
+          "views": 2001
+        },
+        {
+          "country": "New Zealand",
+          "views": 1998
+        },
+        {
+          "country": "Egypt",
+          "views": 1936
+        },
+        {
+          "country": "Latvia",
+          "views": 1853
+        },
+        {
+          "country": "Albania",
+          "views": 1784
+        },
+        {
+          "country": "Serbia",
+          "views": 1646
+        },
+        {
+          "country": "El Salvador",
+          "views": 1618
+        },
+        {
+          "country": "Ireland",
+          "views": 1588
+        },
+        {
+          "country": "Iran",
+          "views": 1455
+        },
+        {
+          "country": "Ecuador",
+          "views": 1446
+        },
+        {
+          "country": "Estonia",
+          "views": 1317
+        },
+        {
+          "country": "Taiwan",
+          "views": 1313
+        },
+        {
+          "country": "Kyrgyz Republic",
+          "views": 1309
+        },
+        {
+          "country": "Algeria",
+          "views": 1227
+        },
+        {
+          "country": "Cambodia",
+          "views": 1220
+        },
+        {
+          "country": "Honduras",
+          "views": 1213
+        },
+        {
+          "country": "Pakistan",
+          "views": 1143
+        },
+        {
+          "country": "Jamaica",
+          "views": 1118
+        },
+        {
+          "country": "Guatemala",
+          "views": 1093
+        },
+        {
+          "country": "Portugal",
+          "views": 1070
+        },
+        {
+          "country": "Morocco",
+          "views": 1054
+        },
+        {
+          "country": "Hong Kong",
+          "views": 1036
+        },
+        {
+          "country": "Kenya",
+          "views": 997
+        },
+        {
+          "country": "Mongolia",
+          "views": 973
+        },
+        {
+          "country": "Moldova",
+          "views": 944
+        },
+        {
+          "country": "Myanmar",
+          "views": 922
+        },
+        {
+          "country": "Paraguay",
+          "views": 916
+        },
+        {
+          "country": "Singapore",
+          "views": 870
+        },
+        {
+          "country": "Nepal",
+          "views": 852
+        },
+        {
+          "country": "Costa Rica",
+          "views": 816
+        },
+        {
+          "country": "Kuwait",
+          "views": 778
+        },
+        {
+          "country": "Azerbaijan",
+          "views": 777
+        },
+        {
+          "country": "Bolivia",
+          "views": 694
+        },
+        {
+          "country": "Georgia",
+          "views": 680
+        },
+        {
+          "country": "Nicaragua",
+          "views": 674
+        },
+        {
+          "country": "North Macedonia",
+          "views": 660
+        },
+        {
+          "country": "Panama",
+          "views": 642
+        },
+        {
+          "country": "Dominican Republic",
+          "views": 633
+        },
+        {
+          "country": "Bosnia and Herzegovina",
+          "views": 604
+        },
+        {
+          "country": "Trinidad and Tobago",
+          "views": 582
+        },
+        {
+          "country": "Slovenia",
+          "views": 574
+        },
+        {
+          "country": "Luxembourg",
+          "views": 496
+        },
+        {
+          "country": "Mauritius",
+          "views": 493
+        },
+        {
+          "country": "Timor-Leste",
+          "views": 477
+        },
+        {
+          "country": "Puerto Rico",
+          "views": 457
+        },
+        {
+          "country": "Bahrain",
+          "views": 422
+        },
+        {
+          "country": "Suriname",
+          "views": 351
+        },
+        {
+          "country": "Ghana",
+          "views": 343
+        },
+        {
+          "country": "Qatar",
+          "views": 333
+        },
+        {
+          "country": "Botswana",
+          "views": 279
+        },
+        {
+          "country": "Cyprus",
+          "views": 255
+        },
+        {
+          "country": "Uruguay",
+          "views": 254
+        },
+        {
+          "country": "Aruba",
+          "views": 250
+        },
+        {
+          "country": "Bhutan",
+          "views": 244
+        },
+        {
+          "country": "Afghanistan",
+          "views": 232
+        },
+        {
+          "country": "Guyana",
+          "views": 213
+        },
+        {
+          "country": "Jordan",
+          "views": 204
+        },
+        {
+          "country": "Lebanon",
+          "views": 198
+        },
+        {
+          "country": "Ethiopia",
+          "views": 189
+        },
+        {
+          "country": "Oman",
+          "views": 182
+        },
+        {
+          "country": "Laos",
+          "views": 156
+        },
+        {
+          "country": "Maldives",
+          "views": 145
+        },
+        {
+          "country": "Somalia",
+          "views": 120
+        },
+        {
+          "country": "Brunei Darussalam",
+          "views": 104
+        },
+        {
+          "country": "Libya",
+          "views": 84
+        },
+        {
+          "country": "Nigeria",
+          "views": 73
+        },
+        {
+          "country": "Mayotte",
+          "views": 61
+        },
+        {
+          "country": "Tunisia",
+          "views": 54
+        },
+        {
+          "country": "Sri Lanka",
+          "views": 53
+        },
+        {
+          "country": "French Guiana",
+          "views": 46
+        },
+        {
+          "country": "Uganda",
+          "views": 37
+        },
+        {
+          "country": "Seychelles",
+          "views": 36
+        },
+        {
+          "country": "Angola",
+          "views": 29
+        },
+        {
+          "country": "Greenland",
+          "views": 27
+        },
+        {
+          "country": "Congo Republic",
+          "views": 24
+        },
+        {
+          "country": "French Polynesia",
+          "views": 22
+        },
+        {
+          "country": "China",
+          "views": 20
+        },
+        {
+          "country": "Eswatini",
+          "views": 15
+        },
+        {
+          "country": "Syria",
+          "views": 14
+        }
+      ]
+    }
+  },
+  "tiktok": {
+    "followerAge": {
+      "source": "TikTok Organic über Windsor.ai",
+      "queriedFrom": "2026-11-09",
+      "queriedThrough": "2026-11-12",
+      "unit": "fractionOfFollowers",
+      "data": [
+        {
+          "audience_ages_age": "55+",
+          "audience_ages_percentage": 0.058
+        },
+        {
+          "audience_ages_age": "18-24",
+          "audience_ages_percentage": 0.32
+        },
+        {
+          "audience_ages_age": "25-34",
+          "audience_ages_percentage": 0.385
+        },
+        {
+          "audience_ages_age": "35-44",
+          "audience_ages_percentage": 0.165
+        },
+        {
+          "audience_ages_age": "45-54",
+          "audience_ages_percentage": 0.072
+        }
+      ]
+    }
+  },
+  "limits": [
+    "YouTube country percentages are view-weighted, not unique-viewer-weighted.",
+    "TikTok age groups reported here start at 18; no inference about younger followers.",
+    "Historical fixed snapshot; does not update automatically on future dashboard reloads."
+  ]
+}
