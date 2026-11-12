@@ -224,13 +224,13 @@ function rankFormats(m){
 }
 const availableSlots=['11:00','15:00','19:00','02:00'];
 const PLAN_KEY='back2u_creator_scheduled_v73';
-function planRows(formats,slots,days){
+function planRows(formats,slots,days,platforms=['yt','ig','tt']){
  const rows=[];const date0=increment(today());
  for(let d=0;d<days;d++){
   const date=incrementBy(date0,d),daily=[];
   for(let i=0;i<slots.length;i++){
    const choice=formats[(d*slots.length+i)%formats.length];
-   daily.push({time:slots[i],platform:choice?.p||['yt','ig','tt'][i%3],format:choice?.format||['Jumpstyle','Hakken','Edit','Outfit'][i%4]});
+   daily.push({time:slots[i],platform:choice?.p||(platforms.length?platforms[i%platforms.length]:'yt'),format:choice?.format||['Jumpstyle','Hakken','Edit','Outfit'][i%4]});
   }
   rows.push({date,daily});
  }
@@ -243,20 +243,41 @@ function parseSlots(str){
 }
 function renderPlanner(){
  const root=$('v7Planner');if(!root)return;
- const m=model(),best=rankFormats(m),planStored=restore('back2u_v7_plan',{slots:'11:00, 15:00, 19:00, 02:00',days:3});
+ const m=model(),selectedPlatforms=m.platforms.filter(p=>names[p]),best=rankFormats(m).filter(x=>selectedPlatforms.includes(x.p)),planStored=restore('back2u_v7_plan',{slots:'11:00, 15:00, 19:00, 02:00',days:3});
  const slots=parseSlots(planStored.slots);if(!slots.length)slots.push(...availableSlots);
  root.innerHTML='<p class="v7-help">Empfehlungen aus deinen bekannten Videos – keine automatische KI-Auswertung und kein automatisches Posten. Die Uhrzeiten sind deine Testslots, keine wissenschaftlich ermittelte Bestzeit.</p>'
  +'<form id="v7PlannerForm" class="v7-planner-form"><label>Deine Uhrzeiten<input id="v7PlannerSlots" type="text" value="'+esc(planStored.slots)+'" placeholder="11:00, 15:00, 19:00, 02:00" /></label>'
  +'<label>Tage<select id="v7PlannerDays"><option value="3" '+(planStored.days===3?'selected':'')+'>Nächste 3 Tage</option><option value="7" '+(planStored.days===7?'selected':'')+'>Nächste 7 Tage</option></select></label><button type="submit">Plan erstellen</button></form>'
  +'<div class="v7-plan-insight"><strong>Formate mit guten bisherigen Ergebnissen</strong><p>'+(best.length?best.slice(0,3).map(x=>names[x.p]+' · '+esc(x.format)+' ('+x.n+' Videos)').join(' · '):'Noch zu wenige vergleichbare Videodaten für eine Rangfolge.')+'</p></div>'
- +'<div id="v7PlannerRows"></div><button type="button" id="v7PlannerCopy" class="v7-copy-plan">Plan für ChatGPT kopieren</button><p class="v7-help">Für echte KI-Planung mit automatischer Neubewertung und Veröffentlichung wäre eine separate autorisierte Verbindung nötig.</p>';
+ +'<div id="v7PlannerRows"></div><div class="v73-plan-actions"><button type="button" id="v73PlannerSave" class="v7-copy-plan">Ideen in Posting-Kalender übernehmen</button><button type="button" id="v7PlannerCopy" class="v7-copy-plan">Plan für ChatGPT kopieren</button></div><div id="v73PlanStatus" class="v73-plan-status" role="status" aria-live="polite"></div><p class="v7-help">Übernommene Ideen werden ausschließlich in diesem Browser als geplant gespeichert und niemals automatisch veröffentlicht. Sie zählen nicht zu deinen echten Uploads.</p>';
  const render=()=>{
-  const rows=planRows(best,slots,Number(planStored.days)||3);
+  const rows=planRows(best,slots,Number(planStored.days)||3,selectedPlatforms);
   const lines=[];
   $('v7PlannerRows').innerHTML=rows.map(row=>{
    lines.push(row.date+': '+row.daily.map(v=>v.time+' '+names[v.platform]+' · '+v.format).join(', '));
    return '<details class="v7-plan-day" '+(row===rows[0]?'open':'')+'><summary>'+row.date.split('-').reverse().join('.')+' · '+row.daily.length+' Uploadideen</summary>'+row.daily.map((x,i)=>'<div><span>'+x.time+'</span><strong>'+names[x.platform]+'</strong><b>'+esc(x.format)+'</b><small>Idee '+(i+1)+'</small></div>').join('')+'</details>';
   }).join('');
+  $('v73PlannerSave').onclick=()=>{
+   const prior=restore(PLAN_KEY,[]);
+   const entries=Array.isArray(prior)?prior.filter(x=>x&&typeof x==='object').slice(0,500):[];
+   const signature=x=>[x.date,x.time,x.platform,x.format].join('|');
+   const seen=new Set(entries.map(signature));
+   let added=0;
+   for(const row of rows)for(const item of row.daily){
+    const record={date:row.date,time:item.time,platform:item.platform,format:String(item.format||'Videoidee').slice(0,90)};
+    const sig=signature(record);
+    if(seen.has(sig))continue;
+    seen.add(sig);added++;
+    entries.push({...record,id:'v73-'+Date.now().toString(36)+'-'+added,done:false});
+   }
+   if(entries.length>500){
+    $('v73PlanStatus').textContent='Maximal 500 geplante Ideen gespeichert. Bitte ältere Einträge im Kalender entfernen.';return;
+   }
+   try{localStorage.setItem(PLAN_KEY,JSON.stringify(entries))}
+   catch{$('v73PlanStatus').textContent='Lokales Speichern ist in diesem Browser nicht möglich. Bitte Browser-Speicher prüfen.';return}
+   $('v73PlanStatus').textContent=added?added+' neue Ideen in deinem Posting-Kalender gespeichert (nur dieses Gerät).':'Keine neuen Einträge – diese Ideen sind bereits im Kalender.';
+   if(added&&window.CustomEvent)window.dispatchEvent(new CustomEvent('back2u-plan-updated',{detail:{date:rows[0]?.date||null}}));
+  };
   $('v7PlannerCopy').onclick=async()=>{
    const prompt='Plane meinen Jumpstyle-/Hakken-/Shuffle-Content anhand meiner echten Statistiken. Vorschlag für die nächsten Tage:\n'+lines.join('\n')+'\nOptimier Hooks, Aufnahmeideen und lange natürliche englische Captions. Berücksichtige, dass dies bisherige Gesamtaufrufe und keine kontrollierten Uploadzeit-Tests sind.';
    try{await navigator.clipboard.writeText(prompt);$('v7PlannerCopy').textContent='Für ChatGPT kopiert ✓'}catch{$('v7PlannerCopy').textContent='Kopieren nicht möglich – bitte Browser prüfen'}
