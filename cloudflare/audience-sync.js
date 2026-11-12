@@ -159,7 +159,9 @@ export async function runAudienceAutoSync(env,{get,put,force=false,tiktokOnly=fa
  const old=await get(env,SYNC_STORE)||{};
  const since=now-Date.parse(old.lastAttemptAt||0);
  const minimum=old.status==='ok'?24*3600*1000:old.status==='running'?40*60*1000:3*3600*1000;
- if(!force&&Number.isFinite(since)&&since>=0&&since<minimum)
+ const sourceName=tiktokOnly?'Windsor.ai (TikTok only)':'Windsor.ai';
+ const modeChanged=old.source&&old.source!==sourceName;
+ if(!force&&!modeChanged&&Number.isFinite(since)&&since>=0&&since<minimum)
   return {status:'skipped',lastAttemptAt:old.lastAttemptAt,lastSuccessAt:old.lastSuccessAt||null};
  const nowIso=new Date(now).toISOString();
  const progress={...old,status:'running',lastAttemptAt:nowIso,error:null};
