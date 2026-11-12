@@ -149,9 +149,66 @@ async function put(env,key,value){
 
 /* Historical YouTube Analytics daily totals are stored separately so regular
    Sheets pushes and TikTok cron runs cannot overwrite verified day reports. */
+
+/* Audience import: data stays in private D1, NEVER in static GitHub files. */
+const AUDIENCE_KEY='audience_v1';
+const allowedAudienceGroups={yt:['countries','gender','age'],tt:['age']};
+function validateAudienceImport(data){
+ if(!data||data.schema!==1||data.channelId!=='UCBnnaMohI_VfKihekEwaQEw'||data.tiktokHandle!=='back2u.mp3')
+  throw new Error('Channel/account identity or schema mismatch');
+ if(!/^\d{4}-\d\d-\d\d$/.test(String(data.snapshotDate||'')))
+  throw new Error('Invalid snapshot date');
+ const audience={},audienceMeta={};
+ for(const [platform,groups] of Object.entries(allowedAudienceGroups)){
+  audience[platform]={};audienceMeta[platform]={};
+  for(const type of groups){
+   const rows=data.audience?.[platform]?.[type];
+   if(!Array.isArray(rows)||!rows.length||rows.length>40)throw new Error('Missing or oversized '+platform+'/'+type);
+   const labels=new Set();let total=0;
+   audience[platform][type]=rows.map(entry=>{
+    if(!Array.isArray(entry)||entry.length!==2)throw new Error('Invalid category row');
+    const label=String(entry[0]||'').trim(),value=Number(entry[1]);
+    if(!label||label.length>70||/[\x00-\x1f<>]/.test(label)||labels.has(label)||!Number.isFinite(value)||value<0||value>100)
+     throw new Error('Invalid category label or percentage');
+    labels.add(label);total+=value;
+    return [label,Math.round(value*100)/100];
+   });
+   if(Math.abs(total-100)>0.51)throw new Error('Percentage sum is not close to 100 for '+platform+'/'+type);
+   const m=data.audienceMeta?.[platform]?.[type];
+   if(!m||typeof m!=='object')throw new Error('Missing metadata');
+   audienceMeta[platform][type]={};
+   for(const field of ['source','asOf','period','basis']){
+    if(m[field]===undefined)continue;
+    const val=String(m[field]);
+    if(val.length>400||/[<>]/.test(val))throw new Error('Invalid metadata');
+    audienceMeta[platform][type][field]=val;
+   }
+   if(!audienceMeta[platform][type].source||!audienceMeta[platform][type].basis)
+    throw new Error('Source and measurement basis required');
+  }
+ }
+ return {schema:1,snapshotDate:data.snapshotDate,updatedAt:new Date().toISOString(),audience,audienceMeta};
+}
+async function audienceAdmin(req,env){
+ if(req.method==='GET'){
+  const saved=await get(env,AUDIENCE_KEY);
+  return json({configured:!!saved,updatedAt:saved?.updatedAt||null,snapshotDate:saved?.snapshotDate||null});
+ }
+ if(req.method!=='POST')return json({error:'Method not allowed'},405);
+ if(!requireSameSiteJson(req))return json({error:'Unzulässige Anfrage'},403);
+ const raw=await req.text();
+ if(raw.length>40000)return json({error:'Audience import too large'},413);
+ let data;try{data=JSON.parse(raw)}catch{return json({error:'Invalid JSON'},400)}
+ let valid;try{valid=validateAudienceImport(data)}catch(e){return json({error:clamp(e?.message)},422)}
+ await put(env,AUDIENCE_KEY,valid);
+ return json({ok:true,importedGroups:4,updatedAt:valid.updatedAt,snapshotDate:valid.snapshotDate});
+}
+
 async function hydratedSnapshot(env){
  const s=await get(env,'snapshot');
  if(!s?.platforms?.yt)return s;
+ const imported=await get(env,AUDIENCE_KEY);
+ if(imported?.schema===1)s.audienceImport=imported;
  const instagramProfile=await get(env,'ig_profile');
  if(instagramProfile?.username==='lxon_jxmpstyle'&&Number.isSafeInteger(instagramProfile.followers)&&instagramProfile.followers>=0){
   s.platforms.ig.profile={...s.platforms.ig.profile,followers:instagramProfile.followers,username:instagramProfile.username,
@@ -541,6 +598,7 @@ async function route(req,env){
  }
  // Guest rights end here: no diagnostics, imports, OAuth, sync, audit or access management.
  if(access.role!=='admin')return json({error:'Nur Administrator'},403);
+ if(path==='/api/audience')return audienceAdmin(req,env);
  if(path==='/api/guest-links')return guestLinks(req,env);
  if(path.startsWith('/api/guest-links/'))return revokeGuest(req,env,path.slice('/api/guest-links/'.length));
 
