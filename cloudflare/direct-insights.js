@@ -4,8 +4,11 @@
  * conflated with video Analytics' reporting-window statistics.
  */
 const IDS={yt:'UCBnnaMohI_VfKihekEwaQEw',ig:'lxon_jxmpstyle'};
-const YT_METRICS=['views28d','shares28d','watchMinutes28d','averageViewSeconds28d',
- 'averageViewPercentage28d','engagedViews28d'];
+const YT_WINDOWS=[7,28,90];
+const YT_METRICS=YT_WINDOWS.flatMap(n=>[
+ 'views'+n+'d','shares'+n+'d','watchMinutes'+n+'d',
+ 'averageViewSeconds'+n+'d','averageViewPercentage'+n+'d','engagedViews'+n+'d'
+]);
 const IG_METRICS=['shares','saves','interactions','averageWatchMs','totalWatchMs','skipRate'];
 const IG_DAILY=['views','reach','likes','comments','shares','saves','interactions','accountsEngaged'];
 function isInt(x){return typeof x==='number'&&Number.isSafeInteger(x)&&x>=0}
@@ -21,9 +24,11 @@ export function validateDirectVideoInsights(body,now=Date.now()){
  const p=body.platform,asOf=body.snapshotDate;
  if(!validDay(asOf)||asOf>currentDay(now)||olderThan(asOf,now,8))throw Error('Invalid snapshot date');
  if(!Array.isArray(body.videos)||body.videos.length<1||body.videos.length>1100)throw Error('Empty or oversized video report');
- if(p==='yt'&&(!validDay(body.periodStart)||!validDay(body.periodEnd)||
+ if(p==='yt'&&(!YT_WINDOWS.includes(body.periodDays)||
+  !validDay(body.periodStart)||!validDay(body.periodEnd)||
   body.periodStart>body.periodEnd||body.periodEnd>asOf||
-  (Date.parse(body.periodEnd+'T00:00:00Z')-Date.parse(body.periodStart+'T00:00:00Z'))>31*86400000))
+  (Date.parse(body.periodEnd+'T00:00:00Z')-Date.parse(body.periodStart+'T00:00:00Z'))>
+     (body.periodDays+1)*86400000))
   throw Error('Invalid YouTube video analytics range');
  rowsUnique(body.videos,'id');
  const normalized=body.videos.map(r=>{
@@ -36,7 +41,7 @@ export function validateDirectVideoInsights(body,now=Date.now()){
   for(const [key,v] of Object.entries(r.metrics)){
    if(v===null||v===undefined)continue;
    if(typeof v!=='number'||!Number.isFinite(v)||v<0||
-    (!['averageViewPercentage28d','averageViewSeconds28d','skipRate','averageWatchMs'].includes(key)&&!isInt(v)))
+    (!/^averageView(Percentage|Seconds)(7|28|90)d$/.test(key)&&!['skipRate','averageWatchMs'].includes(key)&&!isInt(v)))
     throw Error('Invalid metric '+key);
    if(key==='skipRate'&&v>100)throw Error('Skip rate >100');
    vals[key]=v;
@@ -45,21 +50,28 @@ export function validateDirectVideoInsights(body,now=Date.now()){
   return {id,metrics:vals};
  });
  return {schema:1,platform:p,snapshotDate:asOf,updatedAt:new Date(now).toISOString(),
-  period:p==='yt'?{start:body.periodStart,end:body.periodEnd}:null,
+  period:p==='yt'?{days:body.periodDays,start:body.periodStart,end:body.periodEnd}:null,
   source:p==='yt'?'YouTube Analytics API (video range)':'Meta Graph API (media insights)',
   videos:normalized};
 }
 export function mergeDirectVideoInsights(previous,next){
  const old=previous?.platforms?.[next.platform];
- const mayReuse=next.platform==='ig'||(old?.period?.start===next.period?.start&&old?.period?.end===next.period?.end);
- const videos=new Map(mayReuse?(old?.videos||[]).map(v=>[String(v.id),v]):[]);
+ const n=next.period?.days;
+ const rows=new Map((old?.videos||[]).map(v=>[String(v.id),v]));
  for(const row of next.videos){
-  const oldRow=videos.get(row.id);
-  videos.set(row.id,{id:row.id,metrics:{...(oldRow?.metrics||{}),...row.metrics}});
+  const former=rows.get(row.id);
+  const metrics={...(former?.metrics||{})};
+  if(next.platform==='yt'){
+   // Refresh the chosen 7/28/90-day report; retain other periods.
+   for(const key of Object.keys(metrics))if(key.endsWith(n+'d'))delete metrics[key];
+  }
+  Object.assign(metrics,row.metrics);
+  rows.set(row.id,{id:row.id,metrics});
  }
+ const periods=next.platform==='yt'?{...(old?.periods||{}),[String(n)]:next.period}:null;
  return {schema:1,updatedAt:next.updatedAt,platforms:{...(previous?.platforms||{}),
   [next.platform]:{snapshotDate:next.snapshotDate,updatedAt:next.updatedAt,
-   period:next.period,source:next.source,videos:[...videos.values()].slice(-1200)}}};
+   period:next.period,periods,source:next.source,videos:[...rows.values()].slice(-1200)}}};
 }
 export function validateInstagramDaily(payload,now=Date.now()){
  if(payload?.schema!==1||payload.platform!=='ig'||payload.accountId!==IDS.ig)
@@ -102,7 +114,7 @@ export function overlayDirectInsights(snapshot,{video,daily}={}){
   const data=new Map(src.videos.map(x=>[String(x.id),x]));
   for(const v of snapshot.platforms[p].videos||[]){
    const entry=data.get(String(v.id));if(!entry)continue;
-   v.analytics={source:src.source,period:src.period,updatedAt:src.updatedAt,
+   v.analytics={source:src.source,period:src.period,periods:src.periods,updatedAt:src.updatedAt,
     ...entry.metrics};
   }
  }
