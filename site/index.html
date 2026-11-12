@@ -348,7 +348,7 @@ function renderFollowerCards(){
  let note=selected.length===3?'Summe der erfassten Kontostände – keine eindeutigen Personen.':'Kontostand laut verfügbarer Quelle.';
  if(incomplete)note+=' Mindestens ein aktueller Kontostand fehlt; die Zahl ist nur ein Teilstand.';
  if(archival)note+=' Archivwerte sind nicht live und haben einen anderen Stichtag.';
- if(!incomplete&&!archival)note+=' Alle drei Kontostände stammen aus API-Abrufen.';
+ if(!incomplete&&!archival)note+=selected.length===3?' Alle drei Kontostände stammen aus API-Abrufen.':' Der ausgewählte Kontostand stammt aus einem API-Abruf.';
  container.innerHTML='<article class="follower-aggregate glass"><div class="eyebrow">FOLLOWER INTELLIGENCE</div><div class="follower-aggregate-title">'+esc(title)+'</div><div class="follower-aggregate-total">'+fmt(total)+'</div><div class="follower-aggregate-subtitle">'+(incomplete?'Erfasster Teilstand':archival?'Summe mit Archivstand':'Aktueller erfasster Stand')+'</div><div class="follower-aggregate-breakdown">'+breakdown+'</div><div class="follower-aggregate-note">'+esc(note)+'</div></article>';
 }
 
@@ -379,7 +379,11 @@ function renderOverview(){const x=allMetric();const historic=state.days===28&&!p
  if(state.days===90&&!state.live)delta='Mindestens die bekannten 28 Tage · 90 Tage nicht vollständig';
  if(state.live&&state.days<=28&&x.complete){let t=targetRange(),begin=shift(t.start,-state.days),end=shift(t.start,-1);let prev=[],ok=true;for(const p of ps){let rr=mergedDaily(p).filter(r=>r.d>=begin&&r.d<=end&&typeof r.views==='number');if(rr.length!==state.days){ok=false;break}prev.push(rr.reduce((a,b)=>a+b.views,0))}if(ok){let prior=prev.reduce((a,b)=>a+b,0);if(prior>0)delta=percentString(fmtGrowth(x.views,prior))+' zum vorherigen '+state.days+'-Tage-Zeitraum'}}
  $('#heroLabel').textContent=heroLabel;$('#heroValue').textContent=fmt(heroVal);$('#heroDelta').textContent=delta;$('#heroDelta').classList.toggle('neutral',!delta.startsWith('+'));$('#heroDelta').classList.toggle('negative',delta.startsWith('-'));
- $('#rangeLabel').textContent=`${state.days} Tage`;$('#heroFootnote').textContent=state.live?.source?.includes('Google Sheet')?'YouTube: Google Sheets · Instagram: '+(state.live.platforms?.ig?.daily?.length?'Google Sheets live':'Archivdaten')+' · TikTok: Archivdaten':state.live?'Daten aus Windsor.ai, verfügbare Tage':state.days===90?'Untergrenze aus dem 28-Tage-Archiv, keine Hochrechnung':'Exportstände mit unterschiedlichem Stichtag';
+ $('#rangeLabel').textContent=`${state.days} Tage`;$('#heroFootnote').textContent=state.live?
+  'YouTube: '+(state.live.platforms?.yt?.daily?.length?'geprüfte API-Tageswerte':'keine Live-Tageswerte')+
+  ' · Instagram: '+(state.live.platforms?.ig?.daily?.length?'API-/Sheets-Tageswerte':'Archivdaten')+
+  ' · TikTok: '+(state.live.platforms?.tt?.daily?.length?'API-Tageswerte':'nur Archiv-Tageswerte / API-Lifetime-Videos'):
+  state.days===90?'Untergrenze aus dem 28-Tage-Archiv, keine Hochrechnung':'Exportstände mit unterschiedlichem Stichtag';
  const days=platforms().map(p=>series(p));const chartDays=days[0]||[];$('#heroSpark').innerHTML=sparkSvg(chartDays.map(r=>r.views??r.engaged??0));
  $('#platformStack').innerHTML=ps.map(p=>{const a=platformMetric(p);const v=a.views??a.engaged;const label=a.views!==null?'Aufrufe':a.engaged!==null?'Interessierte Aufrufe':'Keine Tageswerte';
  return `<div class="platform-card glass"><div><div class="platform-name">${tagPlatform(p)}</div><div class="platform-number">${fmt(v)}</div><div class="platform-caption">${label}</div></div><div class="platform-side"><span class="platform-rank">${a.fromSnapshot?'EXPORT · 28 TAGE':`${a.coverage} / ${state.days} Tage`}</span><small>${a.follows!==null?fmt(a.follows)+' '+(p==='yt'?'Netto-/Abo-Daten':'Follows'):''}</small></div></div>`}).join('');
