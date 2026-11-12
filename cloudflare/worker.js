@@ -2,6 +2,7 @@ import {runAudienceAutoSync} from './audience-sync.js';
 import {validateDirectAudience,mergeDirectAudience,chooseEffectiveAudience} from './direct-audience.js';
 import {validateDirectMedia,mergeDirectMedia,overlayDirectMedia} from './direct-media.js';
 import {validateDirectVideoInsights,mergeDirectVideoInsights,validateInstagramDaily,mergeInstagramDaily,overlayDirectInsights} from './direct-insights.js';
+import {auditDirectCoverage} from './parity-audit.js';
 /* BACK2U Cloudflare Worker - private creator dashboard.
    Independent of Netlify. Do not publish API keys or creator analytics in static assets.
    The Cloudflare D1 binding DB must contain the back2u_store(key,value,updated_at) table.
@@ -735,6 +736,15 @@ async function route(req,env){
  if(path==='/api/audience')return audienceAdmin(req,env);
  if(path==='/api/audience/sync')return audienceSyncAdmin(req,env);
  if(path==='/api/direct-audience/status')return directAudienceStatus(req,env);
+ if(path==='/api/direct-parity') {
+  if(req.method!=='GET')return json({error:'GET only'},405);
+  const [audience,media,video,instagramDaily,youtubeDaily]=await Promise.all([
+   get(env,'direct_audience_v1'),get(env,'direct_media_v1'),
+   get(env,'direct_video_insights_v1'),get(env,'direct_ig_daily_v1'),
+   get(env,'yt_analytics_daily')
+  ]);
+  return json(auditDirectCoverage({audience,media,video,instagramDaily,youtubeDaily}));
+ }
  if(path==='/api/direct-insights/status'){
   if(req.method!=='GET')return json({error:'GET only'},405);
   const [insights,daily]=await Promise.all([
