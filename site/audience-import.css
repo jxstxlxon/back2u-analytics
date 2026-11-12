@@ -1,0 +1,11 @@
+/* BACK2U private audience import; follows the active glass theme. */
+#audienceImportPanel[hidden]{display:none!important}
+#audienceImportPanel{padding:18px;margin:14px 0;border:1px solid rgba(var(--t-accent-rgb),.35);border-radius:18px}
+#audienceImportPanel>p,#audienceImportPanel>small{display:block;color:var(--t-ink-label);font:610 12px/1.65 var(--t-font-ui,system-ui);margin:8px 0 12px}
+#audienceImportForm{display:flex;flex-wrap:wrap;align-items:center;gap:9px}
+#audienceImportForm label{flex-basis:100%;color:var(--t-ink-strong);font:770 12px/1.45 var(--t-font-ui,system-ui)}
+#audienceImportForm input{min-width:0;flex:1;max-width:100%;color:var(--t-ink-strong);font:610 12px/1.5 var(--t-font-ui,system-ui)}
+#audienceImportForm button{min-height:43px;padding:10px 14px;border:1px solid rgba(var(--t-accent-rgb),.55);border-radius:11px;background:rgba(var(--t-accent-rgb),.25);color:var(--t-ink-strong);font:760 12px var(--t-font-ui,system-ui);cursor:pointer}
+#audienceImportForm button:disabled{opacity:.5;cursor:wait}
+#audienceImportStatus{margin:11px 0;min-height:19px;color:var(--t-ink-strong);font:690 11px/1.5 var(--t-font-ui,system-ui)}
+@media(max-width:670px){#audienceImportForm{display:grid;grid-template-columns:minmax(0,1fr)}#audienceImportForm button{width:100%}}
