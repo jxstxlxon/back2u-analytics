@@ -275,7 +275,16 @@ function glassSet(value){state.glass=Math.min(100,Math.max(0,Number(value)||0));
  $('#glassSlider').value=state.glass;$('#glassValue').textContent=state.glass+'%';$$('[data-glass-preset]').forEach(b=>b.classList.toggle('selected',Number(b.dataset.glassPreset)===state.glass));
  try{localStorage.setItem('back2u_glass',state.glass)}catch{}
 }
-function setSection(s){state.section=s;document.body.dataset.activeSection=s;$('[data-section]').forEach(x=>x.classList.toggle('active',x.dataset.section===s));$$('.view').forEach(x=>x.classList.toggle('active',x.id===s));renderActive();window.scrollTo({top:0,behavior:'smooth'})}
+function setSection(s){
+ const valid=['overview','videos','experiments','audience','system','creator'];
+ if(!valid.includes(s))return;
+ state.section=s;
+ document.body.dataset.activeSection=s;
+ $('[data-section]').forEach(x=>x.classList.toggle('active',x.dataset.section===s));
+ $('.view').forEach(x=>x.classList.toggle('active',x.id===s));
+ renderActive();
+ if(window.scrollY>0)window.scrollTo({top:0,behavior:'instant'});
+}
 function setPeriod(d){state.days=d;$$('[data-days]').forEach(x=>x.classList.toggle('selected',Number(x.dataset.days)===d));state.page=1;state.selected=null;renderActive()}
 function setPlatform(p){state.platform=p;$$('[data-platform]').forEach(x=>x.classList.toggle('selected',x.dataset.platform===p));state.page=1;state.selected=null;renderActive()}
 function fmtGrowth(a,b){if(!b)return null;return 100*(a/b-1)}
@@ -381,7 +390,7 @@ function renderDailyFreshness(){
 function renderOverview(){const x=allMetric();const historic=state.days===28&&!platforms().some(p=>state.live?.platforms?.[p]?.daily?.length);let heroLabel='Gesamtaufrufe',heroVal=x.views,delta='';const ps=platforms();
  if(!x.complete){heroLabel=x.views===null?'Interessierte Aufrufe / Datenstand':'Erfasste Aufrufe';}
  if(ps.length===1&&ps[0]==='yt'&&heroVal===null){heroVal=x.vals[0].engaged;heroLabel='Interessierte YouTube-Aufrufe';}
- if(ps.length===3&&!x.complete){const vals=x.vals.filter(v=>v.views!==null);delta=vals.length<3?`Aufrufe: ${vals.length} von 3 Plattformen`:'Unvollständige Tage';}
+ if(ps.length===3&&!x.complete){const vals=x.vals.filter(v=>v.views!==null);delta=vals.length<3?`Aufrufe von ${vals.length} von 3 Plattformen`:'Für einige Tage fehlen noch Zahlen';}
  else if(ps.length===1&&historic&&state.days===28){const k=SEED.snapshots[ps[0]];if(k.previous!==null&&k.previous!==undefined)delta=percentString(fmtGrowth(k.views,k.previous))+' zur Vorperiode';else delta='Vorperiodenvergleich noch nicht verfügbar'}
  else if(historic&&ps.length===3)delta='Drei Plattformen · Exportbasis';
  else delta=x.complete?`${state.days} Tage mit Daten`:'Teilweise historische Tagesdaten';
@@ -389,13 +398,13 @@ function renderOverview(){const x=allMetric();const historic=state.days===28&&!p
  if(state.live&&state.days<=28&&x.complete){let t=targetRange(),begin=shift(t.start,-state.days),end=shift(t.start,-1);let prev=[],ok=true;for(const p of ps){let rr=mergedDaily(p).filter(r=>r.d>=begin&&r.d<=end&&typeof r.views==='number');if(rr.length!==state.days){ok=false;break}prev.push(rr.reduce((a,b)=>a+b.views,0))}if(ok){let prior=prev.reduce((a,b)=>a+b,0);if(prior>0)delta=percentString(fmtGrowth(x.views,prior))+' zum vorherigen '+state.days+'-Tage-Zeitraum'}}
  $('#heroLabel').textContent=heroLabel;$('#heroValue').textContent=fmt(heroVal);$('#heroDelta').textContent=delta;$('#heroDelta').classList.toggle('neutral',!delta.startsWith('+'));$('#heroDelta').classList.toggle('negative',delta.startsWith('-'));
  $('#rangeLabel').textContent=`${state.days} Tage`;$('#heroFootnote').textContent=state.live?
-  'YouTube: '+(state.live.platforms?.yt?.daily?.length?'geprüfte API-Tageswerte':'keine Live-Tageswerte')+
-  ' · Instagram: '+(state.live.platforms?.ig?.daily?.length?'API-/Sheets-Tageswerte':'Archivdaten')+
-  ' · TikTok: '+(state.live.platforms?.tt?.daily?.length?'API-Tageswerte':'nur Archiv-Tageswerte / API-Lifetime-Videos'):
+  'YouTube: '+(state.live.platforms?.yt?.daily?.length?'Tageszahlen vorhanden':'noch keine neuen Tageszahlen')+
+  ' · Instagram: '+(state.live.platforms?.ig?.daily?.length?'Tageszahlen vorhanden':'ältere gespeicherte Zahlen')+
+  ' · TikTok: '+(state.live.platforms?.tt?.daily?.length?'Tageszahlen vorhanden':'Video-Gesamtwerte, ältere Tageszahlen'):
   state.days===90?'Untergrenze aus dem 28-Tage-Archiv, keine Hochrechnung':'Exportstände mit unterschiedlichem Stichtag';
  const days=platforms().map(p=>series(p));const chartDays=days[0]||[];$('#heroSpark').innerHTML=sparkSvg(chartDays.map(r=>r.views??r.engaged??0));
  $('#platformStack').innerHTML=ps.map(p=>{const a=platformMetric(p);const v=a.views??a.engaged;const label=a.views!==null?'Aufrufe':a.engaged!==null?'Interessierte Aufrufe':'Keine Tageswerte';
- return `<div class="platform-card glass"><div><div class="platform-name">${tagPlatform(p)}</div><div class="platform-number">${fmt(v)}</div><div class="platform-caption">${label}</div></div><div class="platform-side"><span class="platform-rank">${a.fromSnapshot?'EXPORT · 28 TAGE':`${a.coverage} / ${state.days} Tage`}</span><small>${a.follows!==null?fmt(a.follows)+' '+(p==='yt'?'Netto-/Abo-Daten':'Follows'):''}</small></div></div>`}).join('');
+ return `<div class="platform-card glass"><div><div class="platform-name">${tagPlatform(p)}</div><div class="platform-number">${fmt(v)}</div><div class="platform-caption">${label}</div></div><div class="platform-side"><span class="platform-rank">${a.fromSnapshot?'EXPORT · 28 TAGE':`${a.coverage} / ${state.days} Tage`}</span><small>${a.follows!==null?fmt(a.follows)+' '+(p==='yt'?'neue Abonnenten':'neue Follower'):''}</small></div></div>`}).join('');
  renderLifetimeViews();renderFollowerCards();renderDailyFreshness();renderTrend();renderTop();renderInsight();
 }
 function renderTrend(){const ps=platforms(),dates=new Set();for(const p of ps)for(const r of series(p))dates.add(r.d);const xs=[...dates].sort();const dMap={};for(const p of ps)dMap[p]=new Map(series(p).map(r=>[r.d,r.views??r.engaged]));
