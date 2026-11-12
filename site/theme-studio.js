@@ -81,7 +81,10 @@ function settings(){
  v.bgmode=['aurora','soft','quiet','bubbles'].includes(o.bgmode)?o.bgmode:(p.family==='aero'?'bubbles':'aurora');
  v.layout=['auto','sidebar','wide'].includes(o.layout)?o.layout:'auto';
  v.finish=['original','gem','chrome','frost','iridescent','spectral','obsidian','sunset','neon'].includes(o.finish)?o.finish:'original';
- v.density=o.density==='compact'?'compact':'normal';v.motion=o.motion!==false;
+ v.density=o.density==='compact'?'compact':'normal';
+ v.typography=['original','modern','tech','aero','elegant'].includes(o.typography)?o.typography:'original';
+ v.readability=['auto','strong'].includes(o.readability)?o.readability:'auto';
+ v.motion=o.motion!==false;
  return v;
 }
 function setvar(k,v){document.documentElement.style.setProperty(k,String(v))}
@@ -104,6 +107,17 @@ function apply(){
  document.body.classList.toggle('t-dense',v.density==='compact');
  document.body.classList.toggle('t-still',!v.motion);
  const type=adaptiveType(p,v),mainHue=colorHue(v.accent);
+ const manualFonts={
+  modern:['"Segoe UI Variable Text","Segoe UI",sans-serif','"Segoe UI Variable Display","Segoe UI",sans-serif'],
+  tech:['"Arial Narrow","Segoe UI",sans-serif','"Arial Narrow","Segoe UI Variable Display",sans-serif'],
+  aero:['"Trebuchet MS",Verdana,sans-serif','"Trebuchet MS","Arial Rounded MT Bold",sans-serif'],
+  elegant:['"Aptos","Segoe UI",sans-serif','"Aptos Display","Segoe UI Variable Display",sans-serif']
+ };
+ if(manualFonts[v.typography]){type.fontUI=manualFonts[v.typography][0];type.fontDisplay=manualFonts[v.typography][1]}
+ if(v.readability==='strong'){
+  type.secondary=p.light?'#183b55':'#e3f0ff';
+  type.label=p.light?'#17334b':'#f3faff';
+ }
  setvar('--t-font-ui',type.fontUI);setvar('--t-font-display',type.fontDisplay);
  setvar('--t-ink-strong',type.text);setvar('--t-ink-muted',type.secondary);setvar('--t-ink-label',type.label);
  setvar('--t-on-accent',type.onAccent);
@@ -136,6 +150,8 @@ function edit(k,value){
  else if(['accent','secondary','tint'].includes(k))o[k]=color(value,p.accent);
  else if(k==='bgmode')o[k]=['aurora','soft','quiet','bubbles'].includes(value)?value:'aurora';
  else if(k==='density')o[k]=value==='compact'?'compact':'normal';
+ else if(k==='typography')o[k]=['original','modern','tech','aero','elegant'].includes(value)?value:'original';
+ else if(k==='readability')o[k]=['auto','strong'].includes(value)?value:'auto';
  else if(k==='layout')o[k]=['auto','sidebar','wide'].includes(value)?value:'auto';
  else if(k==='finish')o[k]=['original','gem','chrome','frost','iridescent','spectral','obsidian','sunset','neon'].includes(value)?value:'original';
  else if(k==='motion')o[k]=!!value;
@@ -144,7 +160,7 @@ function edit(k,value){
 }
 function refreshEditor(){
  const v=settings();
- ['accent','secondary','tint','bgmode','density','layout','finish'].concat(Object.keys(defaults)).forEach(k=>{
+ ['accent','secondary','tint','bgmode','density','layout','finish','typography','readability'].concat(Object.keys(defaults)).forEach(k=>{
   if(el('theme_'+k))el('theme_'+k).value=v[k];
   if(el('theme_out_'+k))el('theme_out_'+k).textContent=v[k]+(['blur','radius'].includes(k)?' px':'%');
  });
@@ -189,6 +205,8 @@ function setup(){
  '<label class="theme-choice">Hintergrund<select id="theme_bgmode" data-setting="bgmode"><option value="aurora">Aurora</option><option value="soft">Weicher Verlauf</option><option value="quiet">Ruhig</option><option value="bubbles">Glass Bubbles</option></select></label>',
  '<label class="theme-choice">Bild-Layout<select id="theme_layout" data-setting="layout"><option value="auto">Wie die Vorlage</option><option value="sidebar">Leuchtende Seitenleiste</option><option value="wide">Breites Dashboard</option></select></label>',
  '<label class="theme-choice">Glasoberfläche<select id="theme_finish" data-setting="finish"><option value="original">Wie die Vorlage</option><option value="neon">Neon Liquid</option><option value="gem">Crystal Gem</option><option value="chrome">Chrome</option><option value="frost">Frosted</option><option value="iridescent">Iridescent</option><option value="spectral">Holographic</option><option value="obsidian">Obsidian</option><option value="sunset">Sunset Pearl</option></select></label>',
+ '<label class="theme-choice">Schriftstil<select id="theme_typography" data-setting="typography"><option value="original">Wie die Vorlage</option><option value="modern">Modern / Clean</option><option value="tech">Technical / Narrow</option><option value="aero">Frutiger Aero / Rund</option><option value="elegant">Elegant / Editorial</option></select></label>',
+ '<label class="theme-choice">Textkontrast<select id="theme_readability" data-setting="readability"><option value="auto">Automatisch lesbar</option><option value="strong">Extra deutlich</option></select></label>',
  '<label class="theme-choice">Abstände<select id="theme_density" data-setting="density"><option value="normal">Komfortabel</option><option value="compact">Kompakt</option></select></label>',
  '<label class="theme-checkbox"><input id="theme_motion" type="checkbox" data-setting="motion"> Animationen</label>',
  '<div class="theme-dialog-footer"><button id="themeReset" type="button">Dieses Theme zurücksetzen</button><button id="themeDone" type="button">Fertig</button></div><small id="themeStatus" aria-live="polite"></small>',
@@ -227,7 +245,7 @@ window.BACK2U_THEMES={
  get:id=>{let p=byId[id]||byId[state.id];let o=state.edits[p.id]||{};return {...p,
   accent:color(o.accent,p.accent),secondary:color(o.secondary,p.secondary),
   tint:color(o.tint,p.accent),
-  fontProfile:p.family==='aero'?'aero':p.light?'elegant':'futuristic'};},
+  fontProfile:['aero','elegant','tech','modern'].includes(o.typography)?o.typography:(p.family==='aero'?'aero':p.light?'elegant':'futuristic')};},
  use:id=>{if(byId[id]){state.id=id;save();apply();renderGrid();return true}return false}
 };
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',setup,{once:true});
