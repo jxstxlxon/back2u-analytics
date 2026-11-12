@@ -12,6 +12,7 @@ const colorFor={yt:'#ff7b92',ig:'#a995ff',tt:'#39dbc9'};
 function niceStep(n){const q=Math.pow(10,Math.floor(Math.log10(n||1))),v=n/q;return(v<=1?1:v<=2?2:v<=2.5?2.5:v<=5?5:10)*q}
 function draw(ctx){
  const {ps,xs,dMap,NAMES,days,range}=ctx;
+ chart.classList.remove('v71-drawn');
  document.getElementById('trendLegend').innerHTML=ps.map(p=>'<span><i class="legend-color-'+p+'" style="background:'+cssColor(p,colorFor[p])+'"></i>'+esc(NAMES[p])+'</span>').join('');
  document.getElementById('chartTitle').textContent='Tagesverlauf · '+(mode==='bar'?'Balken':mode==='area'?'Flächen':'Linien');
  document.getElementById('chartSubtitle').textContent=range.start+' bis '+range.end;
@@ -36,19 +37,27 @@ function draw(ctx){
  const peaks=complete; // Only comparable days can define highest/lowest records.
  const sum=observed.reduce((a,r)=>a+r.value,0);
  const avg=observed.length?sum/observed.length:null;
+ const completeAvg=complete.length?complete.reduce((total,r)=>total+r.value,0)/complete.length:null;
+ const partialAvgCaption=complete.length!==observed.length
+  ?'Ø Tage mit gemeldeten Werten: '+f(Math.round(avg))+' (Teiltage enthalten)'
+  :null;
  const highest=peaks.reduce((best,r)=>!best||r.value>best.value?r:best,null);
  const lowest=peaks.reduce((best,r)=>!best||r.value<best.value?r:best,null);
  const entries=[
   ['Erfasste Aufrufe'+(complete.length===days?'':' · unvollständig'),f(sum),observed.length+' von '+days+' Tagen mit Daten · '+complete.length+' vollständig'],
-  ['Ø erfasste Aufrufe',avg===null?'–':f(Math.round(avg)),'Nur gemeldete Werte; unvollständige Tage können den Schnitt senken'],
+  ['Ø vollständig erfasster Tag',completeAvg===null?'–':f(Math.round(completeAvg)),
+   complete.length?complete.length+' Tage mit Daten aller '+ps.length+' gewählten Plattformen':'Kein Tag mit Daten aller gewählten Plattformen',
+   partialAvgCaption],
   ['Höchster Tag',highest?f(highest.value):'–',highest?fmtDate(highest.d):'keine vollständig erfassten Tage'],
   ['Niedrigster Tag',lowest?f(lowest.value):'–',lowest?fmtDate(lowest.d):'keine vollständig erfassten Tage']
  ];
- cards.innerHTML=entries.map(e=>'<div class="chart-kpi"><span class="chart-kpi-label">'+esc(e[0])+'</span><strong class="chart-kpi-number">'+esc(e[1])+'</strong><small class="chart-kpi-meta">'+esc(e[2])+'</small></div>').join('');
+ cards.innerHTML=entries.map(e=>'<div class="chart-kpi"><span class="chart-kpi-label">'+esc(e[0])+'</span><strong class="chart-kpi-number">'+esc(e[1])+'</strong><small class="chart-kpi-meta">'+esc(e[2])+'</small>'+(e[3]?'<small class="v71-secondary-avg">'+esc(e[3])+'</small>':'')+'</div>').join('');
  note.textContent='Zahlen vorhanden für '+observed.length+' von '+days+' Tagen. '+complete.length+' Tage haben Werte von allen gewählten Plattformen. '+(complete.length?'Höchster und niedrigster Tag stammen aus diesen gemeinsamen Tagen.':'Ohne vollständig erfasste gemeinsame Tage werden keine Rekordtage ausgewiesen.')+' Fehlende Tage werden nicht geschätzt.';
  const all=ps.flatMap(p=>xs.map(x=>dMap[p].get(x)).filter(v=>typeof v==='number'&&Number.isFinite(v)&&v>=0));
  const max=Math.max(1,...all),tick=niceStep(max/4),ymax=Math.ceil(max/tick)*tick;
- const W=1000,H=295,L=83,R=18,T=16,B=41,PW=W-L-R,PH=H-T-B;
+ // A small real SVG viewport keeps labels readable on iPhone instead of shrinking a 1000px SVG.
+ const compact=chart.getBoundingClientRect().width<=540;
+ const W=compact?430:1000,H=compact?300:295,L=compact?63:83,R=compact?14:18,T=compact?22:16,B=compact?49:41,PW=W-L-R,PH=H-T-B;
  const x=i=>L+PW*i/(xs.length-1),y=v=>T+PH*(1-v/ymax);
  let out='<svg viewBox="0 0 '+W+' '+H+'" role="img" aria-label="Tagesdiagramm mit numerischer Y-Achse und '+ps.length+' Plattformreihen" preserveAspectRatio="xMidYMid meet"><defs>';
  for(const p of ps)out+='<linearGradient id="v3gr-'+p+'" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" style="stop-color:'+cssColor(p,colorFor[p])+';stop-opacity:.24"/><stop offset="100%" style="stop-color:'+cssColor(p,colorFor[p])+';stop-opacity:0"/></linearGradient>';
@@ -76,12 +85,13 @@ function draw(ctx){
    const q=valid[valid.length-1];out+='<circle class="chart-point" cx="'+x(q.i)+'" cy="'+y(q.v)+'" r="4.2" fill="'+stroke+'"/>';
   }
  }
- const stepX=Math.max(1,Math.floor(xs.length/5));
+ const stepX=compact?Math.max(1,Math.ceil((xs.length-1)/3)):Math.max(1,Math.floor(xs.length/5));
  for(let i=0;i<xs.length;i++){if(i!==0&&i!==xs.length-1&&i%stepX!==0)continue;out+='<text class="chart-axis-label" x="'+x(i)+'" y="'+(H-11)+'" text-anchor="middle">'+fmtDate(xs[i])+'</text>'}
  out+='<line id="chartSelectionLine" x1="0" x2="0" y1="'+T+'" y2="'+(T+PH)+'" stroke="var(--t-chart-axis,#b7d8ee)" stroke-opacity=".68" stroke-dasharray="5 4" stroke-width="1.5" style="pointer-events:none"/>';
  for(const p of ps)out+='<circle id="chartFocus-'+p+'" r="5.3" cx="0" cy="0" stroke="var(--t-bg,#0a1327)" stroke-width="2" fill="'+cssColor(p,colorFor[p])+'" style="pointer-events:none"/>';
  out+='<rect id="chartHit" x="'+L+'" y="'+T+'" width="'+PW+'" height="'+PH+'" fill="transparent" tabindex="0" role="slider" aria-label="Datum im Diagramm auswählen" style="touch-action:pan-y"/></svg>';
  chart.innerHTML=out;
+ chart.classList.add('v71-drawn');
  foot.textContent='Die Plattformen zählen Aufrufe teilweise unterschiedlich. Die Zahlen stammen aus deinen gespeicherten Berichten; sie sind nicht immer direkt vergleichbar.';
  const hit=document.getElementById('chartHit'),hover=document.getElementById('chartHoverLabel');
  const breakdown=document.getElementById('chartDayBreakdown');
