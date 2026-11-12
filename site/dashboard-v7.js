@@ -37,19 +37,20 @@ function describeMissing(m){
 function dayPie(date,ctx){
  const root=$('chartPlatformPie');if(!root)return;
  if(!date||!ctx){root.innerHTML='<p class="v7-empty">Noch kein Tag ausgewählt.</p>';return}
- const records=ctx.ps.map(p=>({p,value:ctx.dMap?.[p]?.get(date)})).filter(v=>has(v.value));
+ const records=ctx.ps.filter(p=>ctx.metricTypes?.[p]!=='engaged').map(p=>({p,value:ctx.dMap?.[p]?.get(date)})).filter(v=>has(v.value));
  const sum=records.reduce((n,v)=>n+v.value,0);
  const complete=records.length===ctx.ps.length;
  const leg=ctx.ps.map(p=>{
+  const engaged=ctx.metricTypes?.[p]==='engaged';
   const entry=records.find(x=>x.p===p);
   const share=entry&&sum>0?Math.round(entry.value/sum*1000)/10:null;
-  return '<div class="v7-pie-item"><span class="v7-pie-dot" style="background:'+colors[p]+'"></span><strong>'+names[p]+'</strong><b>'+fmt(entry?.value)+'</b><small>'+(share===null?'Keine Tageszahlen':dec(share)+' % der erfassten Summe')+'</small></div>';
+  return '<div class="v7-pie-item"><span class="v7-pie-dot" style="background:'+colors[p]+'"></span><strong>'+names[p]+'</strong><b>'+fmt(entry?.value)+'</b><small>'+(engaged?'Nur interessierte Aufrufe · kein direkter Vergleich':share===null?'Keine vergleichbaren Tageszahlen':dec(share)+' % der erfassten Summe')+'</small></div>';
  }).join('');
  let cursor=0;const stops=[];
  for(const entry of records){const next=cursor+(sum>0?entry.value/sum*100:0);stops.push(colors[entry.p]+' '+cursor+'% '+next+'%');cursor=next}
- const ring=sum>0?'conic-gradient('+stops.join(',')+')':'conic-gradient(var(--t-accent) 0% 100%)';
+ const ring=sum>0?'conic-gradient('+stops.join(',')+')':'conic-gradient(rgba(120,160,180,.25) 0% 100%)';
  const dateLabel=date.split('-').reverse().join('.');
- const caution='Die Werte stammen aus unterschiedlichen Plattformberichten. Bei TikTok können ältere Tagessummen aus Screenshots stammen.';
+ const caution='Die Werte stammen aus unterschiedlichen Plattformberichten. Bei TikTok können ältere Tagessummen aus Screenshots stammen. YouTube-Zahlen zu interessierten Aufrufen werden nicht in diese prozentuale Aufteilung gemischt.';
  root.innerHTML='<div class="v7-pie-chart" style="--v7-pie:'+esc(ring)+'"><div class="v7-pie-core"><small>'+dateLabel+'</small><b>'+fmt(records.length?sum:null)+'</b><small>erfasste Aufrufe</small></div></div>'
  +'<div class="v7-pie-list">'+leg+'</div>'
  +'<p class="v7-pie-note">'+(complete?'Alle ausgewählten Plattformen mit Tageszahlen.':'Nur '+records.length+' von '+ctx.ps.length+' Plattformen mit Tageszahlen. Fehlende Werte sind nicht Null.')+' '+caution+'</p>';
