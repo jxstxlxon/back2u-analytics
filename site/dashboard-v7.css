@@ -133,7 +133,9 @@
 .v7-day-top>small{font-size:10px;color:var(--t-ink-muted)}
 /* Keep vector wordmark crisp at retina resolution instead of applying blurred text shadow. */
 body[data-theme-tone] .brand-icon{filter:none!important;-webkit-filter:none!important}
-body[data-theme-tone] .brand-icon img{filter:none!important;transform:translateZ(0);image-rendering:auto;object-fit:contain!important}
+body[data-theme-tone] .brand-icon img{filter:none!important;transform:none!important;image-rendering:auto;object-fit:contain!important}
+.v7-search-help{font:650 11px/1.6 var(--t-font-ui,system-ui);color:var(--t-ink-muted);padding:8px 12px;margin:2px 0 9px;border-radius:13px;background:rgba(var(--t-card),.16);border:1px solid rgba(var(--t-accent-rgb),.24)}
+.v7-search-help b{color:var(--t-ink-strong)}
 /* More helpful search location and hint */
 body[data-theme-tone] #globalVideoSearchForm{border-width:1.3px}
 body[data-theme-tone] #globalVideoSearch::placeholder{opacity:.97;color:var(--t-ink-muted)}
