@@ -53,4 +53,12 @@ check('empty direct data never granted parity approval',()=>assert.equal(noData.
 check('empty direct data shows zero of twelve groups',()=>assert.equal(noData.summary.passed,0));
 check('all coverage checks have details and identity',()=>assert.equal(noData.checks.every(x=>x.id&&x.label&&x.details),true));
 check('coverage gate is informative, never an automatic switch',()=>assert.equal(noData.readyForParityReview,false));
-console.log('BACK2U V7.7 integrity checks passed: '+count+'/19');
+check('reject a one-day window falsely labeled seven days',()=>assert.throws(()=>validateDirectVideoInsights({...ys,periodStart:day(2)},now)));
+check('reject older Meta snapshot overwriting newer day metrics',()=>{
+ const row=day(2);
+ const newer=mergeInstagramDaily(null,validateInstagramDaily({...daily,daily:[{date:row,metrics:{views:900}}]},now));
+ const older=validateInstagramDaily({...daily,snapshotDate:yesterday,daily:[{date:row,metrics:{views:100}}]},now);
+ const result=mergeInstagramDaily(newer,older);
+ assert.equal(result.daily.find(x=>x.date===row).metrics.views,900);
+});
+console.log('BACK2U V7.7 integrity checks passed: '+count+'/21');
