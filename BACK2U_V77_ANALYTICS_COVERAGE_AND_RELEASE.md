@@ -57,3 +57,16 @@ Nach **jedem** erfolgreichen Test kann die dazugehörige `back2uInstall...Direct
 ## TikTok vorerst unverändert
 
 Windsor.ai-TikTok-only-Modus existiert nur als **deaktivierte** Vorbereitung. Erst nach echtem Downgrade auf Forever Free und drei erfolgreichen TikTok-Organic-Abrufen aktivieren: Cloudflare `BACK2U_WINDSOR_TIKTOK_ONLY=true`. Vorher weder Windsor-Quellen noch bestehende D1-Werte verändern.
+
+## Prüfung des fortgesetzten Ausbaus (12.11.2026)
+
+- **19/19** Datenvalidierungs-/Merge-Prüfungen für die getrennten direkten Insights bestanden.
+- **10/10** Tests der echten 7/28/90-Tage-Logik mit simulierten Google-Analytics-API-Berichten bestanden; die YouTube-Lifetime-Videoaufrufe bleiben unverändert.
+- **14/14** zusätzliche simulierte Worker-Berechtigungs-/Datenfluss-Prüfungen bestanden: anonyme oder ungültig signierte Uploads abgewiesen, falsche Account-ID abgewiesen, Admin-Status geschützt, YouTube-/Instagram-Werte getrennt und TikTok unverändert.
+- **Meta-Robustheit:** Instagram-Tagesabfrage akzeptiert neben einem eindeutigen `total_value` nur ein exakt zum angefragten Tag passendes `values[0].end_time`; mehrere Tage werden weder addiert noch falsch zugeordnet.
+- **Instagram Demografie:** Alle drei Gruppen (Alter, Geschlecht, Länder) verwenden denselben verifizierten Meta-Zeitraum. Falls `last_30_days` in der aktiven Graph-Version nicht verfügbar ist, wird **für alle Gruppen gemeinsam** `this_month` getestet; bei Fehlschlag wird nichts überschrieben.
+- **Dashboard:** Video Radar zeigt je nach Filter wirklich gemessene 7/28/90-Tage-Video-Insights, unabhängig von Lifetime-Werten. Die Übersicht enthält neue Direkt-API-Zusatzwerte (YT engagierte Aufrufe, Watchtime, Shares und letzte Ø Dauer; IG Shares, Saves, Interaktionen und summierte Tagesreichweite) jeweils mit der Anzahl belegter Tage. Instagram-Reichweite ist keine eindeutige Reichweite über einen mehrtägigen Zeitraum.
+- **System:** Admin-only Status zeigt YouTube 7/28/90-Tage-Abdeckungen separat und die vorhandenen Instagram-Reel-/Tagesberichte.
+- **Cloudflare:** Nach jedem finalen Commit den dazugehörigen Preview-Build prüfen; ein zuvor erfolgreicher Build beweist nichts über nachfolgende Änderungen.
+
+**Weiterhin offen:** Reale Meta-/YouTube-Apps-Script-OAuth-Abfragen, echter Cloudflare-D1-SQL-Export, sieben Tage Vergleich zwischen Direktdaten und Windsor. Es erfolgt bis dahin **kein** produktiver Wechsel und **keine** Abschaltung vorhandener Quellen.
