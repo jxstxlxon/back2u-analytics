@@ -186,7 +186,16 @@ function renderCalendar(m){
   const title=validLink?'<a href="'+esc(url)+'" target="_blank" rel="noopener noreferrer">'+caption+'</a>':'<span>'+caption+'</span>';
   return '<article class="creator-day-video v7-day-video"><div class="v7-day-thumb">'+medal+'</div><div class="v7-day-body"><div class="v7-day-top"><span class="creator-platform-tag" data-p="'+esc(v.platform)+'">'+esc(P[v.platform]||v.platform)+'</span><small>'+esc(v.format||'Video')+'</small></div>'+title+'<small>'+label+'</small></div></article>';
  }).join(''):'<p class="creator-empty">Für diesen Tag sind keine Veröffentlichungen erfasst.</p>')
- +(entries.length>32?'<small>Weitere '+fmt(entries.length-32)+' Videoeinträge sind im Video Radar zu finden.</small>':'');
+ +(entries.length>32?'<small>Weitere '+fmt(entries.length-32)+' Videoeinträge sind im Video Radar zu finden.</small>':'')
+ +(planned.length?'<div class="v73-day-plans"><h4>Geplante Ideen <small>Nur lokal gespeichert · keine Upload-Nachweise</small></h4>'+planned.map(v=>
+   '<div class="v73-plan-entry'+(v.done?' done':'')+'"><label><input type="checkbox" data-plan-done="'+esc(v.id)+'" '+(v.done?'checked':'')+'/><span>'+esc(v.time)+' · '+esc(P[v.platform])+' · '+esc(v.format)+'</span></label><button type="button" data-plan-remove="'+esc(v.id)+'" aria-label="Geplante Idee entfernen">✕</button></div>'
+  ).join('')+'</div>':'');
+ $('creatorDayDetail').querySelectorAll('[data-plan-done]').forEach(box=>box.addEventListener('change',()=>{
+  const next=readPlanned().map(v=>v.id===box.dataset.planDone?{...v,done:box.checked}:v);save(PLAN_KEY,next);renderCalendar(m);
+ }));
+ $('creatorDayDetail').querySelectorAll('[data-plan-remove]').forEach(btn=>btn.addEventListener('click',()=>{
+  save(PLAN_KEY,readPlanned().filter(v=>v.id!==btn.dataset.planRemove));renderCalendar(m);
+ }));
 }
 function renderMilestones(m){
  $('creatorMilestones').innerHTML=m.badges.length?m.badges.slice(0,9).map(x=>'<div class="creator-milestone"><span>'+x.emoji+'</span><strong>'+esc(x.label)+'</strong></div>').join(''):'<p class="creator-empty">Sobald ein Meilenstein sicher belegt ist, erscheint hier ein Abzeichen.</p>';
@@ -219,5 +228,10 @@ function render(){
  renderKpis(lastModel);renderHall(lastModel);renderGoals(lastModel);renderCalendar(lastModel);renderMilestones(lastModel);renderIdeas();
  $('creatorMethodNote').textContent='Alle Werte stammen aus deinen gespeicherten Videos und Berichten. Nicht vorhandene Zahlen werden nicht als Null dargestellt. Videoaufrufe sind bisherige Gesamtwerte – keine Aufrufe am Uploadtag. Ideen und Ziele bleiben nur auf diesem Gerät gespeichert.'+(lastModel.raw.lastUpdated?' Letzter Datenabgleich: '+new Date(lastModel.raw.lastUpdated).toLocaleString('de-DE')+'.':'');
 }
-window.BACK2U_CREATOR_HUB={render,model:createModel};
+window.addEventListener('back2u-plan-updated',e=>{
+ const date=e.detail?.date;
+ if(validDate(date)){month=date.slice(0,7);selectedDay=date}
+ if(lastModel)renderCalendar(lastModel);
+});
+window.BACK2U_CREATOR_HUB={render,model:createModel,readPlanned};
 })();
