@@ -253,3 +253,34 @@ body.theme-open{overflow:hidden}
 @media(prefers-reduced-motion:reduce){
  #themeStudioPanel *,#themeStudioPanel *::before,#themeStudioPanel *::after{transition:none!important;animation:none!important}
 }
+/* Distinct glass finishes while keeping one coherent component system. */
+body[data-theme-id="n06"] .glass,body[data-theme-id="n10"] .glass,
+body[data-theme-id="n25"] .glass,body[data-theme-id="n27"] .glass{
+ border-top-width:2px;
+ box-shadow:inset 0 1px 0 #fff9,inset 1px 0 0 rgba(var(--t-secondary-rgb),.17),0 22px 56px #0005,0 0 var(--t-shadow-size) rgba(var(--t-accent-rgb),.17);
+}
+body[data-theme-id="n22"] .glass,body[data-theme-id="n23"] .glass,
+body[data-theme-id="n29"] .glass{box-shadow:inset 0 2px 0 #fff,inset 0 -2px 0 rgba(var(--t-accent-rgb),.15),0 15px 45px #2b639a2b}
+body[data-theme-id="n16"] .glass,body[data-theme-id="n20"] .glass,
+body[data-theme-id="n21"] .glass,body[data-theme-id="n30"] .glass{
+ border-right-color:rgba(var(--t-secondary-rgb),.5);
+ box-shadow:inset 0 2px 0 #fff5,0 0 var(--t-shadow-size) rgba(var(--t-accent-rgb),.25),0 0 38px rgba(var(--t-secondary-rgb),.10),0 17px 45px #0004
+}
+body[data-theme-family="aero"]::after{
+ content:"";position:fixed;inset:0;z-index:-2;pointer-events:none;
+ background:radial-gradient(ellipse at 7% 98%,rgba(112,236,139,.24) 0%,transparent 22%),
+            radial-gradient(ellipse at 93% 90%,rgba(50,210,168,.19) 0%,transparent 27%),
+            linear-gradient(0deg,rgba(96,211,229,.19),transparent 26%);
+}
+body[data-theme-id="fa03"]::after,body[data-theme-id="fa08"]::after{background:radial-gradient(ellipse at 9% 97%,rgba(132,225,116,.38),transparent 24%),radial-gradient(ellipse at 92% 90%,rgba(125,233,162,.23),transparent 27%)}
+body[data-theme-id="fa04"] .glass,body[data-theme-id="fa07"] .glass{border-right-color:rgba(var(--t-secondary-rgb),.54);border-top-color:white}
+@media(max-width:760px){
+ #themeStudioToggle{
+  position:fixed;right:16px;bottom:calc(18px + env(safe-area-inset-bottom));z-index:8500;
+  padding:12px 16px;min-height:47px;border-radius:18px;
+  background:linear-gradient(115deg,var(--t-accent),var(--t-secondary));
+  color:#081929;border:1px solid #fff9;font-size:12px;font-weight:800;
+  box-shadow:0 8px 32px rgba(0,0,0,.28),0 0 20px rgba(var(--t-accent-rgb),.35);
+ }
+ body.theme-open #themeStudioToggle{display:none}
+}
