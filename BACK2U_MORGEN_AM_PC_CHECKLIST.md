@@ -10,6 +10,8 @@
 
 ## 1 – Privates, vollständiges D1-Backup, bevor wir APIs oder Merge ändern
 
+**Einfachere Windows-Option:** Wenn der V7.8-Branch auf dem PC vorhanden ist, `scripts/BACK2U_D1_BACKUP_WINDOWS.cmd` ausführen. Das Skript kontrolliert Cloudflare-Anmeldung und Datenbank, verlangt ausdrücklich die Eingabe `JA` und exportiert nur in den durch `.gitignore` geschützten Ordner `private-backups`. Es löscht oder importiert nichts. Voraussetzung: Node.js/npm und Cloudflare-Zugang auf dem PC. Falls das Skript nicht vorliegt, bleibt die direkte Terminal-Variante unten.
+
 Auf einem angemeldeten PC im eigenen Repo-Terminal:
 
 ```bash
