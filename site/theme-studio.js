@@ -121,6 +121,8 @@ function apply(){
  setvar('--t-font-ui',type.fontUI);setvar('--t-font-display',type.fontDisplay);
  setvar('--t-ink-strong',type.text);setvar('--t-ink-muted',type.secondary);setvar('--t-ink-label',type.label);
  setvar('--t-on-accent',type.onAccent);
+ setvar('--t-accent-readable','hsl('+mainHue+' 79% '+(p.light?'31':'75')+'%)');
+ setvar('--t-secondary-readable','hsl('+colorHue(v.secondary)+' 76% '+(p.light?'34':'77')+'%)');
  setvar('--t-chart-axis',type.neutral);setvar('--t-chart-grid',p.light?'rgba(33,72,100,.42)':'rgba(193,216,245,.25)');
  ['yt','ig','tt'].forEach((k,i)=>{
   let hue=(mainHue+[0,112,219][i])%360;
