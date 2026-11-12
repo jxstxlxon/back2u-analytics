@@ -215,3 +215,12 @@ body[data-theme-tone="light"] .masthead h1 em{
  linear-gradient(rgba(var(--story-card-rgb),var(--story-veil,.14)),rgba(var(--story-card-rgb),var(--story-veil,.14))),
  linear-gradient(160deg,rgba(var(--story-card-rgb),.12),transparent 43%,rgba(var(--story-card-rgb),.24));
 }
+
+@media(max-width:760px){
+ body[data-theme-tone] .chart-card #chartHoverLabel{
+  display:block!important;width:100%;min-height:28px;
+  font-size:10px;line-height:1.45;white-space:normal;
+  color:var(--t-ink-muted);border:1px solid rgba(var(--t-accent-rgb),.26);
+  border-radius:10px;padding:7px 9px;background:rgba(var(--t-card),.20);
+ }
+}
