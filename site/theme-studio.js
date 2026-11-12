@@ -84,6 +84,7 @@ function settings(){
  v.density=o.density==='compact'?'compact':'normal';
  v.typography=['original','modern','tech','aero','elegant'].includes(o.typography)?o.typography:'original';
  v.readability=['auto','strong'].includes(o.readability)?o.readability:'auto';
+ v.chartMode=['line','area','bar'].includes(o.chartMode)?o.chartMode:'line';
  v.motion=o.motion!==false;
  return v;
 }
@@ -156,6 +157,7 @@ function edit(k,value){
  else if(k==='density')o[k]=value==='compact'?'compact':'normal';
  else if(k==='typography')o[k]=['original','modern','tech','aero','elegant'].includes(value)?value:'original';
  else if(k==='readability')o[k]=['auto','strong'].includes(value)?value:'auto';
+ else if(k==='chartMode')o[k]=['line','area','bar'].includes(value)?value:'line';
  else if(k==='layout')o[k]=['auto','sidebar','wide'].includes(value)?value:'auto';
  else if(k==='finish')o[k]=['original','gem','chrome','frost','iridescent','spectral','obsidian','sunset','neon'].includes(value)?value:'original';
  else if(k==='motion')o[k]=!!value;
@@ -164,7 +166,7 @@ function edit(k,value){
 }
 function refreshEditor(){
  const v=settings();
- ['accent','secondary','tint','bgmode','density','layout','finish','typography','readability'].concat(Object.keys(defaults)).forEach(k=>{
+ ['accent','secondary','tint','bgmode','density','layout','finish','typography','readability','chartMode'].concat(Object.keys(defaults)).forEach(k=>{
   if(el('theme_'+k))el('theme_'+k).value=v[k];
   if(el('theme_out_'+k))el('theme_out_'+k).textContent=v[k]+(['blur','radius'].includes(k)?' px':'%');
  });
@@ -210,6 +212,7 @@ function setup(){
  '<label class="theme-choice">Bild-Layout<select id="theme_layout" data-setting="layout"><option value="auto">Wie die Vorlage</option><option value="sidebar">Leuchtende Seitenleiste</option><option value="wide">Breites Dashboard</option></select></label>',
  '<label class="theme-choice">Glasoberfläche<select id="theme_finish" data-setting="finish"><option value="original">Wie die Vorlage</option><option value="neon">Neon Liquid</option><option value="gem">Crystal Gem</option><option value="chrome">Chrome</option><option value="frost">Frosted</option><option value="iridescent">Iridescent</option><option value="spectral">Holographic</option><option value="obsidian">Obsidian</option><option value="sunset">Sunset Pearl</option></select></label>',
  '<label class="theme-choice">Schriftstil<select id="theme_typography" data-setting="typography"><option value="original">Wie die Vorlage</option><option value="modern">Modern / Clean</option><option value="tech">Technical / Narrow</option><option value="aero">Frutiger Aero / Rund</option><option value="elegant">Elegant / Editorial</option></select></label>',
+ '<label class="theme-choice">Diagrammstil<select id="theme_chartMode" data-setting="chartMode"><option value="line">Linien</option><option value="area">Flächen</option><option value="bar">Balken</option></select></label>',
  '<label class="theme-choice">Textkontrast<select id="theme_readability" data-setting="readability"><option value="auto">Automatisch lesbar</option><option value="strong">Extra deutlich</option></select></label>',
  '<label class="theme-choice">Abstände<select id="theme_density" data-setting="density"><option value="normal">Komfortabel</option><option value="compact">Kompakt</option></select></label>',
  '<label class="theme-checkbox"><input id="theme_motion" type="checkbox" data-setting="motion"> Animationen</label>',
@@ -248,9 +251,10 @@ window.BACK2U_THEMES={
  current:()=>state.id,
  get:id=>{let p=byId[id]||byId[state.id];let o=state.edits[p.id]||{};return {...p,
   accent:color(o.accent,p.accent),secondary:color(o.secondary,p.secondary),
-  tint:color(o.tint,p.accent),
+  tint:color(o.tint,p.accent),chartMode:['line','area','bar'].includes(o.chartMode)?o.chartMode:'line',
   fontProfile:['aero','elegant','tech','modern'].includes(o.typography)?o.typography:(p.family==='aero'?'aero':p.light?'elegant':'futuristic')};},
- use:id=>{if(byId[id]){state.id=id;save();apply();renderGrid();return true}return false}
+ use:id=>{if(byId[id]){state.id=id;save();apply();renderGrid();return true}return false},
+ setChartMode:mode=>{if(['line','area','bar'].includes(mode))edit('chartMode',mode)}
 };
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',setup,{once:true});
 else setup();
