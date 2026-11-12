@@ -103,3 +103,41 @@ does not establish an exhaustive current inventory.
 
 After deployment, open the dashboard, press **TikTok jetzt synchronisieren**,
 then inspect the authenticated `/api/diagnostics` values.
+
+## Unabhängiger TikTok-Videoaudit: `video.list` vs. `video.query`
+
+**Anlass (12.11.2026):** `video.list` lieferte 499 eindeutige Videos bei einem vollständigen Scan.
+`/v2/user/info/` meldete gleichzeitig `video_count=395`. Die Ursache dieses
+Widerspruchs lässt sich aus diesen beiden Antworten allein nicht bestimmen.
+TikToks Dokumentation nennt beide Bestände öffentlich; das Repository darf
+daher weder die 104 Unterschiedseinträge löschen noch den Profilzähler als
+vollständigen Videoexport ausgeben.
+
+Nach dem Deployment kann der angemeldete Dashboard-Eigentümer im
+**Video Radar → TikTok-Videos gegenprüfen** einmalig den manuellen Prüfprozess
+auslösen. Dieser läuft **nicht** als Cron und wird nicht automatisch wiederholt:
+
+- Der Worker liest bis zu 800 verschiedene gespeicherte Video-IDs und ruft
+  `POST /v2/video/query/` in Paketen zu höchstens 20 IDs auf
+  (maximal 3 gleichzeitige Anfragen, für 499 IDs insgesamt 25 Anfragen).
+- Er gleicht die zurückgegebenen IDs mit den angefragten ab, ohne Videos,
+  Kennzahlen, Accounts oder OAuth-Scopes zu ändern.
+- Eine erfolgreiche Prüfung wird als `tiktokVideoQueryAudit` in der
+  geschützten `/api/diagnostics` angezeigt.
+  `queryConfirmedIds`, `queryUnconfirmedIds`, `queryComplete` und
+  `interpretation` machen das Ergebnis interpretierbar.
+- Bei einem API-Fehler ist `queryComplete=false`; die unbekannten Videos
+  werden **nicht** als fehlend gewertet. Der Button darf erneut verwendet werden.
+- Selbst wenn alle 499 IDs per `video.query` bestätigt werden, beweist dies
+  nicht, weshalb der Profil-Endpunkt 395 meldet. Es belegt nur, dass der zweite
+  Video-Endpunkt die ID-Bibliothek bestätigt und BACK2U keine 104
+  Duplikate/Archivleichen erfunden hat.
+- Das Audit speichert ausschließlich die eigene Diagnosestruktur in D1.
+  Es enthält keine Tokens, Secrets, öffentlichen Debug-Endpunkte oder
+  automatischen Bereinigungsfunktionen.
+
+Nach Durchführung bitte die Diagnosewerte vergleichen. Nur bei einer
+tatsächlich bestätigten Abweichung der ID-Liste weiter untersuchen; keine
+automatische Videolöschung vornehmen. Bei vollständig bestätigten IDs die
+Zählabweichung TikTok als Quellendifferenz kennzeichnen und bei Bedarf
+TikTok Developer Support mit beiden Endpunktnamen und Zeitstempeln kontaktieren.
