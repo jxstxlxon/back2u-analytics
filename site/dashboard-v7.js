@@ -158,14 +158,22 @@ function audience(){
  const availability=ps.flatMap(p=>required.map(type=>({p,type,known:Array.isArray(m.audience?.[p]?.[type])&&m.audience[p][type].length>0})));
  const available=availability.filter(x=>x.known).length;
  const missing=availability.filter(x=>!x.known).map(x=>names[x.p]+' '+({countries:'Länder',gender:'Geschlecht',age:'Alter'}[x.type]));
- $('v7AudienceNote').innerHTML='<div class="v74-audience-coverage"><strong>'+available+' von '+availability.length+' Zielgruppenaufteilungen im Archiv vorhanden</strong>'
-  +'<small>Fehlend: '+(missing.length?esc(missing.join(' · ')):'keine im ausgewählten Plattformfilter')
-  +'. Stand: '+(m.archiveDate?esc(m.archiveDate.split('-').reverse().join('.')):'unbekannt')
-  +'. Live-Followerzahlen ergänzen keine Alters- oder Länderstatistiken.</small></div>';
+ $('v7AudienceNote').innerHTML='<div class="v74-audience-coverage"><strong>'+available+' von '+availability.length+' Zielgruppenaufteilungen mit belegter Quelle</strong>'
+  +'<small>'+(missing.length?'Noch nicht verfügbar: '+esc(missing.join(' · '))+'. ':'Alle Aufteilungen im gewählten Plattformfilter vorhanden. ')
+  +'Neueste Ergänzung: '+(m.audienceAddedAt?esc(m.audienceAddedAt.split('-').reverse().join('.')):(m.archiveDate?esc(m.archiveDate.split('-').reverse().join('.')):'unbekannt'))
+  +'. Werte stammen aus unterschiedlich alten Plattformberichten; sie werden nicht bei jedem Seitenaufruf neu abgerufen.</small>'
+  +'<small><strong>Wichtig:</strong> YouTube-Länder zeigen Anteile geografisch zugeordneter Aufrufe, YouTube-Alter/Geschlecht Zuschaueranteile, TikTok-Alter Followeranteile. Diese Grundlagen sind nicht direkt vergleichbar.</small></div>';
  let cards=[];
  for(const p of ps){
   for(const type of ['countries','gender','age']){
    const label={countries:'Länder',gender:'Geschlecht',age:'Alter'}[type],raw=m.audience?.[p]?.[type];
+   const provenance=m.audienceMeta?.[p]?.[type]||null;
+   const sourceText=provenance
+    ?[provenance.source,provenance.period||('Stand '+String(provenance.asOf||'unbekannt').split('-').reverse().join('.')),provenance.basis].filter(Boolean).join(' · ')
+    :'Archiv-Export vom '+(m.archiveDate?String(m.archiveDate).split('-').reverse().join('.'):'unbekannten Datum');
+   const detail=type==='countries'&&p==='yt'&&provenance?.detail==='data/back2u-audience-2026-11-12.json'
+    ?'<p class="v74-audience-source"><a href="/data/back2u-audience-2026-11-12.json" target="_blank" rel="noopener noreferrer">Alle 131 Länder mit Original-Aufrufzahlen ansehen</a></p>':'';
+
    if(!Array.isArray(raw)||!raw.length){
     const source=p==='yt'?'YouTube Studio → Analytics → Zielgruppe':p==='tt'?'TikTok Studio → Analytics → Zuschauer':'Instagram Insights → Zielgruppe';
     cards.push('<section class="glass audience-card v7-audience-card"><h3><span class="v7-platform-mark" data-p="'+p+'">'+names[p]+'</span> · '+label+'</h3><p class="v74-audience-missing">Noch kein verlässlicher '+label.toLowerCase()+'-Export hinterlegt. Daher keine Prozentwerte.</p><p class="v74-audience-source">Originalwerte dafür in '+esc(source)+' prüfen; keine Schätzung aus Followerzahlen.</p></section>');continue
@@ -173,11 +181,11 @@ function audience(){
    const sorted=raw.map(v=>[String(v[0]),Number(v[1])]).filter(x=>has(x[1])).sort((a,b)=>b[1]-a[1]);
    const colorset=['var(--t-accent)','var(--t-secondary)',colors[p],'var(--t-ink-label)','#f3bb75','#7edccc','#a3a0ef'];
    const donut=type!=='countries'?donutFor(sorted,colorset):'';
-   const items=sorted.slice(0,type==='countries'?8:7).map(([name,v],i)=>{
+   const items=sorted.slice(0,type==='countries'?11:7).map(([name,v],i)=>{
     const col=colorset[i%colorset.length];
     return '<div class="v7-audience-row"><span><i style="background:'+col+'"></i>'+esc(name)+'</span><strong>'+dec(v)+' %</strong><div class="v7-audience-track"><b style="width:'+Math.min(100,v)+'%;background:'+col+'"></b></div></div>';
    }).join('');
-   cards.push('<section class="glass audience-card v7-audience-card"><h3><span class="v7-platform-mark" data-p="'+p+'">'+names[p]+'</span> · '+label+'</h3>'+donut+'<div class="v7-audience-list">'+items+'</div><p class="v74-audience-source">Archiv-Auswertung · '+(m.archiveDate?esc(m.archiveDate.split('-').reverse().join('.')):'Datum nicht bekannt')+' · keine Live-Aktualisierung</p></section>');
+   cards.push('<section class="glass audience-card v7-audience-card"><h3><span class="v7-platform-mark" data-p="'+p+'">'+names[p]+'</span> · '+label+'</h3>'+donut+'<div class="v7-audience-list">'+items+'</div><p class="v74-audience-source">'+esc(sourceText)+'</p>'+detail+'</section>');
   }
  }
  root.innerHTML=cards.join('');
