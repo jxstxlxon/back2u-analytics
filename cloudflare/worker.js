@@ -197,7 +197,7 @@ async function audienceAdmin(req,env){
   const saved=await get(env,AUDIENCE_KEY);
   const sync=await get(env,'audience_sync_status');
   return json({configured:!!saved,updatedAt:saved?.updatedAt||null,snapshotDate:saved?.snapshotDate||null,
-   automatic:{configured:!!String(env.WINDSOR_API_KEY||'').trim(),
+   automatic:{configured:!!String(env.WINDSOR_API_KEY||'').trim(),tiktokOnlyMode:env.BACK2U_WINDSOR_TIKTOK_ONLY==='true',
     status:sync?.status||'not_started',lastAttemptAt:sync?.lastAttemptAt||null,
     lastSuccessAt:sync?.lastSuccessAt||null,snapshotDate:sync?.snapshotDate||null,
     error:sync?.error||null,groups:sync?.groups||null}});
@@ -231,7 +231,7 @@ async function audienceAdmin(req,env){
 async function audienceSyncAdmin(req,env){
  if(req.method!=='POST')return json({error:'POST only'},405);
  if(!requireSameSiteJson(req))return json({error:'Unzulässige Anfrage'},403);
- const result=await runAudienceAutoSync(env,{get,put,force:true});
+ const result=await runAudienceAutoSync(env,{get,put,force:true,tiktokOnly:env.BACK2U_WINDSOR_TIKTOK_ONLY==='true'});
  const code=result.status==='ok'?200:result.status==='not_configured'?503:502;
  return json(result,code);
 }
@@ -757,7 +757,7 @@ export default {
  },
  async scheduled(controller,env,ctx){
   ctx.waitUntil(ttSync(env).catch(e=>console.error('TikTok scheduled sync:',clamp(e?.message))));
-  ctx.waitUntil(runAudienceAutoSync(env,{get,put})
+  ctx.waitUntil(runAudienceAutoSync(env,{get,put,tiktokOnly:env.BACK2U_WINDSOR_TIKTOK_ONLY==='true'})
    .then(r=>{if(r.status==='error')console.warn('Audience scheduled sync failed:',r.error)})
    .catch(e=>console.error('Audience scheduled sync could not complete:',clamp(e?.message))));
  }
