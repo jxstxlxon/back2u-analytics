@@ -37,6 +37,32 @@ function art(p){
  const sparks='<g fill="white" opacity=".65"><path d="M1340 160l6 33 33 6-33 6-6 33-6-33-33-6 33-6z"/><path d="M290 132l4 22 22 4-22 4-4 22-4-22-22-4 22-4z"/></g>';
  const floral='<g opacity=".65"><path d="M1420 900q-35-210 105-350q42 160-105 350" fill="url(#leaf)"/><path d="M0 770q155-255 220-125q-100 158-220 125" fill="url(#leaf)"/></g>';
  const prismRay='<path d="M0 390Q320 30 565 350T1120 350T1700 140" stroke="url(#rainbow)" stroke-width="175" opacity=".17" fill="none" filter="url(#smear)"/>';
+ function aeroDetails(id){
+ const refracted=(x,y,r)=>'<g opacity=".88"><circle cx="'+x+'" cy="'+y+'" r="'+r+'" fill="url(#ballo)" stroke="url(#orb)" stroke-width="4"/><ellipse cx="'+(x-r*.28)+'" cy="'+(y-r*.4)+'" rx="'+(r*.42)+'" ry="'+(r*.13)+'" fill="#fff" opacity=".75" transform="rotate(-28 '+x+' '+y+')"/></g>';
+ const bubbleLine=(x,y)=>[0,1,2,3,4,5].map(i=>refracted(x+i*33,y-i*i*18,9+i*3)).join('');
+ const aeroWave=(y)=>'<path d="M-50 '+y+'C220 '+(y-100)+' 390 '+(y+95)+' 670 '+(y-15)+'S1160 '+(y-120)+' 1660 '+(y+5)+'" fill="none" stroke="url(#wave)" stroke-width="33" opacity=".44"/>';
+ const palm=(x,y,scale)=>'<g transform="translate('+x+' '+y+') scale('+scale+')"><path d="M0 210Q30 70 42 -50" stroke="#c3efc8" stroke-width="14" fill="none"/><path d="M42 -50Q-120 -125 -180 -40Q-55 -65 42 -50M42 -50Q80 -175 194 -110Q110 -100 42 -50M42 -50Q-75 -210 -128 -185Q-40 -105 42 -50M42 -50Q171 -60 180 39Q120 -20 42 -50" fill="url(#leaf)" stroke="#eaffd0" stroke-width="2"/></g>';
+ const rainbow='<path d="M-95 620Q415 -70 1050 205T1770 340" stroke="url(#rainbow)" stroke-width="94" opacity=".46" fill="none"/><path d="M-95 620Q415 -70 1050 205T1770 340" stroke="#fff" stroke-width="5" opacity=".55" fill="none"/>';
+ const prism='<g opacity=".77"><path d="M1130 740l80-330 145 166-102 282z" fill="url(#crystal)" stroke="#fff" stroke-width="4"/><path d="M1370 390l90-260 120 214-90 190z" fill="url(#crystal)" stroke="#b3fcff" stroke-width="3"/><path d="M1190 408l63 450M1130 740l225-164" stroke="#fff" stroke-width="2" fill="none"/></g>';
+ const horizon='<path d="M0 616Q280 553 520 613Q900 570 1160 633Q1460 578 1600 612V900H0Z" fill="url(#sea)" opacity=".63"/>';
+ const circle=(cx,cy,r)=>'<circle cx="'+cx+'" cy="'+cy+'" r="'+r+'" fill="url(#ballo)" stroke="url(#orb)" stroke-width="5" opacity=".8"/>';
+ const scenes={
+  fa00:waveScene('#fff')+bubbleLine(158,800)+refracted(1330,580,82)+refracted(1010,260,36),
+  fa01:aeroWave(558)+aeroWave(778)+bubbleLine(235,800)+refracted(1260,520,103),
+  fa02:palm(110,460,1.15)+palm(1470,340,.94)+circle(1070,520,104)+aeroWave(740),
+  fa03:horizon+palm(1250,510,.74)+bubbleLine(300,835)+refracted(1120,270,88),
+  fa04:rainbow+refracted(1420,470,134)+refracted(435,260,85)+bubbleLine(740,850),
+  fa05:'<g fill="none" stroke="url(#orb)" opacity=".9"><ellipse cx="1215" cy="385" rx="264" ry="83" stroke-width="15" transform="rotate(-31 1215 385)"/><ellipse cx="1215" cy="385" rx="180" ry="47" stroke-width="5" transform="rotate(23 1215 385)"/></g>'+refracted(1180,382,103)+bubbleLine(315,740),
+  fa06:circle(1280,390,137)+'<g fill="none" stroke="#efffcf" opacity=".77"><circle cx="1280" cy="390" r="114" stroke-width="10"/>'+[0,45,90,135].map(a=>'<path d="M1280 390l114 0M1280 390l-114 0" transform="rotate('+a+' 1280 390)" stroke-width="6"/>').join('')+'</g>'+palm(140,520,1)+aeroWave(725),
+  fa07:refracted(1200,410,144)+refracted(1540,160,75)+refracted(380,705,105)+bubbleLine(675,790),
+  fa08:palm(1350,460,1.1)+horizon+refracted(880,370,100)+aeroWave(785),
+  fa09:prism+refracted(390,540,99)+aeroWave(758)+bubbleLine(870,850),
+  fa10:'<circle cx="1205" cy="390" r="200" fill="#fffde3" opacity=".55" filter="url(#smear)"/>'+horizon+aeroWave(690)+refracted(430,380,112)+bubbleLine(790,820)
+ };
+ return scenes[id]||'';
+ function waveScene(){return aquaPath(620)+aquaPath(790)}
+ function aquaPath(y){return'<path d="M-20 '+y+'Q300 '+(y-110)+' 660 '+y+'T1700 '+(y-15)+'" stroke="url(#shine)" stroke-width="22" fill="none" opacity=".78"/>'}
+}
  const base='<rect width="1600" height="900" fill="url(#scene)"/>';
  const fog=orb(1310,70,300,sc,.33)+orb(-60,640,300,ac,.33)+orb(700,910,220,sc,.2);
  let details=isAero?clouds+ocean+leaves+orbs+sparks:rays+orbs+sparks;
@@ -48,6 +74,7 @@ function art(p){
  if(type==='ember')details+='<circle cx="1230" cy="250" r="180" fill="'+ac+'" opacity=".16" filter="url(#mist)"/>';
  if(finish==='sunrise')details+='<circle cx="1260" cy="330" r="140" fill="#ffffaa" opacity=".34" filter="url(#smear)"/>';
  if(finish==='metal'||finish==='titanium')details+='<g opacity=".23" fill="none" stroke="#ffffff" stroke-width="1.5"><path d="M60 0l760 900M450 0l760 900M1000 0l600 800"/></g>';
+ if(isAero)details+=aeroDetails(p.id);
  const svg='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid slice"><defs>'+
  '<linearGradient id="scene" x1="0" y1="0" x2=".87" y2="1"><stop stop-color="'+bg+'"/><stop offset=".50" stop-color="'+mid+'"/><stop offset="1" stop-color="'+bg+'"/></linearGradient>'+
  '<linearGradient id="wave"><stop stop-color="'+sc+'" stop-opacity=".06"/><stop offset=".38" stop-color="'+ac+'"/><stop offset=".72" stop-color="#ffffff"/><stop offset="1" stop-color="'+sc+'" stop-opacity=".4"/></linearGradient>'+
@@ -57,7 +84,7 @@ function art(p){
  '<linearGradient id="leaf"><stop stop-color="#c9ff76"/><stop offset=".5" stop-color="#5cdb83"/><stop offset="1" stop-color="#088f6b"/></linearGradient>'+
  '<linearGradient id="crystal" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#fff" stop-opacity=".53"/><stop offset=".5" stop-color="'+ac+'" stop-opacity=".2"/><stop offset="1" stop-color="'+sc+'" stop-opacity=".57"/></linearGradient>'+
  '<linearGradient id="rainbow"><stop stop-color="#6ceaff"/><stop offset=".26" stop-color="#ab89ff"/><stop offset=".55" stop-color="#ff93bc"/><stop offset=".75" stop-color="#f6f99a"/><stop offset="1" stop-color="#85ffdc"/></linearGradient>'+
- '<filter id="mist"><feGaussianBlur stdDeviation="95"/></filter><filter id="smear"><feGaussianBlur stdDeviation="19"/></filter></defs>'+
+ '<radialGradient id="ballo" cx=".25" cy=".22"><stop stop-color="#fff" stop-opacity=".84"/><stop offset=".39" stop-color="'+ac+'" stop-opacity=".46"/><stop offset=".82" stop-color="'+sc+'" stop-opacity=".31"/><stop offset="1" stop-color="#fff" stop-opacity=".11"/></radialGradient><filter id="mist"><feGaussianBlur stdDeviation="95"/></filter><filter id="smear"><feGaussianBlur stdDeviation="19"/></filter></defs>'+
  base+fog+details+'</svg>';
  const result={url:'data:image/svg+xml,'+encodeURIComponent(svg),layout,finish,type};
  if(Object.keys(cache).length>90){for(const key of Object.keys(cache).slice(0,20))delete cache[key]}
