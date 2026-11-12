@@ -71,7 +71,7 @@ export function mergeDirectAudience(previous,valid){
 export function chooseEffectiveAudience(imported,direct){
  const out=imported?.schema===1?
   {schema:1,snapshotDate:imported.snapshotDate,updatedAt:imported.updatedAt,
-   audience:structuredClone(imported.audience||{}),audienceMeta:structuredClone(imported.audienceMeta||{})}:
+   audience:JSON.parse(JSON.stringify(imported.audience||{})),audienceMeta:JSON.parse(JSON.stringify(imported.audienceMeta||{}))}:
   {schema:1,snapshotDate:null,updatedAt:null,audience:{},audienceMeta:{}};
  if(direct?.schema!==1)return out;
  for(const [p,entry] of Object.entries(direct.platforms||{})){
