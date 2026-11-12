@@ -170,14 +170,14 @@ function renderCalendar(m){
  $('creatorMonthLabel').textContent=new Intl.DateTimeFormat('de-DE',{month:'long',year:'numeric',timeZone:'UTC'}).format(new Date(Date.UTC(y,mo-1,1)));
  const names=['Mo','Di','Mi','Do','Fr','Sa','So'];
  const info=monthDays(month);
- const allClipGroups=crosspostGroups(m.videos);
- const monthlyGroups=allClipGroups.filter(g=>g.date.startsWith(month+'-'));
+ const monthlyVideos=m.videos.filter(v=>validDate(v.date)&&v.date.startsWith(month+'-'));
+ // Cluster within the visible month so cross-month reposts remain discoverable in each month.
+ const monthlyGroups=crosspostGroups(monthlyVideos);
  const groupsByDay=new Map();
  for(const group of monthlyGroups){
   if(!groupsByDay.has(group.date))groupsByDay.set(group.date,[]);
   groupsByDay.get(group.date).push(group);
  }
- const monthlyVideos=m.videos.filter(v=>validDate(v.date)&&v.date.startsWith(month+'-'));
  const monthlyPlans=readPlanned().filter(v=>v.date.startsWith(month+'-'));
  const plansByDay=new Map();
  for(const v of monthlyPlans){
@@ -189,7 +189,7 @@ function renderCalendar(m){
  const validLifetime=monthlyVideos.filter(knownTotal);
  const lifetimeViews=validLifetime.length?validLifetime.reduce((n,v)=>n+v.views,0):null;
  const prev=shiftMonth(month,-1);
- const previousCount=allClipGroups.filter(g=>g.date.startsWith(prev+'-')).length;
+ const previousCount=crosspostGroups(m.videos.filter(v=>validDate(v.date)&&v.date.startsWith(prev+'-'))).length;
  const completeMonth=month<now().slice(0,7);
  const viewNote=validLifetime.length<monthlyVideos.length?'Einige Video-Gesamtzahlen fehlen':'Gesamtaufrufe dieser Videos bis jetzt';
  $('creatorMonthSummary').innerHTML=[
