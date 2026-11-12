@@ -434,10 +434,11 @@ function renderTrend(){
  const ps=platforms(),range=targetRange(),xs=[];
  // Keep a complete calendar axis: absent days stay blank rather than becoming zeros.
  for(let day=range.start;day<=range.end;day=shift(day,1))xs.push(day);
- const dMap={},chartNames={...NAMES},quality=[];
+ const dMap={},chartNames={...NAMES},quality=[],metricTypes={};
  for(const p of ps){
   const rows=series(p),valid=rows.filter(r=>typeof r.views==='number'&&Number.isFinite(r.views)&&r.views>=0);
   const useEngaged=p==='yt'&&!valid.length;
+  metricTypes[p]=useEngaged?'engaged':'views';
   dMap[p]=new Map(rows.map(r=>[r.d,useEngaged?r.engaged:(typeof r.views==='number'&&Number.isFinite(r.views)?r.views:null)]));
   if(useEngaged){chartNames[p]='YouTube · interessierte Aufrufe';quality.push('YouTube: nur eingeschränkt vergleichbare Aufrufe verfügbar')}
   else if(!valid.length)quality.push(NAMES[p]+': für diese Tage fehlen tatsächliche Tagesaufrufe');
@@ -446,8 +447,8 @@ function renderTrend(){
  const verified=state.live?.verifiedYouTubeDaily;
  if(ps.includes('yt')&&verified?.dataThrough)quality.unshift('YouTube zuletzt geprüft bis '+verified.dataThrough);
  $('#chartDataStatus').textContent=quality.length?quality.join(' · '):'Für alle ausgewählten Plattformen sind Tageszahlen verfügbar.';
- window.BACK2U_V7_CHART_STATE={ps,xs,dMap,names:chartNames,range,verified,updatedAt:state.live?.generatedAt||null};
- if(window.BACK2U_CHARTS){window.BACK2U_CHARTS.render({ps,xs,dMap,COLORS,NAMES:chartNames,fmt,days:state.days,range});return}
+ window.BACK2U_V7_CHART_STATE={ps,xs,dMap,names:chartNames,metricTypes,range,verified,updatedAt:state.live?.generatedAt||null};
+ if(window.BACK2U_CHARTS){window.BACK2U_CHARTS.render({ps,xs,dMap,COLORS,NAMES:chartNames,metricTypes,fmt,days:state.days,range});return}
  $('#trendLegend').innerHTML=ps.map(p=>`<span><i style="background:${COLORS[p]}"></i>${NAMES[p]}</span>`).join('');
  $('#chartTitle').textContent='Tagesverlauf im Vergleich';$('#chartSubtitle').textContent=`${targetRange().start} bis ${targetRange().end}`;
  if(xs.length<2){$('#trendChart').innerHTML='<div class="empty">Für diesen Zeitraum sind zu wenige Tagesdaten vorhanden.</div>';$('#chartFoot').textContent='Keine Werte werden geschätzt.';return}
