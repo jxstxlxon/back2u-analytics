@@ -82,7 +82,8 @@ function settings(){
  v.layout=['auto','sidebar','wide'].includes(o.layout)?o.layout:'auto';
  v.finish=['original','gem','chrome','frost','iridescent','spectral','obsidian','sunset','neon'].includes(o.finish)?o.finish:'original';
  v.density=o.density==='compact'?'compact':'normal';
- v.typography=['original','modern','tech','aero','elegant'].includes(o.typography)?o.typography:'original';
+ v.typography=['original','modern','tech','aero','elegant','glass','geometric'].includes(o.typography)?o.typography:'original';
+ v.aeroCursor=['auto','aqua','orb','crystal'].includes(o.aeroCursor)?o.aeroCursor:'auto';
  v.readability=['auto','strong'].includes(o.readability)?o.readability:'auto';
  v.chartMode=['line','area','bar'].includes(o.chartMode)?o.chartMode:'line';
  v.motion=o.motion!==false;
@@ -107,12 +108,26 @@ function apply(){
  document.body.dataset.themeBackground=v.bgmode;
  document.body.classList.toggle('t-dense',v.density==='compact');
  document.body.classList.toggle('t-still',!v.motion);
+ const cursorMode=p.family==='aero'?v.aeroCursor:'auto';
+ document.body.dataset.aeroCursor=cursorMode;
+ if(cursorMode!=='auto'){
+  const icon=cursorMode==='aqua'
+   ?'<path d="M4 2L4 28L11 20L17 30L23 27L17 16L29 15Z" fill="#f8ffff" stroke="#0aa7d5" stroke-width="2.2"/><path d="M5 4L6 22L12 15L25 14Z" fill="#81e5ff" opacity=".65"/>'
+   :cursorMode==='orb'
+   ?'<circle cx="14" cy="14" r="11" fill="#75dcfa" fill-opacity=".72" stroke="#fff" stroke-width="3"/><circle cx="10" cy="9" r="4" fill="#fff" opacity=".85"/><circle cx="14" cy="14" r="6" fill="none" stroke="#2cb5df" stroke-width="1.8"/>'
+   :'<path d="M4 2L4 29L12 21L17 29L22 26L17 17L29 16Z" fill="#d5f8ff" stroke="#8aa8ff" stroke-width="2.2"/><path d="M4 2L13 13L4 29" fill="none" stroke="#fff" stroke-width="1.8"/>';
+  const image='<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32">'+icon+'</svg>';
+  const hotspot=cursorMode==='orb'?'14 14':'4 2';
+  setvar('--aero-cursor','url("data:image/svg+xml,'+encodeURIComponent(image)+'") '+hotspot+', auto');
+ }else setvar('--aero-cursor','auto');
  const type=adaptiveType(p,v),mainHue=colorHue(v.accent);
  const manualFonts={
   modern:['"Segoe UI Variable Text","Segoe UI",sans-serif','"Segoe UI Variable Display","Segoe UI",sans-serif'],
   tech:['"Arial Narrow","Segoe UI",sans-serif','"Arial Narrow","Segoe UI Variable Display",sans-serif'],
   aero:['"Trebuchet MS",Verdana,sans-serif','"Trebuchet MS","Arial Rounded MT Bold",sans-serif'],
-  elegant:['"Aptos","Segoe UI",sans-serif','"Aptos Display","Segoe UI Variable Display",sans-serif']
+  elegant:['"Aptos","Segoe UI",sans-serif','"Aptos Display","Segoe UI Variable Display",sans-serif'],
+  glass:['"Helvetica Neue","Segoe UI",Arial,sans-serif','"Helvetica Neue","Segoe UI",Arial,sans-serif'],
+  geometric:['"Century Gothic","Aptos","Trebuchet MS",sans-serif','"Century Gothic","Aptos Display","Trebuchet MS",sans-serif']
  };
  if(manualFonts[v.typography]){type.fontUI=manualFonts[v.typography][0];type.fontDisplay=manualFonts[v.typography][1]}
  if(v.readability==='strong'){
@@ -155,7 +170,8 @@ function edit(k,value){
  else if(['accent','secondary','tint'].includes(k))o[k]=color(value,p.accent);
  else if(k==='bgmode')o[k]=['aurora','soft','quiet','bubbles'].includes(value)?value:'aurora';
  else if(k==='density')o[k]=value==='compact'?'compact':'normal';
- else if(k==='typography')o[k]=['original','modern','tech','aero','elegant'].includes(value)?value:'original';
+ else if(k==='typography')o[k]=['original','modern','tech','aero','elegant','glass','geometric'].includes(value)?value:'original';
+ else if(k==='aeroCursor')o[k]=['auto','aqua','orb','crystal'].includes(value)?value:'auto';
  else if(k==='readability')o[k]=['auto','strong'].includes(value)?value:'auto';
  else if(k==='chartMode')o[k]=['line','area','bar'].includes(value)?value:'line';
  else if(k==='layout')o[k]=['auto','sidebar','wide'].includes(value)?value:'auto';
@@ -166,11 +182,12 @@ function edit(k,value){
 }
 function refreshEditor(){
  const v=settings();
- ['accent','secondary','tint','bgmode','density','layout','finish','typography','readability','chartMode'].concat(Object.keys(defaults)).forEach(k=>{
+ ['accent','secondary','tint','bgmode','density','layout','finish','typography','readability','chartMode','aeroCursor'].concat(Object.keys(defaults)).forEach(k=>{
   if(el('theme_'+k))el('theme_'+k).value=v[k];
   if(el('theme_out_'+k))el('theme_out_'+k).textContent=v[k]+(['blur','radius'].includes(k)?' px':'%');
  });
  if(el('theme_motion'))el('theme_motion').checked=v.motion;
+ if(el('themeAeroCursorRow'))el('themeAeroCursorRow').hidden=byId[state.id].family!=='aero';
  if(el('themeStatus'))el('themeStatus').textContent='Aktuell: '+byId[state.id].name+' · auf diesem Gerät gespeichert';
  document.querySelectorAll('.theme-option').forEach(b=>{const active=b.dataset.preset===state.id;b.classList.toggle('selected',active);b.setAttribute('aria-pressed',String(active))});
 }
@@ -211,7 +228,8 @@ function setup(){
  '<label class="theme-choice">Hintergrund<select id="theme_bgmode" data-setting="bgmode"><option value="aurora">Aurora</option><option value="soft">Weicher Verlauf</option><option value="quiet">Ruhig</option><option value="bubbles">Glass Bubbles</option></select></label>',
  '<label class="theme-choice">Bild-Layout<select id="theme_layout" data-setting="layout"><option value="auto">Wie die Vorlage</option><option value="sidebar">Leuchtende Seitenleiste</option><option value="wide">Breites Dashboard</option></select></label>',
  '<label class="theme-choice">Glasoberfläche<select id="theme_finish" data-setting="finish"><option value="original">Wie die Vorlage</option><option value="neon">Neon Liquid</option><option value="gem">Crystal Gem</option><option value="chrome">Chrome</option><option value="frost">Frosted</option><option value="iridescent">Iridescent</option><option value="spectral">Holographic</option><option value="obsidian">Obsidian</option><option value="sunset">Sunset Pearl</option></select></label>',
- '<label class="theme-choice">Schriftstil<select id="theme_typography" data-setting="typography"><option value="original">Wie die Vorlage</option><option value="modern">Modern / Clean</option><option value="tech">Technical / Narrow</option><option value="aero">Frutiger Aero / Rund</option><option value="elegant">Elegant / Editorial</option></select></label>',
+ '<label class="theme-choice">Schriftart<select id="theme_typography" data-setting="typography"><option value="original">Passend zum Theme (Standard)</option><option value="modern">Segoe UI · Modern</option><option value="glass">Helvetica/Segoe · Liquid Glass</option><option value="aero">Trebuchet · Frutiger Aero</option><option value="geometric">Century Gothic/Aptos · Geometrisch</option><option value="elegant">Aptos · Elegant</option><option value="tech">Arial Narrow · Tech</option></select></label>',
+ '<label class="theme-choice" id="themeAeroCursorRow" hidden>Frutiger-Aero-Cursor<select id="theme_aeroCursor" data-setting="aeroCursor"><option value="auto">System-Cursor</option><option value="aqua">Aqua Glass Arrow</option><option value="orb">Glass Orb</option><option value="crystal">Crystal Pointer</option></select></label>',
  '<label class="theme-choice">Diagrammstil<select id="theme_chartMode" data-setting="chartMode"><option value="line">Linien</option><option value="area">Flächen</option><option value="bar">Balken</option></select></label>',
  '<label class="theme-choice">Textkontrast<select id="theme_readability" data-setting="readability"><option value="auto">Automatisch lesbar</option><option value="strong">Extra deutlich</option></select></label>',
  '<label class="theme-choice">Abstände<select id="theme_density" data-setting="density"><option value="normal">Komfortabel</option><option value="compact">Kompakt</option></select></label>',
@@ -253,7 +271,7 @@ window.BACK2U_THEMES={
   accent:color(o.accent,p.accent),secondary:color(o.secondary,p.secondary),
   tint:color(o.tint,p.accent),chartMode:['line','area','bar'].includes(o.chartMode)?o.chartMode:'line',
   backgroundIntensity:clamp(o.backgroundIntensity,0,100,76),outlineStrength:clamp(o.outlineStrength,0,100,55),readability:o.readability==='strong'?'strong':'auto',
-  fontProfile:['aero','elegant','tech','modern'].includes(o.typography)?o.typography:(p.family==='aero'?'aero':p.light?'elegant':'futuristic')};},
+  fontProfile:['aero','elegant','tech','modern','glass','geometric'].includes(o.typography)?o.typography:(p.family==='aero'?'aero':p.light?'elegant':'futuristic'),aeroCursor:['auto','aqua','orb','crystal'].includes(o.aeroCursor)?o.aeroCursor:'auto'};},
  use:id=>{if(byId[id]){state.id=id;save();apply();renderGrid();return true}return false},
  setChartMode:mode=>{if(['line','area','bar'].includes(mode))edit('chartMode',mode)}
 };
