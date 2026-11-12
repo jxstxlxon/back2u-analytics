@@ -54,6 +54,16 @@ Alle Dateien liegen im Repo unter `scripts/`:
 - [ ] Der automatische Schalter `BACK2U_TIKTOK_DAILY_ENABLE` bleibt **false**. Erst nach positivem manuellen Test und nach dem tatsächlichen Forever-Free-Tarifwechsel testen, ob die TikTok-Organic-Daten weiterhin abrufbar sind.
 - [ ] `BACK2U_WINDSOR_TIKTOK_ONLY=true` ist ein **separater** optionaler Schalter. Nicht zusammen mit dem V7.8-Schalter blind aktivieren.
 
+## 3a – Bereits festgestellte Quellabweichungen
+
+Aus dem kontrollierten Vergleich am 13.11.2026 (privates BACK2U LIVE – Analytics Sheet gegen den öffentlichen alten HTML-Archivstand):
+
+- **TikTok:** 25 überlappende abgeschlossene Tages-Videoaufrufe stimmten **25/25** exakt mit den neuen echten TikTok-Organic-Tagesdaten überein. Die Tage 09.–11.11. waren zusätzlich in der API abrufbar. Das bestätigt den alten TikTok-Archivteil für diese Tage, **nicht** automatisch alle historischen Daten.
+- **YouTube:** Das derzeit verfügbare Tab `YouTube_Live` hatte seine letzte gezeigte Tageszeile am **09.11.2026**. Der ältere HTML-Export bezeichnet YouTube-Werte größtenteils als **interessierte Aufrufe**, der neuere direkte Tab meldet **Gesamtaufrufe**; die beiden Reihen sind **nicht identisch definiert** und dürfen nicht zu einer einzigen vergleichbaren Tageskurve verschmolzen werden.
+- **Instagram:** Bei 28 überlappenden Tagen unterschieden sich die alten archivierten HTML-Views und die aktuelle `Instagram_Live`-Tabelle an **22 Tagen**. Das kann an korrigierten Daten, verschiedenen Stichtagen oder Messdefinitionen liegen; ohne API-Metadaten ist das **kein Beweis für einen Fehler**. Für einen Quellwechsel muss jedes Fenster separat mit identischen Definitionen geprüft werden.
+
+**Morgen deshalb zuerst** den YouTube-Tages-Apps-Script-Trigger `back2uYouTubeDailyRepair` und den vorhandenen Export-/Sheet-Sync prüfen. Bei Instagram den zugrundeliegenden Views-Messumfang und die Stichtage klären, bevor eine Datenquelle ersetzt wird.
+
 ## 4 – Datenqualität und Datenschutz
 
 - [ ] Private TikTok- und Meta-Rohdaten bleiben ausschließlich in D1 oder im privaten Sheet, niemals im öffentlichen GitHub-Repo.
