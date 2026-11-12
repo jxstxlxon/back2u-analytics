@@ -1,4 +1,5 @@
 import {runAudienceAutoSync} from './audience-sync.js';
+import {validateDirectAudience,mergeDirectAudience,chooseEffectiveAudience} from './direct-audience.js';
 /* BACK2U Cloudflare Worker - private creator dashboard.
    Independent of Netlify. Do not publish API keys or creator analytics in static assets.
    The Cloudflare D1 binding DB must contain the back2u_store(key,value,updated_at) table.
@@ -234,11 +235,41 @@ async function audienceSyncAdmin(req,env){
  return json(result,code);
 }
 
+/* Google Apps Script -> Cloudflare, private bearer feed, no browser request. */
+async function ingestDirectAudience(req,env){
+ if(req.method!=='POST')return json({error:'POST only'},405);
+ const secret=env.BACK2U_GOOGLE_FEED_SECRET;
+ if(!secret||secret.length<24)return json({error:'Feed secret missing'},503);
+ const supplied=(req.headers.get('authorization')||'').replace(/^Bearer\s+/i,'');
+ if(!supplied||!(await equal(secret,supplied)))return json({error:'Forbidden'},403);
+ const raw=await req.text();
+ if(raw.length>35000)return json({error:'Payload too large'},413);
+ let data;try{data=JSON.parse(raw)}catch{return json({error:'Bad JSON'},400)}
+ let valid;try{valid=validateDirectAudience(data)}catch(e){return json({error:clamp(e?.message)},422)}
+ const previous=await get(env,'direct_audience_v1');
+ const old=previous?.platforms?.[valid.platform];
+ if(old?.snapshotDate&&old.snapshotDate>valid.snapshotDate)
+  return json({error:'An older report cannot replace a newer direct report'},409);
+ const merged=mergeDirectAudience(previous,valid);
+ await put(env,'direct_audience_v1',merged);
+ return json({ok:true,platform:valid.platform,groups:3,snapshotDate:valid.snapshotDate,
+  source:valid.platform==='yt'?'YouTube Analytics API':'Meta Graph API'});
+}
+async function directAudienceStatus(req,env){
+ if(req.method!=='GET')return json({error:'GET only'},405);
+ const direct=await get(env,'direct_audience_v1');
+ return json({sources:Object.fromEntries(['yt','ig'].map(p=>[p,{
+  configured:!!direct?.platforms?.[p],lastSuccessAt:direct?.platforms?.[p]?.updatedAt||null,
+  snapshotDate:direct?.platforms?.[p]?.snapshotDate||null,
+  groups:Object.keys(direct?.platforms?.[p]?.audience||{}).length
+ }]))});
+}
+
 async function hydratedSnapshot(env){
  const s=await get(env,'snapshot');
  if(!s?.platforms?.yt)return s;
- const imported=await get(env,AUDIENCE_KEY);
- if(imported?.schema===1)s.audienceImport=imported;
+ const [imported,direct]=await Promise.all([get(env,AUDIENCE_KEY),get(env,'direct_audience_v1')]);
+ if(imported?.schema===1||direct?.schema===1)s.audienceImport=chooseEffectiveAudience(imported,direct);
  const instagramProfile=await get(env,'ig_profile');
  if(instagramProfile?.username==='lxon_jxmpstyle'&&Number.isSafeInteger(instagramProfile.followers)&&instagramProfile.followers>=0){
   s.platforms.ig.profile={...s.platforms.ig.profile,followers:instagramProfile.followers,username:instagramProfile.username,
@@ -592,6 +623,7 @@ async function route(req,env){
  if(path==='/api/login')return req.method==='POST'?issueToken(req,env):json({error:'POST only'},405);
  if(path==='/api/guest/redeem')return redeemGuest(req,env);
  if(path==='/api/youtube-daily/ingest')return ingestYoutubeDaily(req,env);
+ if(path==='/api/direct-audience/ingest')return ingestDirectAudience(req,env);
  if(path==='/api/instagram-profile/ingest')return ingestInstagramProfile(req,env);
  if(path==='/api/ingest'){
   if(req.method!=='POST')return json({error:'POST only'},405);
@@ -630,6 +662,7 @@ async function route(req,env){
  if(access.role!=='admin')return json({error:'Nur Administrator'},403);
  if(path==='/api/audience')return audienceAdmin(req,env);
  if(path==='/api/audience/sync')return audienceSyncAdmin(req,env);
+ if(path==='/api/direct-audience/status')return directAudienceStatus(req,env);
  if(path==='/api/guest-links')return guestLinks(req,env);
  if(path.startsWith('/api/guest-links/'))return revokeGuest(req,env,path.slice('/api/guest-links/'.length));
 
