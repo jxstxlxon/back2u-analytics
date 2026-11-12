@@ -59,8 +59,11 @@
     const node=$('directInsightsStatus');
     if(node){
      const y=report.youtubeVideoInsights||{},i=report.instagramVideoInsights||{},d=report.instagramDaily||{};
-     node.textContent='YouTube Videoanalysen: '+(y.videoCount||0)+' Videos'+
-      (Array.isArray(y.periods)&&y.periods.length?' ('+y.periods.join('/')+' Tage)':' (noch keine bestätigten Zeitfenster)')+
+     const ranges=[7,28,90].map(days=>{
+      const r=y.ranges?.[String(days)];
+      return days+' Tage: '+(r?.period?String(r.videos||0)+' Videos':'noch kein Bericht');
+     });
+     node.textContent='YouTube Videoanalysen: '+ranges.join(' · ')+
       ' · Instagram Reel-Insights: '+(i.videoCount||0)+' Videos'+
       ' · Meta-Tageswerte: '+(d.days||0)+' Tage'+
       (d.dataThrough?' (bis '+d.dataThrough.split('-').reverse().join('.')+')':'')+
