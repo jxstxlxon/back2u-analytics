@@ -144,12 +144,13 @@ function render(){
  preview.dataset.storyLayout=s.layout;
  preview.style.setProperty('--story-image',storyArt?'url("'+storyArt.url+'")':'none');
  preview.style.setProperty('--story-bg',p.bg);
+ preview.style.setProperty('--story-veil',((100-(p.backgroundIntensity??76))/100*.59).toFixed(3));
  preview.style.setProperty('--story-card-rgb',rgb(p.card));
  preview.style.setProperty('--story-card-alpha',p.light?'.72':'.62');
  preview.style.setProperty('--story-accent',p.accent);preview.style.setProperty('--story-accent-rgb',rgb(p.accent));
  preview.style.setProperty('--story-secondary',p.secondary);
  preview.style.setProperty('--story-ink',p.light?'#102c43':'#f6f9ff');
- preview.style.setProperty('--story-muted',p.light?'#345672':'#d7e7fc');
+ preview.style.setProperty('--story-muted',p.light?(p.readability==='strong'?'#203c54':'#345672'):(p.readability==='strong'?'#f0f7ff':'#d7e7fc'));
  preview.style.setProperty('--story-ui',typography);preview.style.setProperty('--story-display',typography);
  preview.innerHTML='<div class="story-slide-inner">'
  +'<div class="story-slide-header"><span class="story-slide-mark">'+logo+'</span><span class="story-slide-brand">BACK2U<small>CREATOR COMMAND CENTER</small></span></div>'
@@ -228,6 +229,8 @@ async function canvasStory(){
  c.scale(4,4);const font=styleFont(p),ink=p.light?'#112b43':'#f8fbff',muted=p.light?'#365873':'#d3e5fa';
  c.fillStyle=p.bg;c.fillRect(0,0,360,640);
  try{const background=window.BACK2U_REFERENCE_ART?.(p);if(background){const img=await loadImg(background.url);c.drawImage(img,0,0,360,640)}}catch(e){}
+ const bgVeil=((100-(p.backgroundIntensity??76))/100*.59);
+ if(bgVeil>0){c.fillStyle='rgba('+rgb(p.card)+','+bgVeil.toFixed(3)+')';c.fillRect(0,0,360,640)}
  const shade=c.createLinearGradient(0,0,360,640);shade.addColorStop(0,p.light?'rgba(255,255,255,.28)':'rgba(5,12,31,.18)');shade.addColorStop(1,p.light?'rgba(255,255,255,.16)':'rgba(1,5,22,.31)');c.fillStyle=shade;c.fillRect(0,0,360,640);
  c.fillStyle=p.accent;c.strokeStyle='#ffffff9c';c.lineWidth=1;c.beginPath();c.roundRect(25,22,40,40,11);c.fill();c.stroke();
  try{const mark=await loadImg('/back2u-mark.svg');c.drawImage(mark,26,23,38,38)}catch(e){c.fillStyle='#fff';c.font='900 22px '+font;c.fillText('B2',31,49)}
