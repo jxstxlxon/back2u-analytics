@@ -139,7 +139,7 @@ function render(){
  $('scLayout').value=s.layout;$('scTitle').value=s.title;
  for(let i=0;i<3;i++)$('scSlot'+i).value=s.slots[i];
  const preview=$('scPreview');
- const typography=p.family==='aero'?'"Trebuchet MS",Verdana,sans-serif':p.light?'"Aptos","Segoe UI",sans-serif':'"Segoe UI",-apple-system,sans-serif';
+ const typography=p.fontProfile==='aero'?'"Trebuchet MS",Verdana,sans-serif':p.fontProfile==='tech'?'"Arial Narrow","Segoe UI",sans-serif':p.light||p.fontProfile==='elegant'?'"Aptos","Segoe UI",sans-serif':'"Segoe UI",-apple-system,sans-serif';
  const storyArt=window.BACK2U_REFERENCE_ART?window.BACK2U_REFERENCE_ART(p):null;
  preview.dataset.storyLayout=s.layout;
  preview.style.setProperty('--story-image',storyArt?'url("'+storyArt.url+'")':'none');
@@ -185,7 +185,7 @@ function download(canvas){
  return new Promise((resolve,reject)=>canvas.toBlob(blob=>blob?resolve(blob):reject(Error('Bild konnte nicht gerendert werden')),'image/png'));
 }
 function loadImg(src){return new Promise((resolve,reject)=>{const img=new Image();img.onload=()=>resolve(img);img.onerror=()=>reject(Error('Bild nicht verfügbar'));img.src=src})}
-const styleFont=(p)=>p.family==='aero'?'Trebuchet MS':p.light?'Aptos, Segoe UI':'Segoe UI';
+const styleFont=(p)=>p.fontProfile==='aero'?'Trebuchet MS':p.fontProfile==='tech'?'Arial Narrow':p.light||p.fontProfile==='elegant'?'Aptos, Segoe UI':'Segoe UI';
 function drawCard(c,x,y,w,h,item,context,index){
  const p=context.p,light=p.light,ink=light?'#102b43':'#f6f8ff',muted=light?'#31516c':'#d0dff3';
  c.fillStyle=light?'rgba(255,255,255,.75)':'rgba(10,20,43,.73)';
