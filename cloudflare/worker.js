@@ -1,3 +1,4 @@
+import {runAudienceAutoSync} from './audience-sync.js';
 /* BACK2U Cloudflare Worker - private creator dashboard.
    Independent of Netlify. Do not publish API keys or creator analytics in static assets.
    The Cloudflare D1 binding DB must contain the back2u_store(key,value,updated_at) table.
@@ -192,7 +193,13 @@ function validateAudienceImport(data){
 async function audienceAdmin(req,env){
  if(req.method==='GET'){
   const saved=await get(env,AUDIENCE_KEY);
-  return json({configured:!!saved,updatedAt:saved?.updatedAt||null,snapshotDate:saved?.snapshotDate||null});
+  const sync=await get(env,'audience_sync_status');
+  return json({configured:!!saved,updatedAt:saved?.updatedAt||null,snapshotDate:saved?.snapshotDate||null,
+   automatic:{configured:!!String(env.WINDSOR_API_KEY||'').trim(),
+    status:sync?.status||'not_started',lastAttemptAt:sync?.lastAttemptAt||null,
+    lastSuccessAt:sync?.lastSuccessAt||null,snapshotDate:sync?.snapshotDate||null,
+    error:sync?.error||null,groups:sync?.groups||null}});
+
  }
  if(req.method!=='POST')return json({error:'Method not allowed'},405);
  if(!requireSameSiteJson(req))return json({error:'Unzulässige Anfrage'},403);
@@ -202,6 +209,14 @@ async function audienceAdmin(req,env){
  let valid;try{valid=validateAudienceImport(data)}catch(e){return json({error:clamp(e?.message)},422)}
  await put(env,AUDIENCE_KEY,valid);
  return json({ok:true,importedGroups:4,updatedAt:valid.updatedAt,snapshotDate:valid.snapshotDate});
+}
+
+async function audienceSyncAdmin(req,env){
+ if(req.method!=='POST')return json({error:'POST only'},405);
+ if(!requireSameSiteJson(req))return json({error:'Unzulässige Anfrage'},403);
+ const result=await runAudienceAutoSync(env,{get,put,force:true});
+ const code=result.status==='ok'?200:result.status==='not_configured'?503:502;
+ return json(result,code);
 }
 
 async function hydratedSnapshot(env){
@@ -599,6 +614,7 @@ async function route(req,env){
  // Guest rights end here: no diagnostics, imports, OAuth, sync, audit or access management.
  if(access.role!=='admin')return json({error:'Nur Administrator'},403);
  if(path==='/api/audience')return audienceAdmin(req,env);
+ if(path==='/api/audience/sync')return audienceSyncAdmin(req,env);
  if(path==='/api/guest-links')return guestLinks(req,env);
  if(path.startsWith('/api/guest-links/'))return revokeGuest(req,env,path.slice('/api/guest-links/'.length));
 
@@ -670,5 +686,8 @@ export default {
  },
  async scheduled(controller,env,ctx){
   ctx.waitUntil(ttSync(env).catch(e=>console.error('TikTok scheduled sync:',clamp(e?.message))));
+  ctx.waitUntil(runAudienceAutoSync(env,{get,put})
+   .then(r=>{if(r.status==='error')console.warn('Audience scheduled sync failed:',r.error)})
+   .catch(e=>console.error('Audience scheduled sync could not complete:',clamp(e?.message))));
  }
 };
