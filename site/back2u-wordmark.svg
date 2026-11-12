@@ -4,7 +4,7 @@
 <path d="M4 32 C16 11 48 9 63 22 M293 20 C315 9 348 13 370 24" fill="none" stroke="#d7fdff" stroke-width="4" stroke-linecap="round" opacity=".9"/>
 <path d="M3 77 C75 95 134 94 225 84 C281 78 337 67 396 79" stroke="#61d9fa" stroke-width="5" fill="none" opacity=".87"/>
 <path d="M15 88 C81 100 165 99 246 85" stroke="#ffffff" stroke-width="2.5" fill="none" opacity=".8"/>
-<g filter="url(#shadow)" transform="skewX(-11)">
+<g  transform="skewX(-11)">
 <text x="20" y="73" font-family="Trebuchet MS,Segoe UI,Arial,sans-serif" font-size="70" font-style="italic" font-weight="1000" letter-spacing="-5.6" fill="#102c7e" stroke="#07366d" stroke-width="5" paint-order="stroke">BACK2U</text>
 <text x="20" y="73" font-family="Trebuchet MS,Segoe UI,Arial,sans-serif" font-size="70" font-style="italic" font-weight="1000" letter-spacing="-5.6" fill="url(#aqua)" stroke="#ebfcff" stroke-width="2.1" paint-order="stroke">BACK2U</text>
 <text x="20" y="73" font-family="Trebuchet MS,Segoe UI,Arial,sans-serif" font-size="70" font-style="italic" font-weight="1000" letter-spacing="-5.6" fill="url(#glint)" opacity=".64">BACK2U</text></g>
