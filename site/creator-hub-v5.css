@@ -225,3 +225,30 @@ body[data-performance="smooth"][data-active-section="videos"] :is(.video-list-pa
  body[data-theme-tone] .global-video-search{order:4;flex:1 1 100%;max-width:none;width:100%}
  .global-video-search input{min-height:41px;font-size:12px}
 }
+
+/* BACK2U V7.3 — planned ideas in calendar remain visually separate from published videos. */
+body[data-theme-tone] .creator-cal-day.has-plan:not(.has-posts){
+ background:linear-gradient(145deg,rgba(var(--t-secondary-rgb),.22),rgba(var(--t-card),.18));
+ border-style:dashed;border-color:rgba(var(--t-secondary-rgb),.53)
+}
+body[data-theme-tone] .creator-cal-day .v73-planned-label{
+ display:inline-flex;align-items:center;padding:3px 5px;border-radius:7px;
+ font:780 9px/1.25 var(--t-font-ui,system-ui);color:var(--t-ink-strong);
+ background:rgba(var(--t-secondary-rgb),.27);border:1px dashed rgba(var(--t-secondary-rgb),.56)
+}
+body[data-theme-tone] .v73-day-plans{margin-top:14px;padding-top:12px;border-top:1px dashed rgba(var(--t-secondary-rgb),.5)}
+body[data-theme-tone] .v73-day-plans h4{color:var(--t-ink-strong);font:800 13px var(--t-font-ui,system-ui);margin:0 0 11px}
+body[data-theme-tone] .v73-day-plans h4 small{font:630 10px/1.45 var(--t-font-ui,system-ui);color:var(--t-ink-muted)}
+body[data-theme-tone] .v73-plan-entry{
+ display:flex;align-items:center;justify-content:space-between;gap:9px;
+ padding:9px 10px;margin:6px 0;border-radius:12px;
+ background:rgba(var(--t-secondary-rgb),.11);border:1px solid rgba(var(--t-secondary-rgb),.28)
+}
+body[data-theme-tone] .v73-plan-entry label{display:flex;align-items:center;gap:9px;min-width:0;color:var(--t-ink-strong);font:650 11px/1.4 var(--t-font-ui,system-ui)}
+body[data-theme-tone] .v73-plan-entry input{accent-color:var(--t-accent);width:18px;height:18px;flex:none}
+body[data-theme-tone] .v73-plan-entry span{overflow-wrap:anywhere}
+body[data-theme-tone] .v73-plan-entry.done label span{text-decoration:line-through;opacity:.62}
+body[data-theme-tone] .v73-plan-entry button{
+ border-radius:9px;border:1px solid rgba(var(--t-accent-rgb),.36);color:var(--t-ink-muted);
+ background:transparent;min-height:34px;min-width:34px;cursor:pointer
+}
