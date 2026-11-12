@@ -290,3 +290,13 @@ body[data-theme-tone] .v74-clip-method{
  body[data-theme-tone] .v74-clip-group .v7-day-thumb{width:46px;height:59px}
  body[data-theme-tone] .v74-clip-platform{padding:8px 9px}
 }
+
+body[data-theme-tone] .v74-later-crossposts{display:grid;gap:7px;margin:12px 0;padding:11px 12px;
+ border:1px dashed rgba(var(--t-accent-rgb),.42);border-radius:13px;background:rgba(var(--t-card),.35)}
+body[data-theme-tone] .v74-later-crossposts>strong{color:var(--t-ink-strong);font:780 12px/1.4 var(--t-font-ui,system-ui)}
+body[data-theme-tone] .v74-later-crossposts>div{display:flex;flex-wrap:wrap;align-items:center;gap:8px;
+ justify-content:space-between;border-top:1px solid rgba(var(--t-accent-rgb),.2);padding-top:7px}
+body[data-theme-tone] .v74-later-crossposts span{color:var(--t-ink-label);font:650 11px/1.5 var(--t-font-ui,system-ui)}
+body[data-theme-tone] .v74-later-crossposts button{min-height:38px;padding:8px 10px;cursor:pointer;
+ border:1px solid rgba(var(--t-accent-rgb),.44);border-radius:11px;background:rgba(var(--t-accent-rgb),.14);
+ color:var(--t-ink-strong);font:730 11px var(--t-font-ui,system-ui)}
