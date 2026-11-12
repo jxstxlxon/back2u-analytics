@@ -303,8 +303,16 @@ async function route(req,env){
  if(path==='/api/diagnostics'){
   const s=await hydratedSnapshot(env);
   const scan=await get(env,'tt_page_cursor');
+  const tt=s?.platforms?.tt?.videos||[];
+  const dates=tt.map(v=>String(v?.date||'')).filter(d=>/^\d{4}-\d{2}-\d{2}$/.test(d)).sort();
+  const cutoff=new Date(Date.now()-365*86400000).toISOString().slice(0,10);
+  const ttDates={oldest:dates[0]||null,newest:dates.at(-1)||null,
+   datedVideos:dates.length,unknownDate:tt.length-dates.length,
+   olderThan365Days:dates.filter(d=>d<cutoff).length,cutoff365Days:cutoff,
+   olderThanOneYearConfirmed:dates.some(d=>d<cutoff)};
   return json({service:'BACK2U Cloud',source:s?.source||'none',generatedAt:s?.generatedAt||null,
    tiktokScan:{updatedAt:scan?.updatedAt||null,hasMore:scan?.hasMore??null,complete:scan?.complete??null,pagesLastBatch:scan?.pagesLastBatch||null},
+   tiktokVideoDateRange:ttDates,
    youtubeDailyVerified:s?.verifiedYouTubeDaily||null,instagramFollowers:{known:Number.isSafeInteger(s?.platforms?.ig?.profile?.followers),asOf:s?.platforms?.ig?.profile?.asOf||null},dailyThrough:{youtube:s?.platforms?.yt?.daily?.at(-1)?.d||null,instagram:s?.platforms?.ig?.daily?.at(-1)?.d||null},
    platforms:[{platform:'YouTube',videos:s?.platforms?.yt?.videos?.length||0},{platform:'Instagram',videos:s?.platforms?.ig?.videos?.length||0},
     {platform:'TikTok',videos:s?.platforms?.tt?.videos?.length||0}]});
