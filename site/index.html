@@ -102,13 +102,13 @@ body.story-open{overflow:hidden}
 #back2uLoginOverlay input{display:block;width:100%;padding:15px 16px;border-radius:12px;background:#061326cc;border:1px solid #adcafa5a;color:white;font:inherit;font-size:16px;margin-bottom:12px}
 #back2uLoginOverlay button{border:0;border-radius:12px;background:#449dfb;color:white;font:600 15px system-ui;padding:13px 16px;width:100%;cursor:pointer}
 #back2uLoginOverlay #back2uLoginError{min-height:20px;color:#ffc5c5;font-size:12px;margin-top:14px}
-</style><link rel="stylesheet" href="/theme-studio.css?v=1"><link rel="stylesheet" href="/theme-reference.css?v=2"><link rel="stylesheet" href="/ui-v3.css?v=3"><link rel="stylesheet" href="/ui-v4.css?v=4"><link rel="stylesheet" href="/creator-hub-v5.css?v=5"><link rel="stylesheet" href="/mobile-theme-polish-v6.css?v=6"></head>
+</style><link rel="stylesheet" href="/theme-studio.css?v=1"><link rel="stylesheet" href="/theme-reference.css?v=2"><link rel="stylesheet" href="/ui-v3.css?v=3"><link rel="stylesheet" href="/ui-v4.css?v=4"><link rel="stylesheet" href="/creator-hub-v5.css?v=5"><link rel="stylesheet" href="/mobile-theme-polish-v6.css?v=6"><link rel="stylesheet" href="/dashboard-v7.css?v=7"></head>
 <body>
 <div class="ambient ambient-a"></div><div class="ambient ambient-b"></div><div class="ambient ambient-c"></div><div class="grain"></div>
 <div class="shell">
 <header class="topbar glass">
   <div class="identity"><div class="brand-icon"><img src="/back2u-wordmark.svg" width="132" height="48" alt="BACK2U" decoding="async"/></div><div><div class="brand-title" id="back2u-logo-wordmark">Creator Command Center</div><div class="brand-subtitle">BACK2U Dashboard <span class="version">/ 01</span></div></div></div>
-  <div class="top-actions"><form id="globalVideoSearchForm" class="global-video-search" role="search"><input id="globalVideoSearch" type="search" placeholder="Video suchen" aria-label="Videos im Video Radar suchen"/><button type="submit" aria-label="Suche starten">⌕</button></form><button type="button" id="themeStudioToggle" aria-haspopup="dialog" aria-expanded="false" aria-controls="themeStudioPanel">✧ Design & Theme</button><button type="button" class="story-mode-switch" id="storyModeToggle" aria-pressed="false" aria-controls="storyOverlay" title="Story-Modus ein- oder ausschalten">▯ Story-Modus</button><div class="sync-indicator"><span id="syncDot" class="signal-dot"></span><span id="syncShort">Archivdaten</span></div><button class="icon-action" id="refreshBtn" aria-label="Daten neu abrufen" title="Daten neu abrufen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20 11a8 8 0 1 0-2.2 5.5M20 4v7h-7"/></svg></button></div>
+  <div class="top-actions"><form id="globalVideoSearchForm" class="global-video-search" role="search"><input id="globalVideoSearch" type="search" placeholder="Video, Song, Format oder Plattform suchen …" aria-label="Suche nach Videotitel, Song, Format, Plattform oder Video-ID"/><button type="submit" aria-label="Suche starten">⌕</button></form><button type="button" id="themeStudioToggle" aria-haspopup="dialog" aria-expanded="false" aria-controls="themeStudioPanel">✧ Design & Theme</button><button type="button" class="story-mode-switch" id="storyModeToggle" aria-pressed="false" aria-controls="storyOverlay" title="Story-Modus ein- oder ausschalten">▯ Story-Modus</button><div class="sync-indicator"><span id="syncDot" class="signal-dot"></span><span id="syncShort">Archivdaten</span></div><button class="icon-action" id="refreshBtn" aria-label="Daten neu abrufen" title="Daten neu abrufen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20 11a8 8 0 1 0-2.2 5.5M20 4v7h-7"/></svg></button></div>
 </header>
 <div class="masthead"><div><div class="eyebrow"><span class="tiny-orb"></span> OWN YOUR MOMENTUM <span id="sourceStamp" class="source-stamp">Daten bis 10.11.2026</span></div><h1>Dein Content.<br/><em>Deine Zahlen.</em></h1><p>Ein Ort für deine Videos, dein Wachstum und deine nächsten Entscheidungen.</p></div><div class="mast-right glass"><div class="mini-label">LENS / GLASS INTENSITY</div><div class="glass-toolbar"><button data-glass-preset="10" title="Kristallklar">Clear</button><button data-glass-preset="48" class="selected" title="Milchglas">Glass</button><button data-glass-preset="90" title="Stark getönt">Frost</button></div><input id="glassSlider" type="range" min="0" max="100" value="48" aria-label="Glasintensität einstellen"/><div class="glass-scale"><span>transparent</span><strong id="glassValue">48%</strong><span>tief</span></div></div></div>
 <div class="controlbar glass"><div class="platform-tabs" role="group" aria-label="Plattform auswählen"><button data-platform="all" class="selected">Alle</button><button data-platform="yt"><span class="platform-dot ytdot"></span>YouTube</button><button data-platform="ig"><span class="platform-dot igdot"></span>Instagram</button><button data-platform="tt"><span class="platform-dot ttdot"></span>TikTok</button></div><div class="period-tabs" role="group" aria-label="Zeitraum wählen"><button data-days="7">7 Tage</button><button data-days="28" class="selected">28 Tage</button><button data-days="90">90 Tage</button></div></div>
@@ -122,7 +122,7 @@ body.story-open{overflow:hidden}
   <div id="followerCards" class="follower-cards" aria-label="Follower und Abonnenten"></div>
   <div id="dailyFreshness" class="daily-freshness" role="status"></div>
   <div class="section-heading"><div><div class="eyebrow">02 / SIGNAL</div><h2>Deine Entwicklung</h2><p>Die Aufrufe im Zeitverlauf – unterschiedliche Messgrößen werden gekennzeichnet.</p></div><div id="trendLegend" class="legend"></div></div>
-  <div class="chart-card glass"><div class="chart-head"><div><strong id="chartTitle">Tägliche Aufrufe</strong><span id="chartSubtitle">Auf Basis der vorhandenen Tageswerte</span></div><div class="tooltip-n" id="chartHoverLabel">Zum Vergleichen über das Diagramm fahren</div></div><div id="chartKpis" class="chart-kpis" aria-label="Auswertung vorhandener Tageswerte"></div><div id="chartDayBreakdown" class="chart-day-breakdown" aria-live="polite" aria-atomic="true"></div><div id="chartModes" class="chart-mode-group" role="group" aria-label="Diagrammart"><button type="button" data-chart-mode="line" aria-pressed="true">Linie</button><button type="button" data-chart-mode="area" aria-pressed="false">Fläche</button><button type="button" data-chart-mode="bar" aria-pressed="false">Balken</button></div><div class="line-chart-wrap" id="trendChart"></div><div id="chartSummaryNote" class="chart-summary-note"></div><div class="chart-foot" id="chartFoot"></div></div>
+  <div class="chart-card glass"><div class="chart-head"><div><strong id="chartTitle">Tägliche Aufrufe</strong><span id="chartSubtitle">Auf Basis der vorhandenen Tageswerte</span></div><div class="tooltip-n" id="chartHoverLabel">Zum Vergleichen über das Diagramm fahren</div></div><div id="chartDataStatus" class="v7-data-status" role="status"></div><div id="chartKpis" class="chart-kpis" aria-label="Auswertung vorhandener Tageswerte"></div><div id="chartDayBreakdown" class="chart-day-breakdown" aria-live="polite" aria-atomic="true"></div><div id="chartModes" class="chart-mode-group" role="group" aria-label="Diagrammart"><button type="button" data-chart-mode="line" aria-pressed="true">Linie</button><button type="button" data-chart-mode="area" aria-pressed="false">Fläche</button><button type="button" data-chart-mode="bar" aria-pressed="false">Balken</button></div><div class="line-chart-wrap" id="trendChart"></div><div id="chartSummaryNote" class="chart-summary-note"></div><div class="chart-foot" id="chartFoot"></div></div><section class="glass v7-chart-pie-card" aria-label="Tageswerte nach Plattform"><div class="v7-chart-pie-head"><h3>Woher kamen die Aufrufe?</h3><p>Aufteilung des ausgewählten Tages – nur aus vorhandenen Zahlen.</p></div><div id="chartPlatformPie" class="v7-pie-content" aria-live="polite"></div></section>
   <div class="section-heading"><div><div class="eyebrow">03 / STANDOUTS</div><h2>Videos, die herausstechen</h2><p>Nach bisherigen Aufrufen der im Zeitraum veröffentlichten Videos.</p></div><button class="subtle-link" data-go="videos">Alle Videos ansehen <span>↗</span></button></div>
   <div id="topCards" class="top-grid"></div>
   <div class="insight-strip glass"><div class="insight-symbol">✦</div><div><b id="headlineInsight">Datenbasiert statt Bauchgefühl.</b><p id="headlineInsightText">Die nächsten Empfehlungen werden anhand deiner Videos berechnet.</p></div><button data-go="experiments">Experimente prüfen <span>→</span></button></div>
@@ -139,10 +139,10 @@ body.story-open{overflow:hidden}
 <section id="experiments" class="view"><div class="section-heading"><div><div class="eyebrow">01 / EXPERIMENT LAB</div><h2>Mehr posten. Besser verstehen.</h2><p>Die Häufigkeit ist messbar – ein direkter Kausalbeweis für mehr Reichweite ist sie nicht.</p></div></div>
  <div id="experimentKpis" class="metric-grid"></div>
  <div class="two-column"><div class="glass pane"><div class="pane-header"><h3>Uploads pro Tag</h3><span class="pill">Veröffentlichte Videos</span></div><div id="uploadChart"></div><div class="smallprint" id="uploadNote"></div></div><div class="glass pane"><div class="pane-header"><h3>Reichweite je Upload-Stufe</h3><span class="pill">Beobachtung, kein Beweis</span></div><div id="frequencyTable"></div><div class="smallprint">Auch ältere Videos erzeugen an Upload-Tagen Aufrufe. Der Vergleich misst keine isolierte Wirkung der Frequenz.</div></div></div>
- <div class="glass pane experiment-roadmap"><div class="pane-header"><h3>Dein nächster sauberer Test</h3><span class="pill pill-blue">Plan</span></div><div class="roadmap" id="roadmap"></div></div>
+ <div class="glass pane v7-ab-pane"><div class="pane-header"><h3>Dein A/B-Vergleich</h3><span class="pill">Gleiche Messdauer statt Bauchgefühl</span></div><div id="experimentAb" class="v7-ab-tool"></div></div><div class="glass pane experiment-roadmap"><div class="pane-header"><h3>Dein nächster sauberer Test</h3><span class="pill pill-blue">Plan</span></div><div class="roadmap" id="roadmap"></div></div>
  <div class="section-heading"><div><div class="eyebrow">02 / FORMAT INTELLIGENCE</div><h2>Was sich bei dir lohnt</h2><p>Formatgruppen aus deinen echten Videotiteln, bewusst als Näherung gekennzeichnet.</p></div></div><div id="formatCards" class="format-grid"></div>
 </section>
-<section id="audience" class="view"><div class="section-heading"><div><div class="eyebrow">01 / COMMUNITY</div><h2>Wer deinen Content sieht</h2><p>Nur tatsächlich exportierte Zielgruppendaten – keine erfundenen Durchschnittswerte.</p></div></div><div id="audienceCards" class="audience-grid"></div>
+<section id="audience" class="view"><div class="section-heading"><div><div class="eyebrow">01 / COMMUNITY</div><h2>Wer deinen Content sieht</h2><p>Nur tatsächlich exportierte Zielgruppendaten – keine erfundenen Durchschnittswerte.</p></div></div><div class="v7-audience-summary" id="v7AudienceNote"></div><div id="audienceCards" class="audience-grid"></div>
  <div class="section-heading"><div><div class="eyebrow">02 / TIMING</div><h2>Wann deine Community aktiv ist</h2><p>TikTok-Aktivität der Follower – nicht automatisch die besten Uploadzeiten.</p></div></div><div class="glass pane"><div id="hourBars"></div><div class="smallprint">TikTok: durchschnittlich aktive Follower pro Stunde, 03.–09.11.2026. Ohne bestätigte Zeitzonenangabe. Für andere Plattformen fehlen entsprechende Stundenwerte.</div></div>
 </section>
 <section id="creator" class="view" aria-label="Creator Hub">
@@ -157,7 +157,7 @@ body.story-open{overflow:hidden}
   <section class="glass creator-panel"><div class="creator-panel-title"><span>✨</span><div><h3>Meilensteine</h3><p>Erfolge, die deine vorhandenen Zahlen bereits belegen.</p></div></div><div id="creatorMilestones" class="creator-milestones"></div></section>
   <section class="glass creator-panel"><div class="creator-panel-title"><span>📝</span><div><h3>Videoideen</h3><p>Ideen direkt notieren – gespeichert in diesem Browser.</p></div></div><form id="creatorIdeaForm" class="creator-idea-form"><input type="text" id="creatorIdeaInput" maxlength="160" placeholder="Neue Videoidee …" aria-label="Neue Videoidee" required/><button type="submit">+ Speichern</button></form><div id="creatorIdeas" class="creator-ideas"></div></section>
  </div>
- <div class="creator-method-note" id="creatorMethodNote">Fehlende Daten werden nicht geschätzt.</div>
+ <div class="creator-two-col v7-creator-tools"><section class="glass creator-panel"><div class="creator-panel-title"><span>💬</span><div><h3>Kommentar- & Caption-Werkstatt</h3><p>Vorlagen, die du direkt verändern und kopieren kannst.</p></div></div><div id="v7TextStudio"></div></section><section class="glass creator-panel"><div class="creator-panel-title"><span>🗓</span><div><h3>Dein nächster Content-Plan</h3><p>Vorschläge aus vergangenen Video-Ergebnissen, noch keine automatische Veröffentlichung.</p></div></div><div id="v7Planner"></div></section></div><div class="creator-method-note" id="creatorMethodNote">Fehlende Daten werden nicht geschätzt.</div>
 </section>
 <section id="system" class="view"><div class="section-heading"><div><div class="eyebrow">01 / DATA & CONNECTIONS</div><h2>Transparenz statt Blindflug</h2><p>Hier siehst du genau, was aktuell ist und welche Werte noch nicht vorliegen.</p></div></div><div id="connectionCards" class="connection-grid"></div>
  <div class="glass pane"><div class="pane-header"><h3>Daten & Aktualisierung</h3><button id="exportJson" class="small-button">Datensatz exportieren ↓</button></div><div id="systemInfo"></div></div>
@@ -426,8 +426,24 @@ function renderOverview(){const x=allMetric();const historic=state.days===28&&!p
  return `<div class="platform-card glass"><div><div class="platform-name">${tagPlatform(p)}</div><div class="platform-number">${fmt(v)}</div><div class="platform-caption">${label}</div></div><div class="platform-side"><span class="platform-rank">${a.fromSnapshot?'EXPORT · 28 TAGE':`${a.coverage} / ${state.days} Tage`}</span><small>${a.follows!==null?fmt(a.follows)+' '+(p==='yt'?'neue Abonnenten':'neue Follower'):''}</small></div></div>`}).join('');
  renderLifetimeViews();renderFollowerCards();renderDailyFreshness();renderTrend();renderTop();renderInsight();
 }
-function renderTrend(){const ps=platforms(),dates=new Set();for(const p of ps)for(const r of series(p))dates.add(r.d);const xs=[...dates].sort();const dMap={};for(const p of ps)dMap[p]=new Map(series(p).map(r=>[r.d,r.views??r.engaged]));
- if(window.BACK2U_CHARTS){window.BACK2U_CHARTS.render({ps,xs,dMap,COLORS,NAMES,fmt,days:state.days,range:targetRange()});return}
+function renderTrend(){
+ const ps=platforms(),range=targetRange(),xs=[];
+ // Keep a complete calendar axis: absent days stay blank rather than becoming zeros.
+ for(let day=range.start;day<=range.end;day=shift(day,1))xs.push(day);
+ const dMap={},chartNames={...NAMES},quality=[];
+ for(const p of ps){
+  const rows=series(p),valid=rows.filter(r=>typeof r.views==='number'&&Number.isFinite(r.views)&&r.views>=0);
+  const useEngaged=p==='yt'&&!valid.length;
+  dMap[p]=new Map(rows.map(r=>[r.d,useEngaged?r.engaged:(typeof r.views==='number'&&Number.isFinite(r.views)?r.views:null)]));
+  if(useEngaged){chartNames[p]='YouTube · interessierte Aufrufe';quality.push('YouTube: nur eingeschränkt vergleichbare Aufrufe verfügbar')}
+  else if(!valid.length)quality.push(NAMES[p]+': für diese Tage fehlen tatsächliche Tagesaufrufe');
+  else if(valid.length<state.days)quality.push(NAMES[p]+': '+valid.length+' von '+state.days+' Tagen haben Zahlen');
+ }
+ const verified=state.live?.verifiedYouTubeDaily;
+ if(ps.includes('yt')&&verified?.dataThrough)quality.unshift('YouTube zuletzt geprüft bis '+verified.dataThrough);
+ $('#chartDataStatus').textContent=quality.length?quality.join(' · '):'Für alle ausgewählten Plattformen sind Tageszahlen verfügbar.';
+ window.BACK2U_V7_CHART_STATE={ps,xs,dMap,names:chartNames,range,verified,updatedAt:state.live?.generatedAt||null};
+ if(window.BACK2U_CHARTS){window.BACK2U_CHARTS.render({ps,xs,dMap,COLORS,NAMES:chartNames,fmt,days:state.days,range});return}
  $('#trendLegend').innerHTML=ps.map(p=>`<span><i style="background:${COLORS[p]}"></i>${NAMES[p]}</span>`).join('');
  $('#chartTitle').textContent='Tagesverlauf im Vergleich';$('#chartSubtitle').textContent=`${targetRange().start} bis ${targetRange().end}`;
  if(xs.length<2){$('#trendChart').innerHTML='<div class="empty">Für diesen Zeitraum sind zu wenige Tagesdaten vorhanden.</div>';$('#chartFoot').textContent='Keine Werte werden geschätzt.';return}
@@ -579,7 +595,7 @@ function renderDetail(){const v=state.selected;if(!v){$('#detailPanel').innerHTM
  const url=cleanUrl(v.url);$('#detailPanel').innerHTML=`<div class="detail-art">${image(v)}</div><div class="detail-pill">${tagPlatform(v.platform)}</div><div class="detail-pill">${esc(v.format||'Video')}</div><h3 class="detail-heading">${esc(v.title)}</h3><div class="detail-metrics">${kpi.map(x=>`<div class="detail-metric"><b>${fmt(x[1])}</b><small>${x[0]}</small></div>`).join('')}</div><div class="detail-note">${esc(metricDesc(v.platform))}. ${v.platform==='yt'?(videoReportDays(v)?'Berichtszeitraum: '+videoReportDays(v)+' Tage.':'Einzelvideo-Kennzahlen: bisherige Gesamtwerte.'):''} Veröffentlicht am ${esc(v.date)}. Werte sind Momentaufnahmen. Für Video-Zuordnungen werden Titel und Datum verglichen, nicht die Videodateien.</div><div class="compare-title">DASSELBE ODER ÄHNLICHE VIDEO AUF ANDEREN PLATTFORMEN</div>${platformsHtml}<div class="detail-note">Automatische Zuordnung = ungeprüfter Titelkandidat. Insbesondere ähnliche Serienfolgen können falsch zusammenpassen.</div>${url?`<a class="detail-link" href="${esc(url)}" target="_blank" rel="noopener">Originalvideo öffnen ↗</a>`:''}`;
 }
 function uploadCounts(p){const arr=mergedVideos().filter(x=>x.platform===p),{start,end}=targetRange();let map={};for(let d=start;d<=end;d=shift(d,1))map[d]=0;for(const v of arr)if(v.date>=start&&v.date<=end)map[v.date]=(map[v.date]||0)+1;return map}
-function renderExperiments(){const vids=allVideosNoSearch(),range=targetRange(),ps=platforms(),counts={};for(const p of ps)counts[p]=uploadCounts(p);
+function renderExperiments(){if(window.BACK2U_V7?.experiments){window.BACK2U_V7.experiments();return}const vids=allVideosNoSearch(),range=targetRange(),ps=platforms(),counts={};for(const p of ps)counts[p]=uploadCounts(p);
  let days=[];for(let d=range.start;d<=range.end;d=shift(d,1))days.push(d);
  const total=vids.length,average=(total/state.days),max=ps.flatMap(p=>Object.values(counts[p])).reduce((a,b)=>Math.max(a,b),0);
  const fastest=ps.reduce((o,p)=>{let n=Object.values(counts[p]).filter(x=>x>=4).length;o.push({p,n});return o},[]);
@@ -597,7 +613,7 @@ function audienceCard(p,type,items){if(!items||!items.length)return `<div class=
  let sorted=[...items].sort((a,b)=>b[1]-a[1]);let main=sorted.slice(0,6);let mainShare=Math.min(100,sorted[0][1]);let chart=type==='Geschlecht'?`<div class="audience-donut" style="background:conic-gradient(${COLORS[p]} 0 ${mainShare}%,#273f62 ${mainShare}% 100%)"><div class="audience-hole"><strong>${dec(mainShare)}%</strong><small>${esc(sorted[0][0])}</small></div></div>`:'';
  return `<div class="glass audience-card"><div class="audience-title">${NAMES[p]} · ${type}</div>${chart}${main.map(([name,v])=>`<div class="audience-row"><div>${esc(name)}<i style="width:${Math.min(100,v)}%"></i></div><small>${dec(v)} %</small></div>`).join('')}</div>`;
 }
-function renderAudience(){let ps=platforms();$('#audienceCards').innerHTML=ps.map(p=>[audienceCard(p,'Länder',SEED.audience[p]?.countries),audienceCard(p,'Geschlecht',SEED.audience[p]?.gender),audienceCard(p,'Alter',SEED.audience[p]?.age)].join('')).join('');
+function renderAudience(){if(window.BACK2U_V7?.audience){window.BACK2U_V7.audience();return}let ps=platforms();$('#audienceCards').innerHTML=ps.map(p=>[audienceCard(p,'Länder',SEED.audience[p]?.countries),audienceCard(p,'Geschlecht',SEED.audience[p]?.gender),audienceCard(p,'Alter',SEED.audience[p]?.age)].join('')).join('');
  const h=SEED.activeHoursTikTok,mx=Math.max(...h);$('#hourBars').innerHTML=`<div class="hour-grid">${h.map((v,i)=>`<div class="hour-unit" title="${String(i).padStart(2,'0')}:00 · ${fmt(v)} aktive Follower"><div class="hour-bar"><i style="height:${Math.max(4,v/mx*100)}%"></i></div><small>${String(i).padStart(2,'0')} h</small><b>${fmt(v)}</b></div>`).join('')}</div>`;
 }
 function renderSystem(){const s=state.live;$('#connectionCards').innerHTML=['yt','ig','tt'].map(p=>{let dailyCount=s?.platforms?.[p]?.daily?.length||0,videoCount=s?.platforms?.[p]?.videos?.length||0,available=dailyCount>0||videoCount>0,err=(s?.errors||[]).find(x=>x.platform===p);return `<div class="glass connection-card"><div class="platform-name">${tagPlatform(p)}</div><b>${available?'API-Daten geladen':s?err?.task?.endsWith('-feed')?'Live-Anbindung ausstehend':err?'Live-Abruf fehlgeschlagen':'Noch keine API-Daten':'Noch nicht live verbunden'}</b><small class="${available?'connected':'disabled'}">${available?esc((dailyCount?dailyCount+' Tage':'')+(dailyCount&&videoCount?' · ':'')+(videoCount?videoCount+' Videos':'')):err?esc(err.message):'Lokale historische Daten verfügbar'}</small></div>`}).join('');
@@ -739,7 +755,32 @@ async function saveStoryPng(){
 }
 
 function renderActive(){document.body.dataset.activeSection=state.section;setSyncStatus();$('#notice').textContent=state.days===90&&!state.live?'90 Tage: Die historischen Exporte decken nur rund vier Wochen ab. Angezeigt werden verfügbare Tage – keine hochgerechneten Werte.':'';
- if(state.section==='overview')renderOverview();else if(state.section==='videos')renderVideos();else if(state.section==='experiments')renderExperiments();else if(state.section==='audience')renderAudience();else if(state.section==='creator')window.BACK2U_CREATOR_HUB?.render();else if(state.section==='system')renderSystem();}
+ if(state.section==='overview')renderOverview();else if(state.section==='videos')renderVideos();else if(state.section==='experiments')renderExperiments();else if(state.section==='audience')renderAudience();else if(state.section==='creator'){window.BACK2U_CREATOR_HUB?.render();window.BACK2U_V7?.creator()}else if(state.section==='system')renderSystem();}
+
+window.BACK2U_V7_BRIDGE={
+ snapshot(){
+  const range=targetRange();
+  return {
+   range,days:state.days,platform:state.platform,platforms:platforms(),
+   live:!!state.live,lastUpdated:state.live?.generatedAt||null,
+   verifiedYouTubeDaily:state.live?.verifiedYouTubeDaily||null,
+   daily:Object.fromEntries(['yt','ig','tt'].map(p=>[p,mergedDaily(p).map(r=>({
+    date:r.d,views:typeof r.views==='number'&&Number.isFinite(r.views)?r.views:null,
+    engaged:typeof r.engaged==='number'&&Number.isFinite(r.engaged)?r.engaged:null
+   }))])),
+   videos:mergedVideos().map(v=>({
+    id:String(v.id||''),platform:v.platform,date:String(v.date||''),title:String(v.title||''),
+    format:String(v.format||''),thumb:String(v.thumb||''),url:String(v.url||''),
+    views:typeof v.views==='number'&&Number.isFinite(v.views)?v.views:null,
+    reportType:v.reportType||null,
+    // Historical Studio exports cover a period; never treat them as all-time views.
+    likes:typeof v.likes==='number'&&Number.isFinite(v.likes)?v.likes:null
+   })),
+   audience:SEED.audience,activityHours:Array.isArray(SEED.activeHoursTikTok)?SEED.activeHoursTikTok:[],
+   archiveDate:SEED.asOf
+  };
+ }
+};
 
 window.BACK2U_CREATOR_BRIDGE={
  snapshot(){
@@ -835,5 +876,5 @@ window.BACK2U_REFRESH_CHART=()=>{if(state.section==='overview')renderTrend()};gl
  $$('[data-days]').forEach(x=>x.classList.toggle('selected',Number(x.dataset.days)===state.days));
  renderActive();loadLive(false);
 })();
-</script><script src="/reference-theme-art.js?v=4" defer></script><script src="/theme-studio.js?v=4" defer></script><script src="/chart-v3.js?v=4" defer></script><script src="/story-composer-v3.js?v=6" defer></script><script src="/creator-hub-v5.js?v=5" defer></script>
+</script><script src="/reference-theme-art.js?v=4" defer></script><script src="/theme-studio.js?v=4" defer></script><script src="/chart-v3.js?v=4" defer></script><script src="/story-composer-v3.js?v=6" defer></script><script src="/creator-hub-v5.js?v=7" defer></script><script src="/dashboard-v7.js?v=7" defer></script>
 </body></html>
