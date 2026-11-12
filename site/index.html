@@ -168,7 +168,7 @@ body.story-open{overflow:hidden}
 <footer><span>BACK2U / PERFORMANCE INTELLIGENCE</span><span><a href="/terms.html" style="color:inherit;text-decoration:underline;text-underline-offset:3px">Terms</a> · <a href="/privacy.html" style="color:inherit;text-decoration:underline;text-underline-offset:3px">Privacy</a></span><span id="footVersion">Exportbasis 10.11.2026 · drei Plattformen</span></footer>
 </div>
 <div id="storyOverlay" class="story-overlay" role="dialog" aria-label="BACK2U Story-Modus" aria-modal="true" hidden>
-  <div class="story-toolbar"><span>STORY-MODUS · 9:16 · V4</span><button type="button" id="storySave" class="story-control">↧ Story-Bild speichern</button><button type="button" id="storyClose" class="story-control" aria-label="Story-Modus schließen">✕</button></div>
+  <div class="story-toolbar"><span>STORY-MODUS · 9:16 · V6</span><button type="button" id="storySave" class="story-control">↧ Story-Bild speichern</button><button type="button" id="storyClose" class="story-control" aria-label="Story-Modus schließen">✕</button></div>
   <article class="story-art" id="storyArt" aria-label="Story-Vorschau">
     <div class="story-art-inner">
       <div class="story-brand-row"><span class="story-logo"><img src="/back2u-mark.svg" width="48" height="48" alt="BACK2U-Logo"/></span><div><strong>BACK2U</strong><small>CREATOR STATS</small></div><span class="story-live-pin">● STATS</span></div>
@@ -548,7 +548,7 @@ function renderGroupedVideos(){
  $('#videoList').innerHTML=show.length?show.map((g,i)=>{
   const selected=state.selected?.groupKey===g.groupKey?' active':'';
   const split='<span class="group-platform-split">'+groupPlatformLabel(g,state.sort==='recent'?'views':state.sort)+'</span>';
-  return '<button class="list-row grouped-row'+selected+'" data-vid-index="'+(start+i)+'"><span class="list-num">'+(start+i+1)+'</span><span class="list-thumb">'+image(g.first)+'</span><span class="list-name">'+esc(g.title)+'<small>'+g.members.length+' '+(g.members.length===1?'Plattform':'Plattformen')+' · '+esc(g.date)+'</small></span><span class="list-number grouped-total">'+fmt(state.sort==='recent'?g.views:g[state.sort])+'<small>Summe · '+(state.sort==='recent'?'Aufrufe':state.sort)+'</small>'+split+'</span></button>';
+  return '<button class="list-row grouped-row'+selected+'" data-vid-index="'+(start+i)+'"><span class="list-num">'+(start+i+1)+'</span><span class="list-thumb">'+image(g.first)+'</span><span class="list-name">'+esc(g.title)+'<small>'+g.members.length+' '+(g.members.length===1?'Plattform':'Plattformen')+' · '+esc(g.date)+'</small></span><span class="list-number grouped-total">'+fmt(state.sort==='recent'?g.views:g[state.sort])+'<small>Summe · '+({recent:'Aufrufe',views:'Aufrufe',likes:'Likes',comments:'Kommentare',follows:'Follower',shares:'Geteilt'}[state.sort]||'Aufrufe')+'</small>'+split+'</span></button>';
  }).join(''):'<div class="empty">Keine Treffer für diese Filter.</div>';
  $('#pageLabel').textContent='Seite '+state.page+' von '+numberOfPages;
  $('#prevPage').disabled=state.page===1;$('#nextPage').disabled=state.page===numberOfPages;
