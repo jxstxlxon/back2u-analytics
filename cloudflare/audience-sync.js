@@ -153,7 +153,7 @@ const errorText=e=>String(e?.message||'Unknown Windsor error').slice(0,160).repl
  * Atomic behavior for audience content: only replace the saved 9 segments
  * after ALL 9 connector reports are complete, scoped and validated.
  */
-export async function runAudienceAutoSync(env,{get,put,force=false,fetcher=fetch,now=Date.now()}={}){
+export async function runAudienceAutoSync(env,{get,put,force=false,tiktokOnly=false,fetcher=fetch,now=Date.now()}={}){
  const secret=String(env.WINDSOR_API_KEY||'').trim();
  if(secret.length<16)return {status:'not_configured',reason:'WINDSOR_API_KEY missing'};
  const old=await get(env,SYNC_STORE)||{};
@@ -165,11 +165,23 @@ export async function runAudienceAutoSync(env,{get,put,force=false,fetcher=fetch
  const progress={...old,status:'running',lastAttemptAt:nowIso,error:null};
  await put(env,SYNC_STORE,progress);
  try{
-  const reports=await Promise.all(REPORTS.map(spec=>getWindsorReport(spec,secret,fetcher)));
-  const fresh=assembleAudience(reports,nowIso);
+  // Optional future downgrade mode: TikTok is the sole allowed Forever-Free source.
+  // This flag is NEVER auto-enabled; require a verified user decision after downgrade.
+  const selected=tiktokOnly?REPORTS.filter(spec=>spec.p==='tt'):REPORTS;
+  const reports=await Promise.all(selected.map(spec=>getWindsorReport(spec,secret,fetcher)));
+  const partial=assembleAudience(reports,nowIso);
+  let fresh=partial;
+  if(tiktokOnly){
+   const previous=await get(env,AUDIENCE_STORE);
+   if(previous?.schema!==1||!previous.audience?.yt||!previous.audience?.ig)
+    throw Error('Cannot enable TikTok-only without preserved YouTube and Instagram history');
+   fresh={...previous,snapshotDate:partial.snapshotDate,updatedAt:nowIso,
+    audience:{...previous.audience,tt:partial.audience.tt},
+    audienceMeta:{...previous.audienceMeta,tt:partial.audienceMeta.tt}};
+  }
   await put(env,AUDIENCE_STORE,fresh);
   const success={status:'ok',lastAttemptAt:nowIso,lastSuccessAt:nowIso,snapshotDate:fresh.snapshotDate,
-   groups:9,error:null,source:'Windsor.ai'};
+   groups:selected.length,error:null,source:tiktokOnly?'Windsor.ai (TikTok only)':'Windsor.ai'};
   await put(env,SYNC_STORE,success);
   return success;
  }catch(e){
