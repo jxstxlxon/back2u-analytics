@@ -173,7 +173,7 @@ function validateAudienceImport(data){
     labels.add(label);total+=value;
     return [label,Math.round(value*100)/100];
    });
-   if(Math.abs(total-100)>1.1)throw new Error('Percentage sum is not close to 100 for '+platform+'/'+type);
+   if(Math.abs(total-100)>0.51)throw new Error('Percentage sum is not close to 100 for '+platform+'/'+type);
    const m=data.audienceMeta?.[platform]?.[type];
    if(!m||typeof m!=='object')throw new Error('Missing metadata');
    audienceMeta[platform][type]={};
