@@ -31,6 +31,111 @@ async function authorized(req,env){
 }
 function sessionCookie(raw,signature){return 'back2u_session_cf='+raw+'.'+signature+'; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=2592000'}
 const clearSession='back2u_session_cf=; Path=/; Max-Age=0; HttpOnly; Secure; SameSite=Lax';
+
+/* Guest access V7.3: separate, revocable, expiry-checked viewer sessions.
+   Links have 256-bit random secrets in URL fragments; D1 stores only SHA-256 hashes. */
+const GUEST_DURATIONS=[900,3600,21600,86400,604800,2592000];
+const GUEST_TABLE='back2u_guest_links';
+const guestSessionClear='back2u_guest_cf=; Path=/; Max-Age=0; HttpOnly; Secure; SameSite=Lax';
+const guestTableSql='CREATE TABLE IF NOT EXISTS '+GUEST_TABLE+
+ ' (id TEXT PRIMARY KEY, token_hash TEXT NOT NULL UNIQUE, label TEXT NOT NULL, created_at INTEGER NOT NULL, expires_at INTEGER NOT NULL, revoked_at INTEGER)';
+async function ensureGuestTable(env){await env.DB.prepare(guestTableSql).run()}
+async function sha256Hex(value){
+ const buffer=await crypto.subtle.digest('SHA-256',enc.encode(value));
+ return [...new Uint8Array(buffer)].map(b=>b.toString(16).padStart(2,'0')).join('');
+}
+function requireSameSiteJson(req){
+ const site=req.headers.get('sec-fetch-site');
+ const origin=req.headers.get('origin');
+ const type=req.headers.get('content-type')||'';
+ return (site!=='cross-site')&&(!origin||origin===new URL(req.url).origin)&&/^application\/json(?:;|$)/i.test(type);
+}
+async function guestSession(req,env){
+ if(!env.SESSION_SECRET||!env.DB)return null;
+ const val=cookie(req,'back2u_guest_cf'),parts=val.split('.');
+ if(parts.length!==2||!parts[0]||!parts[1]||parts[0].length>1000)return null;
+ if(!(await equal(parts[1],await hmac(env.SESSION_SECRET,parts[0]))))return null;
+ let claim;
+ try{claim=JSON.parse(dec.decode(ub64(parts[0])))}catch{return null}
+ const now=Date.now();
+ if(claim.v!==2||typeof claim.id!=='string'||!/^[-\da-f]{36}$/i.test(claim.id)||
+   !Number.isSafeInteger(claim.e)||claim.e<=now)return null;
+ try{
+  const record=await env.DB.prepare('SELECT id,expires_at,revoked_at FROM '+GUEST_TABLE+' WHERE id=?')
+   .bind(claim.id).first();
+  if(!record||record.revoked_at!==null||record.expires_at<=now||claim.e>record.expires_at)return null;
+  return {id:record.id,expiresAt:record.expires_at};
+ }catch{return null}
+}
+async function accessRole(req,env){
+ if(await authorized(req,env))return {role:'admin'};
+ const guest=await guestSession(req,env);
+ return guest?{role:'guest',expiresAt:guest.expiresAt}:{role:null};
+}
+function guestLandingPage(){
+ const html=String.raw`<!doctype html><html lang="de"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow"><title>BACK2U Gasteinladung</title><style>body{margin:0;min-height:100dvh;display:grid;place-items:center;background:#081426;color:#e8f4ff;font:16px system-ui}main{width:min(90vw,390px);background:#192d4a;border:1px solid #4f80aa;padding:24px;border-radius:20px}p{line-height:1.6;color:#bcd2eb}a{color:#93dcff}</style><main><h1>BACK2U · Gast</h1><p id="message">Deine Einladung wird sicher geprüft …</p><a href="/">Zur Anmeldung</a></main><script>(async()=>{const msg=document.getElementById('message'),token=location.hash.slice(1);history.replaceState(null,'','/guest');if(!/^[A-Za-z0-9_-]{42,48}$/.test(token)){msg.textContent='Einladungslink fehlt oder ist ungültig.';return}try{const r=await fetch('/api/guest/redeem',{method:'POST',headers:{'content-type':'application/json'},credentials:'same-origin',cache:'no-store',body:JSON.stringify({token})});if(!r.ok){msg.textContent='Der Link ist abgelaufen, widerrufen oder ungültig.';return}location.replace('/')}catch{msg.textContent='Verbindung fehlgeschlagen. Bitte erneut öffnen.'}})();</script></html>`;
+ return new Response(html,{headers:{'content-type':'text/html; charset=utf-8',...NO_STORE,
+  'content-security-policy':"default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; connect-src 'self'; base-uri 'none'; form-action 'none'",
+  'x-frame-options':'DENY'}});
+}
+async function redeemGuest(req,env){
+ if(req.method!=='POST')return json({error:'POST only'},405);
+ if(!requireSameSiteJson(req))return json({error:'Unzulässige Anfrage'},403);
+ let body;try{body=await req.json()}catch{return json({error:'Bad JSON'},400)}
+ const token=body?.token;
+ if(typeof token!=='string'||!/^[A-Za-z0-9_-]{42,48}$/.test(token))return json({error:'Ungültige Einladung'},401);
+ let row;
+ try{
+  row=await env.DB.prepare('SELECT id,expires_at,revoked_at FROM '+GUEST_TABLE+' WHERE token_hash=?')
+   .bind(await sha256Hex(token)).first();
+ }catch{return json({error:'Ungültige Einladung'},401)}
+ if(!row||row.revoked_at!==null||row.expires_at<=Date.now())return json({error:'Einladung abgelaufen'},401);
+ const claim=b64(enc.encode(JSON.stringify({v:2,id:row.id,e:row.expires_at})));
+ const maxAge=Math.max(1,Math.ceil((row.expires_at-Date.now())/1000));
+ const signed=await hmac(env.SESSION_SECRET,claim);
+ return json({ok:true,role:'guest',expiresAt:row.expires_at},200,{
+  'set-cookie':'back2u_guest_cf='+claim+'.'+signed+
+   '; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age='+maxAge});
+}
+async function guestLinks(req,env){
+ if(req.method!=='GET'&&req.method!=='POST')return json({error:'Method not allowed'},405);
+ if(req.method==='POST'&&!requireSameSiteJson(req))return json({error:'Unzulässige Anfrage'},403);
+ if(!env.DB||!env.SESSION_SECRET)return json({error:'Gastzugänge nicht eingerichtet'},503);
+ await ensureGuestTable(env);
+ if(req.method==='GET'){
+  const q=await env.DB.prepare('SELECT id,label,created_at,expires_at,revoked_at FROM '+GUEST_TABLE+
+   ' ORDER BY created_at DESC LIMIT 100').all();
+  return json({links:(q.results||[]).map(r=>({
+   id:r.id,label:r.label,createdAt:r.created_at,expiresAt:r.expires_at,revokedAt:r.revoked_at
+  }))});
+ }
+ let body;try{body=await req.json()}catch{return json({error:'Bad JSON'},400)}
+ const duration=Number(body?.durationSeconds);
+ if(!GUEST_DURATIONS.includes(duration))return json({error:'Ungültige Laufzeit'},422);
+ const label=String(body?.label||'Gast').trim().slice(0,50);
+ if(!label||/[\u0000-\u001f]/.test(label))return json({error:'Ungültige Bezeichnung'},422);
+ const now=Date.now(),expires=now+duration*1000;
+ const active=await env.DB.prepare('SELECT COUNT(*) AS n FROM '+GUEST_TABLE+
+  ' WHERE revoked_at IS NULL AND expires_at>?').bind(now).first();
+ if(Number(active?.n||0)>=30)return json({error:'Maximal 30 aktive Einladungen'},409);
+ const id=crypto.randomUUID(),token=b64(crypto.getRandomValues(new Uint8Array(32)));
+ await env.DB.prepare('INSERT INTO '+GUEST_TABLE+
+  ' (id,token_hash,label,created_at,expires_at,revoked_at) VALUES(?,?,?,?,?,NULL)')
+  .bind(id,await sha256Hex(token),label,now,expires).run();
+ return json({ok:true,id,label,expiresAt:expires,link:new URL('/guest',req.url).href+'#'+token},201);
+}
+async function revokeGuest(req,env,id){
+ if(req.method!=='DELETE')return json({error:'DELETE only'},405);
+ const origin=req.headers.get('origin');
+ if((origin&&origin!==new URL(req.url).origin)||req.headers.get('sec-fetch-site')==='cross-site')
+  return json({error:'Unzulässige Anfrage'},403);
+ if(!/^[-\da-f]{36}$/i.test(id))return json({error:'Ungültige ID'},400);
+ await ensureGuestTable(env);
+ await env.DB.prepare('UPDATE '+GUEST_TABLE+' SET revoked_at=? WHERE id=? AND revoked_at IS NULL')
+  .bind(Date.now(),id).run();
+ return json({ok:true});
+}
+
 const clearState='back2u_tt_state=; Path=/; Max-Age=0; HttpOnly; Secure; SameSite=Lax';
 async function get(env,key){
  const row=await env.DB.prepare('SELECT value FROM back2u_store WHERE key=?').bind(key).first();
@@ -398,6 +503,7 @@ async function route(req,env){
  if(path==='/api/health')return json({service:'BACK2U Cloud',configured:!!(env.DB&&env.DASHBOARD_PASSWORD&&env.SESSION_SECRET),dbReady:!!env.DB,
   loginReady:!!env.DASHBOARD_PASSWORD,sourceReady:!!env.BACK2U_GOOGLE_FEED_SECRET});
  if(path==='/api/login')return req.method==='POST'?issueToken(req,env):json({error:'POST only'},405);
+ if(path==='/api/guest/redeem')return redeemGuest(req,env);
  if(path==='/api/youtube-daily/ingest')return ingestYoutubeDaily(req,env);
  if(path==='/api/instagram-profile/ingest')return ingestInstagramProfile(req,env);
  if(path==='/api/ingest'){
@@ -418,12 +524,26 @@ async function route(req,env){
    instagramDays:snapshot.platforms.ig.daily.length,instagramVideos:snapshot.platforms.ig.videos.length,
    tiktokVideos:snapshot.platforms.tt.videos.length,dataThrough:snapshot.dataThrough});
  }
- if(!(await authorized(req,env)))return json({error:'Bitte anmelden'},401);
- if(path==='/api/logout')return json({ok:true},200,{'set-cookie':clearSession});
+ const access=await accessRole(req,env);
+ if(!access.role)return json({error:'Bitte anmelden'},401);
+ if(path==='/api/access')return req.method==='GET'?json(access):json({error:'GET only'},405);
+ if(path==='/api/logout'){
+  const headers=new Headers(NO_STORE);
+  headers.set('content-type','application/json; charset=utf-8');
+  headers.append('set-cookie',clearSession);
+  headers.append('set-cookie',guestSessionClear);
+  return new Response(JSON.stringify({ok:true}),{headers});
+ }
  if(path==='/api/snapshot'){
+  if(req.method!=='GET')return json({error:'GET only'},405);
   const s=await hydratedSnapshot(env);
   return s?json(s):json({error:'Noch kein Google Sheets Export eingegangen'},503);
  }
+ // Guest rights end here: no diagnostics, imports, OAuth, sync, audit or access management.
+ if(access.role!=='admin')return json({error:'Nur Administrator'},403);
+ if(path==='/api/guest-links')return guestLinks(req,env);
+ if(path.startsWith('/api/guest-links/'))return revokeGuest(req,env,path.slice('/api/guest-links/'.length));
+
  if(path==='/api/diagnostics'){
   const s=await hydratedSnapshot(env);
   const scan=await get(env,'tt_page_cursor');
@@ -480,7 +600,8 @@ export default {
    if(path.startsWith('/api/'))return await route(req,env);
    if(req.method!=='GET'&&req.method!=='HEAD')return json({error:'Method not allowed'},405);
    if(path==='/terms.html'||path==='/privacy.html'||/^\/tiktok[\w-]*\.txt$/i.test(path))return env.ASSETS.fetch(req);
-   if(!(await authorized(req,env)))return loginPage();
+   if(path==='/guest')return guestLandingPage();
+   if(!(await accessRole(req,env)).role)return loginPage();
    const response=await env.ASSETS.fetch(req);
    if(path==='/'||path.endsWith('.html')){
     const headers=new Headers(response.headers);headers.set('cache-control','private, no-store');headers.set('x-content-type-options','nosniff');

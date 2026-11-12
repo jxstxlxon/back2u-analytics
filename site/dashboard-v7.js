@@ -63,7 +63,7 @@ function experiments(){
  for(let d=range.start;d<=range.end;d=increment(d))days.push(d);
  const counts=new Map(days.map(d=>[d,0]));
  for(const v of vids)counts.set(v.date,(counts.get(v.date)||0)+1);
- const buckets=[{name:'Keine Uploads',test:n=>n===0},{name:'1–2 Uploads',test:n=>n>=1&&n<=2},{name:'3–4 Uploads',test:n=>n>=3&&n<=4},{name:'5+ Uploads',test:n=>n>=5}]
+ const buckets=[{name:'Keine erfassten Uploads',test:n=>n===0},{name:'1–2 Uploads',test:n=>n>=1&&n<=2},{name:'3–4 Uploads',test:n=>n>=3&&n<=4},{name:'5+ Uploads',test:n=>n>=5}]
   .map(x=>({...x,count:days.filter(d=>x.test(counts.get(d)||0)).length}));
  const nPosts=vids.length,activeDays=days.filter(d=>counts.get(d)>0).length;
  const max=Math.max(0,...counts.values());
@@ -75,10 +75,35 @@ function experiments(){
  ];
  $('experimentKpis').innerHTML=kp.map(x=>'<article class="glass metric-box"><small>'+esc(x[0])+'</small><strong>'+esc(x[1])+'</strong><p>'+esc(x[2])+'</p></article>').join('');
  const maxB=Math.max(1,...buckets.map(x=>x.count));
- $('uploadChart').innerHTML='<div class="v7-rhythm" role="img" aria-label="Verteilung von Uploadtagen">'+buckets.map(x=>
+ const recent=days.slice(-28);
+ const dayVideos=new Map(recent.map(d=>[d,vids.filter(v=>v.date===d)]));
+ const peak=Math.max(1,...recent.map(d=>dayVideos.get(d).length));
+ const periods=recent.length<days.length?'Letzte 28 Tage des gewählten Zeitraums':'Ausgewählter Zeitraum';
+ $('uploadChart').innerHTML='<p class="v73-rhythm-heading">'+periods+' · erfasste Plattform-Veröffentlichungen, keine Videoaufrufe</p>'
+  +'<div class="v73-upload-calendar" role="group" aria-label="Erfasste Veröffentlichungen pro Tag">'+recent.map(d=>{
+    const posts=dayVideos.get(d),cnt=posts.length,by=Object.fromEntries(['yt','ig','tt'].map(p=>[p,posts.filter(v=>v.platform===p).length]));
+    return '<button type="button" class="v73-upload-day" data-upload-day="'+d+'" aria-label="'+d+' · '+cnt+' erfasste Veröffentlichungen" aria-pressed="false">'
+     +'<strong>'+cnt+'</strong><span class="v73-upload-bar" aria-hidden="true">'+['yt','ig','tt'].map(p=>by[p]?'<i style="height:'+(by[p]/peak*100)+'%;background:'+colors[p]+'"></i>':'').join('')+'</span>'
+     +'<small>'+d.slice(8)+'.'+d.slice(5)+'</small></button>';
+   }).join('')+'</div>'
+  +'<div class="v73-upload-detail" id="v73UploadDetail" aria-live="polite"></div>'
+  +'<p class="v73-rhythm-heading">Tage nach Anzahl erfasster Uploads</p>'
+  +'<div class="v7-rhythm" role="img" aria-label="Verteilung von Uploadtagen">'+buckets.map(x=>
    '<div class="v7-rhythm-row"><span>'+x.name+'</span><div class="v7-rhythm-rail"><i style="width:'+x.count/maxB*100+'%"></i></div><b>'+x.count+' Tage</b></div>'
- ).join('')+'</div>';
- $('uploadNote').textContent='Diese Darstellung zeigt nur, wie regelmäßig du veröffentlicht hast. Sie behauptet nicht, dass mehr Uploads automatisch mehr Aufrufe bringen.';
+  ).join('')+'</div>';
+ const showDay=d=>{
+  const posts=dayVideos.get(d)||[];
+  $('uploadChart').querySelectorAll('[data-upload-day]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.uploadDay===d)));
+  const counts=['yt','ig','tt'].filter(p=>m.platforms.includes(p)).map(p=>names[p]+': '+posts.filter(v=>v.platform===p).length);
+  $('v73UploadDetail').innerHTML='<strong>'+d.split('-').reverse().join('.')+' · '+posts.length+' erfasste Veröffentlichungen</strong>'
+   +'<p>'+counts.join(' · ')+'</p>'
+   +(posts.length?'<ul>'+posts.slice(0,5).map(v=>'<li>'+esc(names[v.platform])+' · '+esc(safeTitle(v.title)||'Video ohne Titel')+'</li>').join('')+'</ul>'
+   +(posts.length>5?'<small>Weitere '+(posts.length-5)+' Einträge im Video Radar.</small>':'')
+   :'<small>Keine Veröffentlichung in den derzeit erfassten Videoeinträgen – das beweist keinen vollständigen Upload-Stopp.</small>');
+ };
+ $('uploadChart').querySelectorAll('[data-upload-day]').forEach(btn=>btn.addEventListener('click',()=>showDay(btn.dataset.uploadDay)));
+ if(recent.length)showDay([...recent].reverse().find(d=>dayVideos.get(d).length>0)||recent.at(-1));
+ $('uploadNote').textContent='Die Balken zählen erfasste Veröffentlichungen je Plattform – bei Crossposts können mehrere Einträge zum selben Clip gehören. Fehlende Videoeinträge sind möglich (insbesondere bei noch nicht vollständig erfasstem TikTok-Verlauf). Das Diagramm ist kein Beweis, dass mehr Uploads mehr Aufrufe verursachen.';
  // Do not use daily account views as a proxy for the performance of today's uploads.
  const lifetimeRows=vids.filter(lifetime);
  const cohorts=new Map();
@@ -93,9 +118,10 @@ function experiments(){
   +formats.slice(0,6).map(x=>'<div class="v7-format-row"><span class="v7-platform-mark" data-p="'+x.platform+'">'+names[x.platform]+'</span><strong>'+esc(x.format)+'</strong><b>'+fmt(Math.round(x.mid))+'</b><small>typische Aufrufe · '+x.n+' Videos</small></div>').join(''):
   '<div class="v7-empty">Noch zu wenige Videos mit vergleichbaren Gesamtwerten je Format vorhanden.</div>';
  $('roadmap').innerHTML=[
-  ['01 / FESTLEGEN','Eine Sache ändern','Vergleiche z. B. zwei Hooks oder zwei Uploadzeiten. Format und Videolänge möglichst ähnlich halten.'],
-  ['02 / MESSEN','Beide nach 24 Stunden prüfen','Verwende für beide Gruppen denselben Zeitpunkt nach Upload und schreibe die tatsächlichen 24h-Aufrufe auf.'],
-  ['03 / VERGLEICHEN','Genug Videos sammeln','Mindestens 5 Videos je Variante; Durchschnitt und Streuung vergleichen. Kein eindeutiger Sieger bei zu wenig Daten.']
+  ['01 / HYPOTHESE','Teste nur eine Veränderung','Zum Beispiel zwei Hooks oder 2 gegen 4 Uploads pro Tag auf EINER Plattform. Gleiche Formate, ähnliche Qualität und feste Messregeln.'],
+  ['02 / TESTPLAN','Varianten zeitlich fair verteilen','Verteile A und B möglichst über vergleichbare Wochentage. Zusätzliche Uploads und laufende Trends können Ergebnisse verzerren.'],
+  ['03 / MESSEN','Alle Videos nach 24 Stunden prüfen','Trage 24h-Aufrufe je Video ein. Bisherige Gesamtaufrufe aus dem Dashboard sind kein Ersatz für einen identischen Messzeitpunkt.'],
+  ['04 / EINORDNEN','Tendenz statt Kausalbeweis','Mindestens fünf Videos je Variante sammeln. Median, Ausreißer und mögliche Formatunterschiede berücksichtigen; keine sichere Wirkung nur aus mehr Uploads ableiten.']
  ].map(x=>'<div class="step"><div class="step-label">'+x[0]+'</div><h4>'+x[1]+'</h4><p>'+x[2]+'</p></div>').join('');
  $('formatCards').innerHTML=formats.length?formats.slice(0,6).map(x=>
   '<article class="glass format-card"><small>'+names[x.platform]+' · '+x.n+' Videos</small><b>'+esc(x.format)+'</b><strong>'+fmt(Math.round(x.mid))+'</strong><p>Median der bisherigen Gesamtaufrufe · kein Beweis für den besten Uploadzeitpunkt</p></article>'
@@ -198,13 +224,14 @@ function rankFormats(m){
  return [...groups].map(([name,a])=>({p:name.split('|')[0],format:name.split('|').slice(1).join('|'),n:a.length,median:median(a)})).filter(x=>x.n>=4).sort((a,b)=>b.median-a.median);
 }
 const availableSlots=['11:00','15:00','19:00','02:00'];
-function planRows(formats,slots,days){
+const PLAN_KEY='back2u_creator_scheduled_v73';
+function planRows(formats,slots,days,platforms=['yt','ig','tt']){
  const rows=[];const date0=increment(today());
  for(let d=0;d<days;d++){
   const date=incrementBy(date0,d),daily=[];
   for(let i=0;i<slots.length;i++){
    const choice=formats[(d*slots.length+i)%formats.length];
-   daily.push({time:slots[i],platform:choice?.p||['yt','ig','tt'][i%3],format:choice?.format||['Jumpstyle','Hakken','Edit','Outfit'][i%4]});
+   daily.push({time:slots[i],platform:choice?.p||(platforms.length?platforms[i%platforms.length]:'yt'),format:choice?.format||['Jumpstyle','Hakken','Edit','Outfit'][i%4]});
   }
   rows.push({date,daily});
  }
@@ -217,20 +244,41 @@ function parseSlots(str){
 }
 function renderPlanner(){
  const root=$('v7Planner');if(!root)return;
- const m=model(),best=rankFormats(m),planStored=restore('back2u_v7_plan',{slots:'11:00, 15:00, 19:00, 02:00',days:3});
+ const m=model(),selectedPlatforms=m.platforms.filter(p=>names[p]),best=rankFormats(m).filter(x=>selectedPlatforms.includes(x.p)),planStored=restore('back2u_v7_plan',{slots:'11:00, 15:00, 19:00, 02:00',days:3});
  const slots=parseSlots(planStored.slots);if(!slots.length)slots.push(...availableSlots);
- root.innerHTML='<p class="v7-help">Empfehlungen aus deinen bekannten Videos – keine automatische KI-Auswertung und kein automatisches Posten. Die Uhrzeiten sind deine Testslots, keine wissenschaftlich ermittelte Bestzeit.</p>'
+ root.innerHTML='<p class="v7-help">Empfehlungen aus deinen bekannten Videos – keine automatische KI-Auswertung und kein automatisches Posten. Die Uhrzeiten sind deine Testslots, keine wissenschaftlich ermittelte Bestzeit. Auch 02:00 gilt kalendarisch am angezeigten Tag (nicht am Vorabend).</p>'
  +'<form id="v7PlannerForm" class="v7-planner-form"><label>Deine Uhrzeiten<input id="v7PlannerSlots" type="text" value="'+esc(planStored.slots)+'" placeholder="11:00, 15:00, 19:00, 02:00" /></label>'
  +'<label>Tage<select id="v7PlannerDays"><option value="3" '+(planStored.days===3?'selected':'')+'>Nächste 3 Tage</option><option value="7" '+(planStored.days===7?'selected':'')+'>Nächste 7 Tage</option></select></label><button type="submit">Plan erstellen</button></form>'
  +'<div class="v7-plan-insight"><strong>Formate mit guten bisherigen Ergebnissen</strong><p>'+(best.length?best.slice(0,3).map(x=>names[x.p]+' · '+esc(x.format)+' ('+x.n+' Videos)').join(' · '):'Noch zu wenige vergleichbare Videodaten für eine Rangfolge.')+'</p></div>'
- +'<div id="v7PlannerRows"></div><button type="button" id="v7PlannerCopy" class="v7-copy-plan">Plan für ChatGPT kopieren</button><p class="v7-help">Für echte KI-Planung mit automatischer Neubewertung und Veröffentlichung wäre eine separate autorisierte Verbindung nötig.</p>';
+ +'<div id="v7PlannerRows"></div><div class="v73-plan-actions"><button type="button" id="v73PlannerSave" class="v7-copy-plan">Ideen in Posting-Kalender übernehmen</button><button type="button" id="v7PlannerCopy" class="v7-copy-plan">Plan für ChatGPT kopieren</button></div><div id="v73PlanStatus" class="v73-plan-status" role="status" aria-live="polite"></div><p class="v7-help">Übernommene Ideen werden ausschließlich in diesem Browser als geplant gespeichert und niemals automatisch veröffentlicht. Sie zählen nicht zu deinen echten Uploads.</p>';
  const render=()=>{
-  const rows=planRows(best,slots,Number(planStored.days)||3);
+  const rows=planRows(best,slots,Number(planStored.days)||3,selectedPlatforms);
   const lines=[];
   $('v7PlannerRows').innerHTML=rows.map(row=>{
    lines.push(row.date+': '+row.daily.map(v=>v.time+' '+names[v.platform]+' · '+v.format).join(', '));
    return '<details class="v7-plan-day" '+(row===rows[0]?'open':'')+'><summary>'+row.date.split('-').reverse().join('.')+' · '+row.daily.length+' Uploadideen</summary>'+row.daily.map((x,i)=>'<div><span>'+x.time+'</span><strong>'+names[x.platform]+'</strong><b>'+esc(x.format)+'</b><small>Idee '+(i+1)+'</small></div>').join('')+'</details>';
   }).join('');
+  $('v73PlannerSave').onclick=()=>{
+   const prior=restore(PLAN_KEY,[]);
+   const entries=Array.isArray(prior)?prior.filter(x=>x&&typeof x==='object').slice(0,500):[];
+   const signature=x=>[x.date,x.time,x.platform,x.format].join('|');
+   const seen=new Set(entries.map(signature));
+   let added=0;
+   for(const row of rows)for(const item of row.daily){
+    const record={date:row.date,time:item.time,platform:item.platform,format:String(item.format||'Videoidee').slice(0,90)};
+    const sig=signature(record);
+    if(seen.has(sig))continue;
+    seen.add(sig);added++;
+    entries.push({...record,id:'v73-'+Date.now().toString(36)+'-'+added,done:false});
+   }
+   if(entries.length>500){
+    $('v73PlanStatus').textContent='Maximal 500 geplante Ideen gespeichert. Bitte ältere Einträge im Kalender entfernen.';return;
+   }
+   try{localStorage.setItem(PLAN_KEY,JSON.stringify(entries))}
+   catch{$('v73PlanStatus').textContent='Lokales Speichern ist in diesem Browser nicht möglich. Bitte Browser-Speicher prüfen.';return}
+   $('v73PlanStatus').textContent=added?added+' neue Ideen in deinem Posting-Kalender gespeichert (nur dieses Gerät).':'Keine neuen Einträge – diese Ideen sind bereits im Kalender.';
+   if(added&&window.CustomEvent)window.dispatchEvent(new CustomEvent('back2u-plan-updated',{detail:{date:rows[0]?.date||null}}));
+  };
   $('v7PlannerCopy').onclick=async()=>{
    const prompt='Plane meinen Jumpstyle-/Hakken-/Shuffle-Content anhand meiner echten Statistiken. Vorschlag für die nächsten Tage:\n'+lines.join('\n')+'\nOptimier Hooks, Aufnahmeideen und lange natürliche englische Captions. Berücksichtige, dass dies bisherige Gesamtaufrufe und keine kontrollierten Uploadzeit-Tests sind.';
    try{await navigator.clipboard.writeText(prompt);$('v7PlannerCopy').textContent='Für ChatGPT kopiert ✓'}catch{$('v7PlannerCopy').textContent='Kopieren nicht möglich – bitte Browser prüfen'}

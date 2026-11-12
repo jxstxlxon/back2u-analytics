@@ -1,0 +1,65 @@
+/* BACK2U V7.3 Guest sharing — theme-aware, mobile-safe, never makes auth decisions. */
+#guestAccessPanel[hidden],#guestAccessBanner[hidden],#guestAccessCreated[hidden]{display:none!important}
+body[data-back2u-access-role] .guest-access-panel{
+ padding:20px;margin:14px 0 20px;border-radius:var(--t-radius,24px);
+ color:var(--t-ink-strong);border:1px solid rgba(var(--t-accent-rgb),.35);
+ background-image:linear-gradient(135deg,rgba(var(--t-accent-rgb),.1),transparent 60%,rgba(var(--t-secondary-rgb),.12))
+}
+.guest-access-help{font:600 12px/1.65 var(--t-font-ui,system-ui);color:var(--t-ink-muted);margin:8px 0 16px}
+.guest-access-form{display:grid;grid-template-columns:minmax(0,1fr) 180px;gap:11px;align-items:end}
+.guest-access-form label{display:grid;gap:6px;min-width:0;color:var(--t-ink-label);font:750 12px var(--t-font-ui,system-ui)}
+.guest-access-form input,.guest-access-form select,.guest-access-copy input{
+ display:block;width:100%;box-sizing:border-box;min-width:0;min-height:44px;
+ padding:10px 12px;border-radius:12px;
+ border:1px solid rgba(var(--t-accent-rgb),.4);
+ background:rgba(var(--t-card),.24);color:var(--t-ink-strong);font:650 12px var(--t-font-ui,system-ui)
+}
+.guest-access-form button,.guest-access-copy button,.guest-access-list-head button,.guest-access-row button,.guest-access-banner button{
+ min-height:44px;border:1px solid rgba(var(--t-accent-rgb),.53);border-radius:12px;
+ background:linear-gradient(120deg,rgba(var(--t-accent-rgb),.26),rgba(var(--t-secondary-rgb),.19));
+ color:var(--t-ink-strong);font:750 12px var(--t-font-ui,system-ui);padding:10px 12px;
+ cursor:pointer
+}
+.guest-access-form>button{grid-column:1/-1}
+.guest-access-form button:disabled,.guest-access-row button:disabled{opacity:.55;cursor:wait}
+.guest-access-created{padding:14px;margin:15px 0 9px;border:1px solid rgba(var(--t-accent-rgb),.35);
+ border-radius:14px;background:rgba(var(--t-card),.21)}
+.guest-access-created>strong,.guest-access-list-head strong{display:block;font:800 13px var(--t-font-ui,system-ui);color:var(--t-ink-strong)}
+.guest-access-created small,.guest-access-row small{display:block;font:600 11px/1.55 var(--t-font-ui,system-ui);color:var(--t-ink-muted)}
+.guest-access-copy{display:flex;gap:8px;margin:10px 0}
+.guest-access-copy input{flex:1}
+.guest-access-copy button{flex:none}
+#guestAccessStatus{min-height:20px;font:660 11px/1.55 var(--t-font-ui,system-ui);color:var(--t-ink-label);margin:9px 0}
+.guest-access-list-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:16px 0 8px}
+.guest-access-list-head button{min-height:36px;padding:7px 10px}
+.guest-access-list{display:grid;gap:7px}
+.guest-access-row{display:flex;justify-content:space-between;align-items:center;gap:8px;min-width:0;
+ padding:10px;border:1px solid rgba(var(--t-accent-rgb),.23);border-radius:12px;
+ background:rgba(var(--t-card),.16)}
+.guest-access-row>div{min-width:0}
+.guest-access-row strong{display:block;font:750 12px var(--t-font-ui,system-ui);overflow-wrap:anywhere}
+.guest-access-row button{min-height:36px;flex:none;padding:7px 9px}
+.guest-access-banner{
+ position:sticky;top:8px;z-index:70;display:flex;align-items:center;justify-content:space-between;gap:10px;
+ padding:11px 13px;margin:7px 0 14px;border:1px solid rgba(var(--t-accent-rgb),.5);
+ border-radius:15px;background:rgba(var(--t-card),.83);color:var(--t-ink-strong);
+ -webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px)
+}
+.guest-access-banner>span{min-width:0;display:grid;gap:4px}
+.guest-access-banner strong{font:800 13px var(--t-font-ui,system-ui)}
+.guest-access-banner small{font:620 11px/1.45 var(--t-font-ui,system-ui);color:var(--t-ink-muted)}
+.guest-access-banner button{min-height:39px;flex:none}
+body[data-back2u-access-role="guest"] .view :disabled:not([data-chart-mode]),
+body[data-back2u-access-role="guest"] #storyOverlay :disabled{opacity:.52;cursor:not-allowed}
+@media(max-width:670px){
+ .guest-access-form{grid-template-columns:1fr 1fr}
+ .guest-access-banner{position:relative;top:auto;flex-wrap:wrap}
+ .guest-access-banner button{width:100%}
+ .guest-access-copy{flex-wrap:wrap}
+ .guest-access-copy button{width:100%}
+}
+@media(max-width:390px){
+ .guest-access-form{grid-template-columns:1fr}
+ .guest-access-form>button{grid-column:1}
+ .guest-access-panel{padding:13px!important}
+}
