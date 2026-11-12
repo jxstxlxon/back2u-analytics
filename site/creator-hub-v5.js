@@ -11,6 +11,42 @@ const P={yt:'YouTube',ig:'Instagram',tt:'TikTok'};
 const DATA_KEY='back2u_creator_ideas_v1',GOAL_KEY='back2u_creator_views_goal_v1',PLAN_KEY='back2u_creator_scheduled_v73';
 const iso=/^\d{4}-\d{2}-\d{2}$/;
 const validDate=s=>iso.test(s)&&!Number.isNaN(Date.parse(s+'T12:00:00Z'));
+
+// Only conservative, source-preserving crosspost suggestions.
+// A matching title must contain >=3 words and be published within 2 days.
+// Each platform can appear at most once in a group; all original rows survive.
+function crosspostKey(title){
+ const value=String(title||'')
+  .replace(/https?:\/\/\S+|@[A-Za-z0-9_.]+|#[\p{L}\p{N}_]+/gu,' ')
+  .normalize('NFKD').replace(/\p{M}/gu,'')
+  .toLowerCase().replace(/[^\p{L}\p{N}]+/gu,' ')
+  .trim().replace(/\s+/g,' ');
+ const words=value.split(' ').filter(Boolean);
+ return words.length>=3&&value.length>=13?value:null;
+}
+function crosspostGroups(videos){
+ const groups=[],index=new Map();
+ const ordered=videos.filter(v=>validDate(v.date)&&safeVideo(v)).slice()
+  .sort((a,b)=>a.date.localeCompare(b.date)||String(a.platform).localeCompare(String(b.platform))||String(a.id||'').localeCompare(String(b.id||'')));
+ for(const video of ordered){
+  const key=crosspostKey(video.title);
+  let found=null;
+  if(key){
+   const candidates=index.get(key)||[];
+   for(const group of candidates){
+    if(group.items.some(item=>item.platform===video.platform))continue;
+    const closest=Math.min(...group.items.map(item=>Math.abs(Date.parse(item.date+'T12:00:00Z')-Date.parse(video.date+'T12:00:00Z'))/86400000));
+    if(closest<=2&&(!found||closest<found.distance))found={group,distance:closest};
+   }
+  }
+  if(found){found.group.items.push(video);continue}
+  const group={date:video.date,title:video.title||'Video ohne Titel',items:[video]};
+  groups.push(group);
+  if(key){if(!index.has(key))index.set(key,[]);index.get(key).push(group)}
+ }
+ return groups.sort((a,b)=>a.date.localeCompare(b.date)||String(a.title||'').localeCompare(String(b.title||'')));
+}
+
 const now=()=>new Date().toLocaleDateString('sv-SE',{timeZone:'Europe/Berlin'});
 let month=now().slice(0,7),selectedDay=null,lastModel=null;
 const load=(key,fallback)=>{try{const x=JSON.parse(localStorage.getItem(key)||'null');return x===null?fallback:x}catch{return fallback}};
@@ -134,6 +170,13 @@ function renderCalendar(m){
  $('creatorMonthLabel').textContent=new Intl.DateTimeFormat('de-DE',{month:'long',year:'numeric',timeZone:'UTC'}).format(new Date(Date.UTC(y,mo-1,1)));
  const names=['Mo','Di','Mi','Do','Fr','Sa','So'];
  const info=monthDays(month);
+ const allClipGroups=crosspostGroups(m.videos);
+ const monthlyGroups=allClipGroups.filter(g=>g.date.startsWith(month+'-'));
+ const groupsByDay=new Map();
+ for(const group of monthlyGroups){
+  if(!groupsByDay.has(group.date))groupsByDay.set(group.date,[]);
+  groupsByDay.get(group.date).push(group);
+ }
  const monthlyVideos=m.videos.filter(v=>validDate(v.date)&&v.date.startsWith(month+'-'));
  const monthlyPlans=readPlanned().filter(v=>v.date.startsWith(month+'-'));
  const plansByDay=new Map();
@@ -142,15 +185,15 @@ function renderCalendar(m){
   plansByDay.get(v.date).push(v);
  }
  for(const entries of plansByDay.values())entries.sort((a,b)=>a.time.localeCompare(b.time));
- const activeDates=new Set(monthlyVideos.map(v=>v.date));
+ const activeDates=new Set(monthlyGroups.map(g=>g.date));
  const validLifetime=monthlyVideos.filter(knownTotal);
  const lifetimeViews=validLifetime.length?validLifetime.reduce((n,v)=>n+v.views,0):null;
  const prev=shiftMonth(month,-1);
- const previousCount=m.videos.filter(v=>validDate(v.date)&&v.date.startsWith(prev+'-')).length;
+ const previousCount=allClipGroups.filter(g=>g.date.startsWith(prev+'-')).length;
  const completeMonth=month<now().slice(0,7);
  const viewNote=validLifetime.length<monthlyVideos.length?'Einige Video-Gesamtzahlen fehlen':'Gesamtaufrufe dieser Videos bis jetzt';
  $('creatorMonthSummary').innerHTML=[
-  ['Veröffentlichungen',fmt(monthlyVideos.length),completeMonth?'Vormonat: '+fmt(previousCount)+' Videos':'Laufender Monat · bisher'],
+  ['Videos (gruppiert)',fmt(monthlyGroups.length),fmt(monthlyVideos.length)+' Plattform-Uploads · '+(completeMonth?'Vormonat: '+fmt(previousCount)+' Clips':'laufender Monat')],
   ['Tage mit Posts',fmt(activeDates.size),'Mindestens ein Video veröffentlicht'],
   ['Aufrufe dieser Videos',fmt(lifetimeViews),viewNote],
   ['Geplante Ideen',fmt(monthlyPlans.length),'Nur lokal gespeichert · keine veröffentlichten Videos']
@@ -158,35 +201,44 @@ function renderCalendar(m){
  let html=names.map(name=>'<span class="creator-cal-weekday">'+name+'</span>').join('');
  for(let i=0;i<info.offset;i++)html+='<span class="creator-cal-empty"></span>';
  for(let day=1;day<=info.count;day++){
-  const key=month+'-'+String(day).padStart(2,'0'),posts=m.byDay.get(key)||[],planned=plansByDay.get(key)||[];
+  const key=month+'-'+String(day).padStart(2,'0'),posts=m.byDay.get(key)||[],clips=groupsByDay.get(key)||[],planned=plansByDay.get(key)||[];
   const known=posts.filter(knownTotal),views=known.length?known.reduce((n,v)=>n+v.views,0):null;
   const platformCount=['yt','ig','tt'].map(p=>posts.filter(v=>v.platform===p).length);
   const platformDots='<span class="creator-cal-platforms">'+platformCount.map((n,i)=>n?'<i data-p="'+['yt','ig','tt'][i]+'" title="'+['YouTube','Instagram','TikTok'][i]+': '+n+'">'+n+'</i>':'').join('')+'</span>';
-  const label=key+' · '+posts.length+' veröffentlichte Videoeinträge, '+planned.length+' geplante Ideen'+(views===null?'':', '+fmt(views)+' bekannte Gesamtaufrufe');
-  html+='<button type="button" class="creator-cal-day'+(posts.length?' has-posts':'')+(planned.length?' has-plan':'')+(key===selectedDay?' selected':'')+'" data-date="'+key+'" aria-label="'+esc(label)+'"><strong>'+day+'</strong>'+(posts.length?'<span>'+posts.length+' '+(posts.length===1?'Video':'Videos')+'</span>'+platformDots+'<small>'+(views===null?'Aufrufe: –':fmt(views)+' insgesamt')+'</small>':(planned.length?'':'<span class="creator-no-post">·</span>'))+(planned.length?'<small class="v73-planned-label">'+planned.length+' geplant</small>':'')+'</button>';
+  const label=key+' · '+clips.length+' Videogruppen aus '+posts.length+' Plattform-Uploads, '+planned.length+' geplante Ideen'+(views===null?'':', '+fmt(views)+' bekannte Plattformaufrufe');
+  html+='<button type="button" class="creator-cal-day'+(clips.length?' has-posts':'')+(planned.length?' has-plan':'')+(key===selectedDay?' selected':'')+'" data-date="'+key+'" aria-label="'+esc(label)+'"><strong>'+day+'</strong>'+(clips.length?'<span>'+clips.length+' '+(clips.length===1?'Clip':'Clips')+'</span>'+platformDots+'<small>'+posts.length+' Plattformposts'+(views===null?'':' · '+fmt(views)+' Aufrufe')+'</small>':(planned.length?'':'<span class="creator-no-post">·</span>'))+(planned.length?'<small class="v73-planned-label">'+planned.length+' geplant</small>':'')+'</button>';
  }
  $('creatorCalendar').innerHTML=html;
  $('creatorCalendar').querySelectorAll('[data-date]').forEach(btn=>btn.addEventListener('click',()=>{selectedDay=btn.dataset.date;renderCalendar(m)}));
  if(!selectedDay||!selectedDay.startsWith(month+'-')){
-  const keys=[...new Set([...m.byDay.keys(),...plansByDay.keys()])].filter(d=>d.startsWith(month+'-')).sort();
+  const keys=[...new Set([...groupsByDay.keys(),...plansByDay.keys()])].filter(d=>d.startsWith(month+'-')).sort();
   selectedDay=keys.at(-1)||month+'-01';
  }
  // Preserve selection styling when the user changes months.
  $('creatorCalendar').querySelectorAll('[data-date]').forEach(btn=>btn.classList.toggle('selected',btn.dataset.date===selectedDay));
- const entries=m.byDay.get(selectedDay)||[],planned=plansByDay.get(selectedDay)||[];
- $('creatorDayDetail').innerHTML='<div class="creator-day-header"><strong>'+esc(selectedDay.split('-').reverse().join('.'))+'</strong><span>'+entries.length+' '+(entries.length===1?'veröffentlichtes Plattformvideo':'veröffentlichte Plattformvideos')+'</span></div>'
- +(entries.length?entries.slice(0,32).map(v=>{
-  const image=String(v.thumb||'');
-  const validThumb=/^https:\/\//i.test(image);
-  const url=String(v.url||'');
-  const validLink=/^https:\/\//i.test(url);
-  const caption=esc(v.title||'Video ohne Titel');
-  const label=knownTotal(v)?fmt(v.views)+' bisherige Gesamtaufrufe':'Keine vergleichbaren Gesamtaufrufe';
-  const medal=validThumb?'<img src="'+esc(image)+'" alt="" loading="lazy" decoding="async"/>':'<span>▶</span>';
-  const title=validLink?'<a href="'+esc(url)+'" target="_blank" rel="noopener noreferrer">'+caption+'</a>':'<span>'+caption+'</span>';
-  return '<article class="creator-day-video v7-day-video"><div class="v7-day-thumb">'+medal+'</div><div class="v7-day-body"><div class="v7-day-top"><span class="creator-platform-tag" data-p="'+esc(v.platform)+'">'+esc(P[v.platform]||v.platform)+'</span><small>'+esc(v.format||'Video')+'</small></div>'+title+'<small>'+label+'</small></div></article>';
- }).join(''):'<p class="creator-empty">Für diesen Tag sind keine Veröffentlichungen erfasst.</p>')
- +(entries.length>32?'<small>Weitere '+fmt(entries.length-32)+' Videoeinträge sind im Video Radar zu finden.</small>':'')
+ const entries=groupsByDay.get(selectedDay)||[],planned=plansByDay.get(selectedDay)||[];
+ $('creatorDayDetail').innerHTML='<div class="creator-day-header"><strong>'+esc(selectedDay.split('-').reverse().join('.'))+'</strong><span>'+entries.length+' '+(entries.length===1?'Videogruppe':'Videogruppen')+' · Crossposts zusammengefasst</span></div>'
+ +(entries.length?entries.slice(0,32).map(group=>{
+  const video=group.items.find(x=>/^https:\/\//i.test(String(x.thumb||'')))||group.items[0];
+  const thumb=String(video.thumb||'');
+  const caption=esc(group.title||'Video ohne Titel');
+  const medal=/^https:\/\//i.test(thumb)?'<img src="'+esc(thumb)+'" alt="" loading="lazy" decoding="async"/>':'<span>▶</span>';
+  const totals=group.items.filter(knownTotal);
+  const groupViews=totals.length?fmt(totals.reduce((n,v)=>n+v.views,0)):'–';
+  const variants=group.items.slice().sort((a,b)=>['yt','ig','tt'].indexOf(a.platform)-['yt','ig','tt'].indexOf(b.platform));
+  return '<article class="creator-day-video v7-day-video v74-clip-group"><div class="v7-day-thumb">'+medal+'</div><div class="v7-day-body">'
+   +'<strong class="v74-clip-title">'+caption+'</strong>'
+   +'<small>'+group.items.length+' Plattform'+(group.items.length===1?'':'en')+' · '+groupViews+' bekannte Plattformaufrufe (keine Unique Views)</small>'
+   +'<div class="v74-clip-platforms">'+variants.map(v=>{
+    const name=esc(P[v.platform]||v.platform);
+    const validLink=/^https:\/\/(?:www\.)?(?:youtube\.com|youtu\.be|instagram\.com|tiktok\.com)\//i.test(String(v.url||''));
+    const caption=validLink?'<a href="'+esc(v.url)+'" target="_blank" rel="noopener noreferrer">'+name+' ↗</a>':'<span>'+name+'</span>';
+    const label=knownTotal(v)?fmt(v.views)+' Aufrufe':'Aufrufe: –';
+    return '<div class="v74-clip-platform" data-platform="'+esc(v.platform)+'">'+caption+'<small>'+label+' · '+esc(v.date.split('-').reverse().join('.'))+'</small></div>';
+   }).join('')+'</div></div></article>';
+ }).join(''):'<p class="creator-empty">Für diesen Tag sind keine Videogruppen erfasst.</p>')
+ +(entries.length>32?'<small>Weitere '+fmt(entries.length-32)+' Videogruppen findest du im Video Radar.</small>':'')
+ +'<p class="v74-clip-method">Crossposts mit gleichem eindeutigen Titel innerhalb von 2 Tagen werden dem ersten Veröffentlichungstag zugeordnet. Das ist eine vorsichtige automatische Zuordnung: abweichende Titel bleiben getrennt. Die Plattformwerte und Veröffentlichungstage bleiben sichtbar.</p>'
  +(planned.length?'<div class="v73-day-plans"><h4>Geplante Ideen <small>Nur lokal gespeichert · keine Upload-Nachweise</small></h4>'+planned.map(v=>
    '<div class="v73-plan-entry'+(v.done?' done':'')+'"><label><input type="checkbox" data-plan-done="'+esc(v.id)+'" '+(v.done?'checked':'')+'/><span>'+esc(v.time)+' · '+esc(P[v.platform])+' · '+esc(v.format)+'</span></label><button type="button" data-plan-remove="'+esc(v.id)+'" aria-label="Geplante Idee entfernen">✕</button></div>'
   ).join('')+'</div>':'');
@@ -233,5 +285,5 @@ window.addEventListener('back2u-plan-updated',e=>{
  if(validDate(date)){month=date.slice(0,7);selectedDay=date}
  if(lastModel)renderCalendar(lastModel);
 });
-window.BACK2U_CREATOR_HUB={render,model:createModel,readPlanned};
+window.BACK2U_CREATOR_HUB={render,model:createModel,readPlanned,crosspostGroups};
 })();
