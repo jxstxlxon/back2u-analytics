@@ -855,7 +855,7 @@ document.querySelector('#back2uLoginForm').addEventListener('submit',async(e)=>{
  try{
   const response=await fetch('/api/login',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({password:field.value}),credentials:'same-origin',cache:'no-store'});
   if(!response.ok)throw new Error(response.status===401?'Das Passwort ist nicht richtig.':'Die Anmeldung ist gerade nicht erreichbar ('+response.status+').');
-  field.value='';document.querySelector('#back2uLoginOverlay').hidden=true;await loadLive(true);
+  field.value='';document.querySelector('#back2uLoginOverlay').hidden=true;await loadLive(true);window.dispatchEvent(new Event('back2u:auth'));
  }catch(x){err.textContent=x.message||'Anmeldung fehlgeschlagen'}
  finally{b.disabled=false}
 });
