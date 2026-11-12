@@ -32,3 +32,47 @@ Cloudflare Worker source is in `cloudflare/worker.js`. The JavaScript syntax was
 ## First Cloudflare build
 
 After connecting the `cloudflare-migration` branch to Cloudflare Workers Builds, this branch-only commit triggers the first build. Existing Netlify site remains on `main`. Before the new site is used, configure Worker secrets and verify D1 and login; no Google Sheets endpoint should be redirected until tested.
+
+## TikTok follower statistics (opt-in, zero disruption to existing video sync)
+
+The existing TikTok `user.info.basic,video.list` authorization remains the default.
+TikTok requires the **additional** `user.info.stats` scope for `follower_count`
+and its own public `video_count` (not the same as the number of locally stored rows).
+
+1. In the TikTok Developer Portal, make sure `user.info.stats` is available and
+   approved for the app's current environment. Do not assume a Sandbox approval
+   implies approval for Production.
+2. In Cloudflare Worker **Variables** (non-secret configuration), set
+   `TIKTOK_STATS_SCOPE_ENABLED` to `true`, after the code is deployed.
+   Leave it unset or `false` until this permission is available.
+3. Sign in to the private dashboard and open `/api/tiktok/start` to
+   reauthorize **the same TikTok account** with the new permission.
+   The OAuth callback rejects a different previously bound TikTok account.
+4. From the dashboard, use **TikTok jetzt synchronisieren**. The existing 30-minute
+   Cloudflare Cron then continues refreshing video metadata and follower totals.
+5. Open the authenticated `/api/diagnostics` and verify
+   `tiktokFollowers.statsScopeGranted:true`,
+   `tiktokFollowers.known:true`, and its `asOf` timestamp.
+   `officialPublicVideoCount` can help cross-check video archive completeness;
+   discrepancies may reflect API filtering or availability rather than missing IDs.
+
+The profile history stores one point per UTC date (up to 365 days). No
+follower count is guessed. If the optional permission is absent, statistics
+remain unknown/live-unavailable and **video sync continues**.
+
+Other follower sources are already wired:
+- YouTube: Apps Script `back2uYouTubeDailyRepair` fetches owned-channel
+  `statistics.subscriberCount` and updates D1; scheduled every 6h when installed.
+  YouTube reports subscriber totals rounded to three significant figures.
+- Instagram: `back2uInstagramFollowerSync` uses Meta Graph API and pushes the
+  authenticated account's `followers_count` to D1; intended every 2h when installed.
+  Check each trigger's execution log in Apps Script. A configured script file alone
+  does **not** establish that triggers are actually running.
+
+### Period values
+
+The 7/28/90-day controls aggregate only available daily values.
+YouTube/Instagram can have delayed daily reports; TikTok's Display API
+provides lifetime values per video, **not** daily profile views.
+Do not substitute lifetime views for a 7/28/90-day total, or treat a partial
+daily window as complete. The Video Radar keeps lifetime video values labeled.
