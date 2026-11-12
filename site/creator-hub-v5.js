@@ -114,6 +114,19 @@ function renderCalendar(m){
  $('creatorMonthLabel').textContent=new Intl.DateTimeFormat('de-DE',{month:'long',year:'numeric',timeZone:'UTC'}).format(new Date(Date.UTC(y,mo-1,1)));
  const names=['Mo','Di','Mi','Do','Fr','Sa','So'];
  const info=monthDays(month);
+ const monthlyVideos=m.videos.filter(v=>validDate(v.date)&&v.date.startsWith(month+'-'));
+ const activeDates=new Set(monthlyVideos.map(v=>v.date));
+ const validLifetime=monthlyVideos.filter(knownTotal);
+ const lifetimeViews=validLifetime.length?validLifetime.reduce((n,v)=>n+v.views,0):null;
+ const prev=shiftMonth(month,-1);
+ const previousCount=m.videos.filter(v=>validDate(v.date)&&v.date.startsWith(prev+'-')).length;
+ const completeMonth=month<now().slice(0,7);
+ const viewNote=validLifetime.length<monthlyVideos.length?'Einige Video-Gesamtzahlen fehlen':'Gesamtaufrufe dieser Videos bis jetzt';
+ $('creatorMonthSummary').innerHTML=[
+  ['Veröffentlichungen',fmt(monthlyVideos.length),completeMonth?'Vormonat: '+fmt(previousCount)+' Videos':'Laufender Monat · bisher'],
+  ['Tage mit Posts',fmt(activeDates.size),'Mindestens ein Video veröffentlicht'],
+  ['Aufrufe dieser Videos',fmt(lifetimeViews),viewNote]
+ ].map(x=>'<div class="creator-month-stat"><small>'+esc(x[0])+'</small><strong>'+esc(x[1])+'</strong><span>'+esc(x[2])+'</span></div>').join('');
  let html=names.map(name=>'<span class="creator-cal-weekday">'+name+'</span>').join('');
  for(let i=0;i<info.offset;i++)html+='<span class="creator-cal-empty"></span>';
  for(let day=1;day<=info.count;day++){
