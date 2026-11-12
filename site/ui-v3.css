@@ -166,3 +166,27 @@ body[data-theme-tone] #trendLegend .legend-color-tt{background:var(--chart-tt)!i
 @media(prefers-reduced-motion:reduce){
  .story-slide *, .story-editor-controls *{animation:none!important;transition:none!important}
 }
+/* Ensure hidden story editors never collide with the normal overlay. */
+.story-editor-shell[hidden]{display:none!important}
+.story-logo img,.brand-icon img{width:86%;height:86%;display:block;object-fit:contain}
+.story-slide-mark img{width:90%;height:90%;display:block;object-fit:contain;filter:drop-shadow(0 1px 3px #0004)}
+@media(min-width:1060px){
+ body[data-reference-layout="sidebar"] .section-nav::before{
+  content:"BACK2U DASHBOARD";
+  display:flex;align-items:center;justify-content:flex-start;
+  background-image:url("/back2u-mark.svg");background-position:12px center;background-size:41px 41px;background-repeat:no-repeat;
+  padding:8px 0 14px 59px;
+  font-family:var(--t-font-display,system-ui);font-size:16px;line-height:1.08;letter-spacing:-.04em;
+  min-height:59px;white-space:normal;
+ }
+}
+body[data-theme-tone="light"] .brand-icon{background:linear-gradient(145deg,var(--t-accent),var(--t-secondary));border-color:#fff}
+body[data-theme-tone] #themeStudioPanel select{font-family:var(--t-font-ui,system-ui)}
+body[data-theme-tone] :is(.chart-kpi,.story-editor-controls,.story-slot){font-variant-numeric:tabular-nums}
+.story-slide[data-story-layout="bold"] .story-slide-inner{grid-template-rows:auto auto minmax(0,1.25fr) minmax(0,.9fr) minmax(0,.85fr) auto}
+.story-slide[data-story-layout="bold"] .story-slot[data-size="hero"] .story-slot-value{font-size:12cqw}
+.story-slide[data-story-layout="compact"] .story-slide-inner{gap:2.6cqw;grid-template-rows:auto auto repeat(3,minmax(0,1fr)) auto}
+.story-slide[data-story-layout="compact"] .story-slot{padding:2.6cqw 3.9cqw}
+.story-slide[data-story-layout="compact"] .story-slot-value{font-size:7cqw}
+body[data-theme-tone="light"] #trendChart svg .chart-axis-label{fill:#193c55!important}
+body[data-theme-tone="light"] #trendChart svg .chart-grid{stroke:#386684!important;stroke-opacity:.45}
