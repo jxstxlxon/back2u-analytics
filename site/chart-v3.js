@@ -86,7 +86,11 @@ function draw(ctx){
   }
  }
  const stepX=compact?Math.max(1,Math.ceil((xs.length-1)/3)):Math.max(1,Math.floor(xs.length/5));
- for(let i=0;i<xs.length;i++){if(i!==0&&i!==xs.length-1&&i%stepX!==0)continue;out+='<text class="chart-axis-label" x="'+x(i)+'" y="'+(H-11)+'" text-anchor="middle">'+fmtDate(xs[i])+'</text>'}
+ for(let i=0;i<xs.length;i++){
+  if(i!==0&&i!==xs.length-1&&i%stepX!==0)continue;
+  const anchor=i===0?'start':i===xs.length-1?'end':'middle';
+  out+='<text class="chart-axis-label" x="'+x(i)+'" y="'+(H-11)+'" text-anchor="'+anchor+'">'+fmtDate(xs[i])+'</text>';
+ }
  out+='<line id="chartSelectionLine" x1="0" x2="0" y1="'+T+'" y2="'+(T+PH)+'" stroke="var(--t-chart-axis,#b7d8ee)" stroke-opacity=".68" stroke-dasharray="5 4" stroke-width="1.5" style="pointer-events:none"/>';
  for(const p of ps)out+='<circle id="chartFocus-'+p+'" r="5.3" cx="0" cy="0" stroke="var(--t-bg,#0a1327)" stroke-width="2" fill="'+cssColor(p,colorFor[p])+'" style="pointer-events:none"/>';
  out+='<rect id="chartHit" x="'+L+'" y="'+T+'" width="'+PW+'" height="'+PH+'" fill="transparent" tabindex="0" role="slider" aria-label="Datum im Diagramm auswählen" style="touch-action:pan-y"/></svg>';
@@ -96,6 +100,14 @@ function draw(ctx){
  const hit=document.getElementById('chartHit'),hover=document.getElementById('chartHoverLabel');
  const breakdown=document.getElementById('chartDayBreakdown');
  let selectedIndex=-1;
+ // Event delegation survives date-card re-rendering and works with keyboard/touch.
+ if(breakdown)breakdown.onclick=e=>{
+  const btn=e.target.closest?.('button[data-day-step]');
+  if(!btn||!breakdown.contains(btn)||btn.disabled)return;
+  const delta=Number(btn.dataset.dayStep);
+  if(delta!==-1&&delta!==1)return;
+  updateSelection(Math.max(0,Math.min(xs.length-1,selectedIndex+delta)));
+ };
  const updateSelection=i=>{
   if(i===selectedIndex)return;
   selectedIndex=i;
@@ -109,7 +121,7 @@ function draw(ctx){
    const val=dMap[p].get(d);
    return '<span class="chart-day-platform"><i style="background:'+cssColor(p,colorFor[p])+'"></i><small>'+NAMES[p]+'</small><strong>'+f(val)+'</strong></span>';
   }).join('');
-  if(breakdown)breakdown.innerHTML='<span class="chart-day-header"><strong>'+fullDate+'</strong><small>'+covered+' von '+ps.length+' Plattformen mit Tageswerten</small></span><span class="chart-day-total"><small>Erfasste Summe</small><b>'+(covered?f(total):'–')+'</b></span>'+parts;
+  if(breakdown)breakdown.innerHTML='<span class="chart-day-header"><span class="v72-day-nav"><button type="button" data-day-step="-1" aria-label="Vorherigen Tag auswählen" '+(i===0?'disabled':'')+'>‹</button><strong>'+fullDate+'</strong><button type="button" data-day-step="1" aria-label="Nächsten Tag auswählen" '+(i===xs.length-1?'disabled':'')+'>›</button></span><small>'+covered+' von '+ps.length+' Plattformen mit Tageswerten</small></span><span class="chart-day-total"><small>Erfasste Summe</small><b>'+(covered?f(total):'–')+'</b></span>'+parts;
   hover.textContent=fullDate+' · '+ps.map(p=>NAMES[p]+': '+f(dMap[p].get(d))).join(' · ');
   const line=document.getElementById('chartSelectionLine');
   if(line){line.setAttribute('x1',x(i));line.setAttribute('x2',x(i))}
@@ -156,7 +168,8 @@ function draw(ctx){
  hit.addEventListener('keydown',e=>{if(e.key==='ArrowLeft'||e.key==='ArrowRight'){e.preventDefault();const cur=Number(hit.dataset.selectedIndex??xs.length-1);const next=Math.max(0,Math.min(xs.length-1,cur+(e.key==='ArrowLeft'?-1:1)));hit.dataset.selectedIndex=next;updateSelection(next)}});
  }
  const latestWithData=xs.findLastIndex(d=>ps.some(p=>typeof dMap[p].get(d)==='number'&&Number.isFinite(dMap[p].get(d))));
- updateSelection(latestWithData>=0?latestWithData:xs.length-1);
+ const savedIndex=xs.indexOf(window.BACK2U_V7_SELECTED_DAY);
+ updateSelection(savedIndex>=0?savedIndex:(latestWithData>=0?latestWithData:xs.length-1));
 }
 window.BACK2U_CHARTS={render:draw,setMode(next){if(MODES.includes(next)){mode=next;window.BACK2U_THEMES?.setChartMode?.(next);window.BACK2U_REFRESH_CHART?.()}},getMode:()=>mode};
 modes.forEach(btn=>btn.addEventListener('click',()=>window.BACK2U_CHARTS.setMode(btn.dataset.chartMode)));
