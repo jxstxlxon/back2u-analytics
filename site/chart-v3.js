@@ -78,8 +78,14 @@ function draw(ctx){
  };
  hit.addEventListener('pointermove',handler);hit.addEventListener('pointerdown',handler)}
 }
-window.BACK2U_CHARTS={render:draw,setMode(next){if(MODES.includes(next)){mode=next;window.BACK2U_REFRESH_CHART?.()}},getMode:()=>mode};
+window.BACK2U_CHARTS={render:draw,setMode(next){if(MODES.includes(next)){mode=next;window.BACK2U_THEMES?.setChartMode?.(next);window.BACK2U_REFRESH_CHART?.()}},getMode:()=>mode};
 modes.forEach(btn=>btn.addEventListener('click',()=>window.BACK2U_CHARTS.setMode(btn.dataset.chartMode)));
-window.addEventListener('back2u-theme-changed',()=>window.BACK2U_REFRESH_CHART?.());
-window.BACK2U_REFRESH_CHART?.();
+window.addEventListener('back2u-theme-changed',()=>{
+ const profile=window.BACK2U_THEMES?.get(window.BACK2U_THEMES.current());
+ mode=MODES.includes(profile?.chartMode)?profile.chartMode:'line';
+ window.BACK2U_REFRESH_CHART?.();
+});
+const profile=window.BACK2U_THEMES?.get(window.BACK2U_THEMES.current());
+ if(MODES.includes(profile?.chartMode))mode=profile.chartMode;
+ window.BACK2U_REFRESH_CHART?.();
 })();
