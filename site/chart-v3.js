@@ -21,6 +21,16 @@ function draw(ctx){
   const values=ps.map(p=>dMap[p].get(d)).filter(v=>typeof v==='number'&&Number.isFinite(v)&&v>=0);
   return{d,coverage:values.length,value:values.reduce((a,b)=>a+b,0)};
  }).filter(r=>r.coverage>0);
+ if(!observed.length){
+  window.BACK2U_V7_SELECTED_DAY=null;
+  window.BACK2U_V7?.dayPie(null,ctx);
+  chart.innerHTML='<div class="empty">Für diese Plattform sind momentan keine echten Tagesaufrufe vorhanden. Gesamtaufrufe einzelner Videos dürfen nicht als Tageswerte erscheinen.</div>';
+  cards.textContent='';
+  document.getElementById('chartDayBreakdown').textContent='Noch keine Tageswerte verfügbar – kein Nullwert.';
+  note.textContent='Der Zeitraum ist '+range.start+' bis '+range.end+'. Für diese Tage gibt es keine gemeldeten Tageszahlen.';
+  foot.textContent='Bitte prüfe den Datenstand unter System. Bei TikTok sind Video-Gesamtaufrufe nicht dasselbe wie tägliche Profilaufrufe.';
+  return;
+ }
  const complete=observed.filter(r=>r.coverage===ps.length);
  const peaks=complete.length?complete:observed;
  const sum=observed.reduce((a,r)=>a+r.value,0);
