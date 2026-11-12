@@ -196,3 +196,44 @@ body[data-theme-tone] #hourBars .hour-unit b{color:var(--t-ink-strong)}
  }
  body[data-theme-tone] #hourBars .hour-bar{height:80px}
 }
+
+/* BACK2U V7.1 mobile chart polish: readable axes, honest averages, less wasted space. */
+body[data-theme-tone] .chart-kpi .v71-secondary-avg{
+ display:block;margin-top:7px;padding-top:7px;border-top:1px solid rgba(var(--t-accent-rgb),.21);
+ font:670 10px/1.45 var(--t-font-ui,system-ui);color:var(--t-ink-muted);
+ overflow-wrap:anywhere
+}
+body[data-theme-tone] .v71-pie-scope{
+ grid-column:1/-1;margin:0 0 2px;
+ font:750 12px/1.45 var(--t-font-ui,system-ui);
+ color:var(--t-ink-strong);text-align:center
+}
+@media(max-width:760px){
+ body[data-theme-tone] .chart-card{padding:14px 13px}
+ body[data-theme-tone] #chartKpis{margin:10px 0 8px;gap:8px}
+ body[data-theme-tone] #chartKpis .chart-kpi{padding:12px 12px 11px;min-width:0}
+ body[data-theme-tone] #chartKpis .chart-kpi-label{font-size:11px;line-height:1.35;letter-spacing:0}
+ body[data-theme-tone] #chartKpis .chart-kpi-number{font-size:clamp(18px,5.1vw,24px);white-space:normal;overflow-wrap:anywhere}
+ body[data-theme-tone] #chartKpis .chart-kpi-meta{font-size:10px;line-height:1.45}
+ body[data-theme-tone] #chartKpis .v71-secondary-avg{font-size:10px}
+ body[data-theme-tone] .chart-day-breakdown{margin:8px 0 9px}
+ body[data-theme-tone] .chart-mode-group{margin:9px 0 0;gap:7px}
+ body[data-theme-tone] .chart-mode-group button{min-height:43px;font-size:13px}
+ body[data-theme-tone] #trendChart.v71-drawn{
+  height:auto!important;min-height:0!important;margin-top:8px!important;overflow:hidden
+ }
+ body[data-theme-tone] #trendChart.v71-drawn svg{
+  display:block!important;width:100%!important;height:auto!important;overflow:visible
+ }
+ body[data-theme-tone] #trendChart.v71-drawn svg .chart-axis-label{
+  font-size:16px!important;font-weight:750!important;fill:var(--t-chart-axis)!important
+ }
+ body[data-theme-tone] #trendChart.v71-drawn svg .chart-series-line{
+  stroke-width:5.1px!important;stroke-linejoin:round;stroke-linecap:round
+ }
+ body[data-theme-tone] #trendChart.v71-drawn svg #chartHit{touch-action:pan-y}
+ body[data-theme-tone] #chartSummaryNote{margin-top:8px;font-size:11px;line-height:1.55}
+ body[data-theme-tone] .v7-chart-pie-card{margin-top:12px}
+ body[data-theme-tone] .v7-pie-chart{width:min(175px,100%)}
+ body[data-theme-tone] .v7-pie-item small{font-size:10.5px;line-height:1.48}
+}
