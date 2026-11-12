@@ -252,6 +252,7 @@ window.BACK2U_THEMES={
  get:id=>{let p=byId[id]||byId[state.id];let o=state.edits[p.id]||{};return {...p,
   accent:color(o.accent,p.accent),secondary:color(o.secondary,p.secondary),
   tint:color(o.tint,p.accent),chartMode:['line','area','bar'].includes(o.chartMode)?o.chartMode:'line',
+  backgroundIntensity:clamp(o.backgroundIntensity,0,100,76),outlineStrength:clamp(o.outlineStrength,0,100,55),readability:o.readability==='strong'?'strong':'auto',
   fontProfile:['aero','elegant','tech','modern'].includes(o.typography)?o.typography:(p.family==='aero'?'aero':p.light?'elegant':'futuristic')};},
  use:id=>{if(byId[id]){state.id=id;save();apply();renderGrid();return true}return false},
  setChartMode:mode=>{if(['line','area','bar'].includes(mode))edit('chartMode',mode)}
