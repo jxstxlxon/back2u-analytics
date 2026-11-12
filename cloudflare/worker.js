@@ -207,6 +207,21 @@ async function audienceAdmin(req,env){
  if(raw.length>40000)return json({error:'Audience import too large'},413);
  let data;try{data=JSON.parse(raw)}catch{return json({error:'Invalid JSON'},400)}
  let valid;try{valid=validateAudienceImport(data)}catch(e){return json({error:clamp(e?.message)},422)}
+ const previous=await get(env,AUDIENCE_KEY);
+ // A manual 4-group backup must not accidentally erase 5 additional groups
+ // created by the automatic 9-group sync.
+ if(previous?.schema===1&&previous.audience){
+  valid.audience={
+   yt:{...(previous.audience.yt||{}),...valid.audience.yt},
+   ig:{...(previous.audience.ig||{})},
+   tt:{...(previous.audience.tt||{}),...valid.audience.tt}
+  };
+  valid.audienceMeta={
+   yt:{...(previous.audienceMeta?.yt||{}),...valid.audienceMeta.yt},
+   ig:{...(previous.audienceMeta?.ig||{})},
+   tt:{...(previous.audienceMeta?.tt||{}),...valid.audienceMeta.tt}
+  };
+ }
  await put(env,AUDIENCE_KEY,valid);
  return json({ok:true,importedGroups:4,updatedAt:valid.updatedAt,snapshotDate:valid.snapshotDate});
 }
