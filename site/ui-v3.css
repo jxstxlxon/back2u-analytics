@@ -190,3 +190,21 @@ body[data-theme-tone] :is(.chart-kpi,.story-editor-controls,.story-slot){font-va
 .story-slide[data-story-layout="compact"] .story-slot-value{font-size:7cqw}
 body[data-theme-tone="light"] #trendChart svg .chart-axis-label{fill:#193c55!important}
 body[data-theme-tone="light"] #trendChart svg .chart-grid{stroke:#386684!important;stroke-opacity:.45}
+
+/* Background and optical-outline sliders are theme-specific and affect all real cards. */
+body[data-theme-artwork="on"][data-theme-background="aurora"],
+body[data-theme-artwork="on"][data-theme-background="bubbles"]{
+ background-image:linear-gradient(rgba(var(--t-card),var(--t-background-veil,.17)),rgba(var(--t-card),var(--t-background-veil,.17))),var(--t-scene-url)!important
+}
+body[data-theme-artwork="on"] .glass{
+ border-left-color:rgba(var(--t-accent-rgb),var(--t-outline-alpha,.45));
+ border-right-color:rgba(var(--t-secondary-rgb),var(--t-outline-alpha,.45));
+}
+body[data-theme-tone] .masthead h1 em{
+ background:linear-gradient(112deg,var(--t-ink-strong),var(--t-accent-readable) 59%,var(--t-secondary-readable));
+ background-clip:text;-webkit-background-clip:text;color:transparent
+}
+body[data-theme-tone="light"] .masthead h1 em{
+ background:linear-gradient(112deg,#122f48,var(--t-accent-readable) 59%,var(--t-secondary-readable));
+ background-clip:text;-webkit-background-clip:text;color:transparent
+}
