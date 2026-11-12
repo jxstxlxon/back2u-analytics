@@ -75,6 +75,8 @@ function apply(){
  setvar('--t-tint',rgb(v.tint));setvar('--t-tint-alpha',(v.tintStrength/100).toFixed(2));
  setvar('--t-opacity',Math.min(.94,alpha).toFixed(3));setvar('--t-blur',v.blur+'px');
  setvar('--t-glow',(v.glow/100).toFixed(2));setvar('--t-sheen',(v.sheen/100).toFixed(2));
+ setvar('--t-edge-alpha',(.15+v.sheen*.0034).toFixed(3));setvar('--t-top-alpha',(.27+v.sheen*.004).toFixed(3));setvar('--t-reflect-alpha',(.10+v.sheen*.0028).toFixed(3));
+ setvar('--t-shadow-size',(v.glow*.29).toFixed(1)+'px');setvar('--t-shadow-alpha',(v.glow*.0018).toFixed(3));
  setvar('--t-radius',v.radius+'px');setvar('--t-saturation',v.saturation+'%');setvar('--t-chart-contrast',(v.chartContrast/100).toFixed(2));
  setvar('--ink',p.light?'#102c43':'#edf6ff');setvar('--muted',p.light?'#33556f':'#b4c7da');setvar('--soft',p.light?'#556b81':'#8da9c3');
  setvar('--t-label',p.light?'#21435e':'#d9ecfa');setvar('--t-grid',p.light?'#426c93':'#95bde8');
