@@ -52,6 +52,14 @@ async function hydratedSnapshot(env){
   s.platforms.ig.profile={...s.platforms.ig.profile,followers:instagramProfile.followers,username:instagramProfile.username,
    asOf:instagramProfile.updatedAt,source:'Instagram Graph API',history:instagramProfile.history||[]};
  }
+ const tiktokProfile=await get(env,'tt_profile');
+ const tiktokAuth=tiktokProfile?await get(env,'tt_oauth'):null;
+ if(s.platforms.tt&&tiktokProfile?.openId&&tiktokProfile.openId===tiktokAuth?.openId&&
+    Number.isSafeInteger(tiktokProfile.followers)&&tiktokProfile.followers>=0){
+   s.platforms.tt.profile={...s.platforms.tt.profile,followers:tiktokProfile.followers,
+     videoCount:tiktokProfile.videoCount,asOf:tiktokProfile.updatedAt,
+     source:'TikTok Display API',history:tiktokProfile.history||[]};
+ }
  const verified=await get(env,'yt_analytics_daily');
  if(!verified?.daily?.length)return s;
  const byDate=new Map((s.platforms.yt.daily||[]).map(r=>[r.d,r]));
@@ -180,6 +188,8 @@ async function issueToken(req,env){
 }
 const toHTML=(title,message,status=200,headers={})=>new Response('<!doctype html><html lang="de"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex"><title>BACK2U TikTok</title><body style="background:#07101e;color:white;font:16px system-ui;padding:26px"><h1>BACK2U TikTok</h1><h2>'+title+'</h2><p>'+message+'</p><a style="color:#9bc9ff" href="/">Dashboard öffnen</a></body></html>',{status,headers:{'content-type':'text/html; charset=utf-8',...NO_STORE,'content-security-policy':"default-src 'none'; style-src 'unsafe-inline'",...headers}});
 const TT_SCOPES='user.info.basic,video.list';
+// Do not request TikTok stats until permission has been enabled for the app.
+const ttScopes=env=>env.TIKTOK_STATS_SCOPE_ENABLED==='true'?TT_SCOPES+',user.info.stats':TT_SCOPES;
 const ttRedirect=(req,env)=>String(env.TIKTOK_REDIRECT_URI||new URL('/api/tiktok/callback',req.url).href);
 async function ttStart(req,env){
  if(!env.TIKTOK_CLIENT_KEY||!env.TIKTOK_CLIENT_SECRET)return toHTML('Nicht eingerichtet','TikTok-Schlüssel fehlen in den Cloudflare Secrets.',503);
@@ -187,7 +197,7 @@ async function ttStart(req,env){
  const u=new URL('https://www.tiktok.com/v2/auth/authorize/');
  u.searchParams.set('client_key',env.TIKTOK_CLIENT_KEY);
  u.searchParams.set('response_type','code');
- u.searchParams.set('scope',TT_SCOPES);
+ u.searchParams.set('scope',ttScopes(env));
  u.searchParams.set('redirect_uri',ttRedirect(req,env));
  u.searchParams.set('state',state);
  return new Response(null,{status:302,headers:{location:u.href,'set-cookie':'back2u_tt_state='+state+'; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=600',...NO_STORE}});
@@ -206,6 +216,9 @@ async function ttCallback(req,env){
   const t=await response.json();
   if(!response.ok||!t.access_token||!t.refresh_token||!String(t.scope||'').split(',').includes('video.list'))
    return toHTML('Nicht autorisiert','TikTok hat video.list oder die Anmeldung nicht akzeptiert.',403,{'set-cookie':clearState});
+  const existingAccount=await get(env,'tt_oauth');
+  if(existingAccount?.openId&&t.open_id&&existingAccount.openId!==t.open_id)
+    return toHTML('Falsches Konto','Das TikTok-Konto stimmt nicht mit dem bisher verbundenen Account überein.',403,{'set-cookie':clearState});
   const now=Date.now();
   await put(env,'tt_oauth',{accessToken:t.access_token,refreshToken:t.refresh_token,scope:t.scope,
    openId:t.open_id,expiresAt:now+Number(t.expires_in||0)*1000,refreshExpiresAt:now+Number(t.refresh_expires_in||0)*1000});
@@ -226,6 +239,29 @@ async function ttAccess(env){
  t={accessToken:token.access_token,refreshToken:token.refresh_token,openId:token.open_id||t.openId,
  scope:token.scope||t.scope,expiresAt:now+Number(token.expires_in||0)*1000,refreshExpiresAt:now+Number(token.refresh_expires_in||0)*1000};
  await put(env,'tt_oauth',t);return t;
+}
+async function ttRefreshProfile(env){
+ const t=await ttAccess(env);
+ if(!t?.openId)return {known:false,reason:'TikTok not connected'};
+ if(!String(t.scope||'').split(/[\s,]+/).includes('user.info.stats'))
+   return {known:false,reason:'user.info.stats not granted'};
+ const response=await fetch('https://open.tiktokapis.com/v2/user/info/?fields=open_id,follower_count,video_count',
+   {method:'GET',headers:{authorization:'Bearer '+t.accessToken},signal:AbortSignal.timeout(12000)});
+ const data=await response.json();
+ const p=data?.data?.user;
+ if(!response.ok||data?.error?.code!=='ok'||!p||p.open_id!==t.openId)
+   throw Error('TikTok profile API unavailable or account mismatch');
+ const followers=num(p.follower_count),count=num(p.video_count);
+ if(!Number.isSafeInteger(followers)||followers<0)throw Error('TikTok follower count missing');
+ const previous=await get(env,'tt_profile');
+ const updatedAt=new Date().toISOString(),date=updatedAt.slice(0,10);
+ const history=previous?.openId===t.openId&&Array.isArray(previous.history)?previous.history.slice(-364):[];
+ const point={date,followers};
+ if(history.at(-1)?.date===date)history[history.length-1]=point;
+ else history.push(point);
+ const videoCount=Number.isSafeInteger(count)&&count>=0?count:null;
+ await put(env,'tt_profile',{openId:t.openId,followers,videoCount,updatedAt,history:history.slice(-365)});
+ return {known:true,followers,videoCount};
 }
 async function ttFetch(env,maxPages=25,startCursor){
  const t=await ttAccess(env);if(!t)return {connected:false,videos:[],hasMore:false};
@@ -254,20 +290,23 @@ async function ttSync(env){
  const checkpoint=await get(env,'tt_page_cursor');
  const validCheckpoint=checkpoint?.hasMore&&checkpoint?.cursor!=null&&Number.isSafeInteger(Number(checkpoint.cursor))&&Date.now()-Date.parse(checkpoint.updatedAt||'')<86400000;
  const t=await ttFetch(env,25,validCheckpoint?Number(checkpoint.cursor):undefined);if(!t.connected)return {connected:false,added:0};
+ // A denied statistics scope must never interrupt the established video sync.
+ const profileSync=await ttRefreshProfile(env).catch(e=>({known:false,error:clamp(e?.message)}));
  const snapshot=await get(env,'snapshot');
  if(!snapshot?.platforms?.yt)return {connected:true,added:t.videos.length,pending:'Google Sheets snapshot not yet migrated'};
  const prior=snapshot.platforms.tt?.videos||[];
  const byId=new Map(prior.map(v=>[String(v.id),v]));
  for(const v of t.videos)byId.set(v.id,v);
  const videos=[...byId.values()];
- snapshot.platforms.tt={...snapshot.platforms.tt,daily:snapshot.platforms.tt?.daily||[],videos,profile:{}};
+ snapshot.platforms.tt={...snapshot.platforms.tt,daily:snapshot.platforms.tt?.daily||[],videos,profile:snapshot.platforms.tt?.profile||{}};
  snapshot.generatedAt=new Date().toISOString();
  snapshot.errors=(snapshot.errors||[]).filter(x=>x.platform!=='tt');
  if(t.hasMore)snapshot.errors.push({platform:'tt',task:'video-list',message:'TikTok has more videos than the current page limit'});
  snapshot.status=snapshot.errors.length?'partial':'ok';
  await put(env,'snapshot',snapshot);
  await put(env,'tt_page_cursor',{cursor:t.hasMore?t.nextCursor:null,hasMore:t.hasMore,pagesLastBatch:t.pages,updatedAt:new Date().toISOString(),complete:!t.hasMore});
- return {connected:true,added:t.videos.length,total:videos.length,hasMore:t.hasMore,pages:t.pages,complete:!t.hasMore,continued:!!validCheckpoint};
+ return {connected:true,added:t.videos.length,total:videos.length,hasMore:t.hasMore,pages:t.pages,complete:!t.hasMore,continued:!!validCheckpoint,
+   tiktokFollowersUpdated:profileSync.known,statsScopeRequired:profileSync.reason==='user.info.stats not granted'};
 }
 async function route(req,env){
  const path=new URL(req.url).pathname;
@@ -304,6 +343,8 @@ async function route(req,env){
   const s=await hydratedSnapshot(env);
   const scan=await get(env,'tt_page_cursor');
   const tt=s?.platforms?.tt?.videos||[];
+  const ttOauth=await get(env,'tt_oauth');
+  const ttProfile=s?.platforms?.tt?.profile||{};
   const dates=tt.map(v=>String(v?.date||'')).filter(d=>/^\d{4}-\d{2}-\d{2}$/.test(d)).sort();
   const cutoff=new Date(Date.now()-365*86400000).toISOString().slice(0,10);
   const ttDates={oldest:dates[0]||null,newest:dates.at(-1)||null,
@@ -313,6 +354,9 @@ async function route(req,env){
   return json({service:'BACK2U Cloud',source:s?.source||'none',generatedAt:s?.generatedAt||null,
    tiktokScan:{updatedAt:scan?.updatedAt||null,hasMore:scan?.hasMore??null,complete:scan?.complete??null,pagesLastBatch:scan?.pagesLastBatch||null},
    tiktokVideoDateRange:ttDates,
+   tiktokFollowers:{known:Number.isSafeInteger(ttProfile.followers),asOf:ttProfile.asOf||null,
+     statsScopeGranted:String(ttOauth?.scope||'').split(/[\s,]+/).includes('user.info.stats'),
+     officialPublicVideoCount:Number.isSafeInteger(ttProfile.videoCount)?ttProfile.videoCount:null},
    youtubeDailyVerified:s?.verifiedYouTubeDaily||null,instagramFollowers:{known:Number.isSafeInteger(s?.platforms?.ig?.profile?.followers),asOf:s?.platforms?.ig?.profile?.asOf||null},dailyThrough:{youtube:s?.platforms?.yt?.daily?.at(-1)?.d||null,instagram:s?.platforms?.ig?.daily?.at(-1)?.d||null},
    platforms:[{platform:'YouTube',videos:s?.platforms?.yt?.videos?.length||0},{platform:'Instagram',videos:s?.platforms?.ig?.videos?.length||0},
     {platform:'TikTok',videos:s?.platforms?.tt?.videos?.length||0}]});
