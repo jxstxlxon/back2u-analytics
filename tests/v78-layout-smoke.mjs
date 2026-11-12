@@ -27,7 +27,7 @@ const app=createServer(async(req,res)=>{
    'cache-control':'no-store'});res.end(JSON.stringify(data));
  };
  if(pathname==='/api/access')return send(200,{role:'admin'});
- if(pathname==='/api/audience')return send(200,{configured:false,automatic:{configured:false}});
+ if(pathname==='/api/audience')return send(200,{configured:true,snapshotDate:'2026-11-12',automatic:{configured:true,status:'ok',lastSuccessAt:'2026-11-12T21:00:00Z',groups:3}});
  if(pathname==='/api/tiktok-daily/status')return send(200,summary);
  if(pathname==='/api/tiktok-daily/sync'){manualSyncAttempts++;return send(503,{error:'Test-Backend: aus'});}
  if(pathname==='/api/snapshot')return send(503,{error:'Nur Beispielansicht: keine echten Live-Daten'});
@@ -72,6 +72,7 @@ try{
    }));
    return {vw:innerWidth,docWidth:document.documentElement.scrollWidth,elements,
     buttonText:document.getElementById('tiktokDailySyncNow').textContent.trim(),
+    audienceAutoText:document.getElementById('audienceAutoSyncStatus').textContent.trim(),
     text:document.getElementById('tiktokDailyStatus').textContent.trim()};
   });
   for(const [id,r] of Object.entries(layout.elements)){
@@ -80,6 +81,7 @@ try{
     v.name+' '+id+' overflows horizontal viewport: '+JSON.stringify(r));
   }
   assert.ok(layout.text.includes('Automatik aus'),v.name+': false sync state label missing');
+  assert.ok(layout.audienceAutoText.includes('3 Aufteilungen'),v.name+': TikTok-only mode incorrectly reports 9 groups');
   assert.ok(layout.text.includes('7T: 0'),v.name+': missing-day coverage label absent');
   const before=manualSyncAttempts;
   page.once('dialog',d=>d.dismiss());
