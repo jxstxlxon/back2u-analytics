@@ -185,7 +185,10 @@ body.story-open{overflow:hidden}
   <div class="pane-header"><h3>🔄 Zielgruppen-Synchronisierung</h3><span class="pill">Nur Admin</span></div>
   <p>BACK2U V7.6 aktualisiert alle neun Zielgruppenaufteilungen automatisch aus deinen verbundenen Plattformkonten. Die Werte werden ausschließlich in Cloudflare D1 gespeichert. Gäste dürfen sie nur lesen.</p>
   <div class="audience-auto-panel">
-   <h4>Automatische Zielgruppen-Aktualisierung</h4>
+   <h4>Direkte Plattform-APIs (V7.7)</h4>
+   <div id="directAudienceStatus" role="status" aria-live="polite">Verbindung zu YouTube und Instagram wird geprüft …</div>
+   <p id="directAudienceHint">Die direkten APIs werden über das bestehende Google Apps Script übertragen, nachdem die zwei neuen Zusatzdateien einmalig aktiviert wurden. Bei fehlenden Berechtigungen bleibt der letzte gespeicherte Wert sichtbar.</p>
+   <h4>Windsor.ai (Bestand / TikTok-Fallback)</h4>
    <div id="audienceAutoSyncStatus" role="status" aria-live="polite">Verbindung wird geprüft …</div>
    <button type="button" id="audienceSyncNow">Jetzt aktualisieren</button>
    <p id="audienceAutoSyncHint">Für automatische Updates muss einmalig WINDSOR_API_KEY als Cloudflare-Secret gespeichert werden. Der bestehende Cloudflare-Cron führt dann höchstens einmal täglich einen vollständigen Abgleich durch.</p>
@@ -925,5 +928,5 @@ window.BACK2U_REFRESH_CHART=()=>{if(state.section==='overview')renderTrend()};gl
  renderActive();loadLive(false);
 })();
 </script><script src="/reference-theme-art.js?v=4" defer></script><script src="/theme-studio.js?v=4" defer></script><script src="/chart-v3.js?v=6" defer></script><script src="/story-composer-v3.js?v=6" defer></script><script src="/creator-hub-v5.js?v=9" defer></script><script src="/dashboard-v7.js?v=12" defer></script>
-<script src="/guest-access.js?v=1" defer></script><script src="/audience-import.js?v=2" defer></script>
+<script src="/guest-access.js?v=1" defer></script><script src="/audience-import.js?v=3" defer></script>
 </body></html>
