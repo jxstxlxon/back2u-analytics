@@ -21,6 +21,16 @@
  }
  let initialized=false;
  const formatTime=iso=>iso?new Date(iso).toLocaleString('de-DE'):'noch nie';
+ function showDirect(sources){
+  const target=$('directAudienceStatus');if(!target)return;
+  const details=['yt','ig'].map(p=>{
+   const x=sources?.[p],name=p==='yt'?'YouTube':'Instagram';
+   if(!x?.configured)return name+': Noch kein erfolgreicher direkter Abruf';
+   const day=String(x.snapshotDate||'unbekannt').split('-').reverse().join('.');
+   return name+': '+(x.groups===3?'3/3 Aufteilungen':'unvollständig')+' · Stand '+day;
+  });
+  target.textContent=details.join('  |  ');
+ }
  function showAutomatic(data){
   const node=$('audienceAutoSyncStatus'),button=$('audienceSyncNow');
   if(!node||!button)return;
@@ -42,6 +52,8 @@
   try{const state=await api('/api/audience');
    existing=Boolean(state.configured);
    showAutomatic(state);
+   try{const direct=await api('/api/direct-audience/status');showDirect(direct.sources)}
+   catch{const node=$('directAudienceStatus');if(node)node.textContent='Direktstatus kann gerade nicht geladen werden.'}
    status(existing?'Private Zielgruppendaten vorhanden · Stand '+String(state.snapshotDate||'unbekannt')+'.':'Noch keine privaten Zielgruppendaten importiert.');
   }catch(e){status('Importstatus konnte nicht geladen werden: '+e.message)}
   $('audienceSyncNow').addEventListener('click',async()=>{
