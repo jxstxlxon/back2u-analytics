@@ -173,10 +173,15 @@ function renderCalendar(m){
  const monthlyVideos=m.videos.filter(v=>validDate(v.date)&&v.date.startsWith(month+'-'));
  // Cluster within the visible month so cross-month reposts remain discoverable in each month.
  const monthlyGroups=crosspostGroups(monthlyVideos);
- const groupsByDay=new Map();
+ const groupsByDay=new Map(),repostsByDay=new Map();
  for(const group of monthlyGroups){
   if(!groupsByDay.has(group.date))groupsByDay.set(group.date,[]);
   groupsByDay.get(group.date).push(group);
+  for(const video of group.items){
+   if(video.date===group.date)continue;
+   if(!repostsByDay.has(video.date))repostsByDay.set(video.date,[]);
+   repostsByDay.get(video.date).push({group,video});
+  }
  }
  const monthlyPlans=readPlanned().filter(v=>v.date.startsWith(month+'-'));
  const plansByDay=new Map();
@@ -201,12 +206,12 @@ function renderCalendar(m){
  let html=names.map(name=>'<span class="creator-cal-weekday">'+name+'</span>').join('');
  for(let i=0;i<info.offset;i++)html+='<span class="creator-cal-empty"></span>';
  for(let day=1;day<=info.count;day++){
-  const key=month+'-'+String(day).padStart(2,'0'),posts=m.byDay.get(key)||[],clips=groupsByDay.get(key)||[],planned=plansByDay.get(key)||[];
+  const key=month+'-'+String(day).padStart(2,'0'),posts=m.byDay.get(key)||[],clips=groupsByDay.get(key)||[],reposts=repostsByDay.get(key)||[],planned=plansByDay.get(key)||[];
   const known=posts.filter(knownTotal),views=known.length?known.reduce((n,v)=>n+v.views,0):null;
   const platformCount=['yt','ig','tt'].map(p=>posts.filter(v=>v.platform===p).length);
   const platformDots='<span class="creator-cal-platforms">'+platformCount.map((n,i)=>n?'<i data-p="'+['yt','ig','tt'][i]+'" title="'+['YouTube','Instagram','TikTok'][i]+': '+n+'">'+n+'</i>':'').join('')+'</span>';
   const label=key+' · '+clips.length+' Videogruppen aus '+posts.length+' Plattform-Uploads, '+planned.length+' geplante Ideen'+(views===null?'':', '+fmt(views)+' bekannte Plattformaufrufe');
-  html+='<button type="button" class="creator-cal-day'+(clips.length?' has-posts':'')+(planned.length?' has-plan':'')+(key===selectedDay?' selected':'')+'" data-date="'+key+'" aria-label="'+esc(label)+'"><strong>'+day+'</strong>'+(clips.length?'<span>'+clips.length+' '+(clips.length===1?'Clip':'Clips')+'</span>'+platformDots+'<small>'+posts.length+' Plattformposts'+(views===null?'':' · '+fmt(views)+' Aufrufe')+'</small>':(planned.length?'':'<span class="creator-no-post">·</span>'))+(planned.length?'<small class="v73-planned-label">'+planned.length+' geplant</small>':'')+'</button>';
+  html+='<button type="button" class="creator-cal-day'+(posts.length?' has-posts':'')+(planned.length?' has-plan':'')+(key===selectedDay?' selected':'')+'" data-date="'+key+'" aria-label="'+esc(label)+'"><strong>'+day+'</strong>'+(posts.length?'<span>'+(clips.length?clips.length+' '+(clips.length===1?'Clip':'Clips'):(reposts.length?'↳ Crosspost':'Upload'))+'</span>'+platformDots+'<small>'+posts.length+' Plattformposts'+(views===null?'':' · '+fmt(views)+' Aufrufe')+'</small>':(planned.length?'':'<span class="creator-no-post">·</span>'))+(planned.length?'<small class="v73-planned-label">'+planned.length+' geplant</small>':'')+'</button>';
  }
  $('creatorCalendar').innerHTML=html;
  $('creatorCalendar').querySelectorAll('[data-date]').forEach(btn=>btn.addEventListener('click',()=>{selectedDay=btn.dataset.date;renderCalendar(m)}));
@@ -216,7 +221,7 @@ function renderCalendar(m){
  }
  // Preserve selection styling when the user changes months.
  $('creatorCalendar').querySelectorAll('[data-date]').forEach(btn=>btn.classList.toggle('selected',btn.dataset.date===selectedDay));
- const entries=groupsByDay.get(selectedDay)||[],planned=plansByDay.get(selectedDay)||[];
+ const entries=groupsByDay.get(selectedDay)||[],reposts=repostsByDay.get(selectedDay)||[],planned=plansByDay.get(selectedDay)||[];
  $('creatorDayDetail').innerHTML='<div class="creator-day-header"><strong>'+esc(selectedDay.split('-').reverse().join('.'))+'</strong><span>'+entries.length+' '+(entries.length===1?'Videogruppe':'Videogruppen')+' · Crossposts zusammengefasst</span></div>'
  +(entries.length?entries.slice(0,32).map(group=>{
   const video=group.items.find(x=>/^https:\/\//i.test(String(x.thumb||'')))||group.items[0];
@@ -238,10 +243,16 @@ function renderCalendar(m){
    }).join('')+'</div></div></article>';
  }).join(''):'<p class="creator-empty">Für diesen Tag sind keine Videogruppen erfasst.</p>')
  +(entries.length>32?'<small>Weitere '+fmt(entries.length-32)+' Videogruppen findest du im Video Radar.</small>':'')
+ +(reposts.length?'<div class="v74-later-crossposts"><strong>Weitere Plattformveröffentlichungen an diesem Tag</strong>'+reposts.map(({group,video})=>
+   '<div><span>'+esc(P[video.platform])+' · '+esc(group.title)+'</span><button type="button" data-group-origin="'+esc(group.date)+'">Videogruppe vom '+esc(group.date.split('-').reverse().join('.'))+' öffnen</button></div>'
+ ).join('')+'</div>':'')
  +'<p class="v74-clip-method">Crossposts mit gleichem eindeutigen Titel innerhalb von 2 Tagen werden dem ersten Veröffentlichungstag zugeordnet. Das ist eine vorsichtige automatische Zuordnung: abweichende Titel bleiben getrennt. Die Plattformwerte und Veröffentlichungstage bleiben sichtbar.</p>'
  +(planned.length?'<div class="v73-day-plans"><h4>Geplante Ideen <small>Nur lokal gespeichert · keine Upload-Nachweise</small></h4>'+planned.map(v=>
    '<div class="v73-plan-entry'+(v.done?' done':'')+'"><label><input type="checkbox" data-plan-done="'+esc(v.id)+'" '+(v.done?'checked':'')+'/><span>'+esc(v.time)+' · '+esc(P[v.platform])+' · '+esc(v.format)+'</span></label><button type="button" data-plan-remove="'+esc(v.id)+'" aria-label="Geplante Idee entfernen">✕</button></div>'
   ).join('')+'</div>':'');
+ $('creatorDayDetail').querySelectorAll('[data-group-origin]').forEach(btn=>btn.addEventListener('click',()=>{
+  selectedDay=btn.dataset.groupOrigin;renderCalendar(m);
+ }));
  $('creatorDayDetail').querySelectorAll('[data-plan-done]').forEach(box=>box.addEventListener('change',()=>{
   const next=readPlanned().map(v=>v.id===box.dataset.planDone?{...v,done:box.checked}:v);save(PLAN_KEY,next);renderCalendar(m);
  }));
