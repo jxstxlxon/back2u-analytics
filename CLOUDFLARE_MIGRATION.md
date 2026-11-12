@@ -76,3 +76,30 @@ YouTube/Instagram can have delayed daily reports; TikTok's Display API
 provides lifetime values per video, **not** daily profile views.
 Do not substitute lifetime views for a 7/28/90-day total, or treat a partial
 daily window as complete. The Video Radar keeps lifetime video values labeled.
+
+## TikTok inventory reconciliation
+
+TikTok's `/v2/user/info/` `video_count` is its publicly-posted-video total;
+`/v2/video/list/` supplies paged public posts, and the local D1 snapshot
+intentionally retains previously seen video IDs for historic analytics. These
+counts **are not interchangeable** and a numerical difference is not evidence
+of deletions.
+
+The authenticated `/api/diagnostics` includes `tiktokVideoReconciliation`
+after the next video sync. It records:
+- `fetchedThisRun`: distinct IDs returned during that API sync.
+- `storedAfterMerge`: cumulative IDs retained in the private snapshot.
+- `previouslyStoredNotReturned`: IDs present beforehand but absent from the
+  new API run, **only when** the scan started at the newest video and reached
+  `has_more=false`. Otherwise it is `null`.
+- `officialPublicVideoCount`: profile counter, and
+  `storedVsOfficialDifference`: saved minus profile counter.
+
+Previously saved videos are never deleted because of an API discrepancy.
+The diagnostic sample of up to eight unmatched historical videos is visible
+only behind the existing private dashboard session. API omissions are not
+proof that a video was deleted or made private. A partial or resumed scan
+does not establish an exhaustive current inventory.
+
+After deployment, open the dashboard, press **TikTok jetzt synchronisieren**,
+then inspect the authenticated `/api/diagnostics` values.
