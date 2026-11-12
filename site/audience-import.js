@@ -19,17 +19,45 @@
   }
   return obj;
  }
+ let initialized=false;
+ const formatTime=iso=>iso?new Date(iso).toLocaleString('de-DE'):'noch nie';
+ function showAutomatic(data){
+  const node=$('audienceAutoSyncStatus'),button=$('audienceSyncNow');
+  if(!node||!button)return;
+  const a=data.automatic||{};
+  button.disabled=!a.configured;
+  if(!a.configured){node.textContent='Einmalige Einrichtung fehlt: WINDSOR_API_KEY ist in Cloudflare noch nicht hinterlegt.';return}
+  if(a.status==='ok'){node.textContent='Automatik aktiv · letzter erfolgreicher Abgleich: '+formatTime(a.lastSuccessAt)+' · '+(a.groups||9)+' Aufteilungen.';return}
+  if(a.status==='error'){node.textContent='Letzter Abgleich fehlgeschlagen: '+(a.error||'unbekannt')+'. Vorhandene Werte bleiben erhalten. Letzter Erfolg: '+formatTime(a.lastSuccessAt);return}
+  if(a.status==='running'){node.textContent='Automatischer Abgleich läuft seit '+formatTime(a.lastAttemptAt)+'.';return}
+  node.textContent='Automatik eingerichtet · erster Abgleich noch ausstehend. Du kannst ihn jetzt starten.';
+ }
  async function init(){
-  if(location.protocol==='file:')return;
+  if(initialized||location.protocol==='file:')return;
   const panel=$('audienceImportPanel');if(!panel)return;
   let access;try{access=await api('/api/access')}catch{return}
   if(access.role!=='admin')return;
-  panel.hidden=false;
+  initialized=true;panel.hidden=false;
   let existing=false;
   try{const state=await api('/api/audience');
    existing=Boolean(state.configured);
-   status(existing?'Private Zielgruppendaten vorhanden · Stand '+String(state.snapshotDate||'unbekannt')+'. Eine erneute Datei ersetzt nur diese vier Aufteilungen.':'Noch keine privaten Zielgruppendaten importiert.');
+   showAutomatic(state);
+   status(existing?'Private Zielgruppendaten vorhanden · Stand '+String(state.snapshotDate||'unbekannt')+'.':'Noch keine privaten Zielgruppendaten importiert.');
   }catch(e){status('Importstatus konnte nicht geladen werden: '+e.message)}
+  $('audienceSyncNow').addEventListener('click',async()=>{
+   const button=$('audienceSyncNow'),target=$('audienceAutoSyncStatus');
+   button.disabled=true;target.textContent='Rufe neun aktuelle Zielgruppen-Berichte bei Windsor.ai ab …';
+   try{
+    const result=await api('/api/audience/sync',{method:'POST',headers:{'content-type':'application/json'},body:'{}'});
+    if(result.status!=='ok')throw new Error(result.error||result.reason||result.status);
+    target.textContent='Erfolgreich: 9 von 9 Aufteilungen aktualisiert · '+formatTime(result.lastSuccessAt)+'.';
+    existing=true;
+    const refresh=$('refreshBtn');if(refresh)refresh.click();
+   }catch(e){target.textContent='Automatischer Abruf fehlgeschlagen: '+e.message+'. Die bisher gespeicherten Statistiken bleiben erhalten.'}
+   finally{
+    try{showAutomatic(await api('/api/audience'))}catch{button.disabled=false}
+   }
+  });
   $('audienceImportForm').addEventListener('submit',async e=>{
    e.preventDefault();
    const file=$('audienceImportFile').files?.[0],button=$('audienceImportButton');
@@ -49,5 +77,6 @@
    finally{button.disabled=false}
   });
  }
+ window.addEventListener('back2u:auth',init);
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
 })();
