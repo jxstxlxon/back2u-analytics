@@ -208,3 +208,10 @@ body[data-theme-tone="light"] .masthead h1 em{
  background:linear-gradient(112deg,#122f48,var(--t-accent-readable) 59%,var(--t-secondary-readable));
  background-clip:text;-webkit-background-clip:text;color:transparent
 }
+
+/* Story backgrounds honor each preset's custom artwork intensity. */
+.story-slide::before{
+ background:
+ linear-gradient(rgba(var(--story-card-rgb),var(--story-veil,.14)),rgba(var(--story-card-rgb),var(--story-veil,.14))),
+ linear-gradient(160deg,rgba(var(--story-card-rgb),.12),transparent 43%,rgba(var(--story-card-rgb),.24));
+}
