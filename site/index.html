@@ -275,7 +275,7 @@ function glassSet(value){state.glass=Math.min(100,Math.max(0,Number(value)||0));
  $('#glassSlider').value=state.glass;$('#glassValue').textContent=state.glass+'%';$$('[data-glass-preset]').forEach(b=>b.classList.toggle('selected',Number(b.dataset.glassPreset)===state.glass));
  try{localStorage.setItem('back2u_glass',state.glass)}catch{}
 }
-function setSection(s){state.section=s;$$('[data-section]').forEach(x=>x.classList.toggle('active',x.dataset.section===s));$$('.view').forEach(x=>x.classList.toggle('active',x.id===s));renderActive();window.scrollTo({top:0,behavior:'smooth'})}
+function setSection(s){state.section=s;document.body.dataset.activeSection=s;$('[data-section]').forEach(x=>x.classList.toggle('active',x.dataset.section===s));$$('.view').forEach(x=>x.classList.toggle('active',x.id===s));renderActive();window.scrollTo({top:0,behavior:'smooth'})}
 function setPeriod(d){state.days=d;$$('[data-days]').forEach(x=>x.classList.toggle('selected',Number(x.dataset.days)===d));state.page=1;state.selected=null;renderActive()}
 function setPlatform(p){state.platform=p;$$('[data-platform]').forEach(x=>x.classList.toggle('selected',x.dataset.platform===p));state.page=1;state.selected=null;renderActive()}
 function fmtGrowth(a,b){if(!b)return null;return 100*(a/b-1)}
@@ -710,7 +710,7 @@ async function saveStoryPng(){
  finally{btn.disabled=false;btn.textContent=orig}
 }
 
-function renderActive(){setSyncStatus();$('#notice').textContent=state.days===90&&!state.live?'90 Tage: Die historischen Exporte decken nur rund vier Wochen ab. Angezeigt werden verfügbare Tage – keine hochgerechneten Werte.':'';
+function renderActive(){document.body.dataset.activeSection=state.section;setSyncStatus();$('#notice').textContent=state.days===90&&!state.live?'90 Tage: Die historischen Exporte decken nur rund vier Wochen ab. Angezeigt werden verfügbare Tage – keine hochgerechneten Werte.':'';
  if(state.section==='overview')renderOverview();else if(state.section==='videos')renderVideos();else if(state.section==='experiments')renderExperiments();else if(state.section==='audience')renderAudience();else if(state.section==='system')renderSystem();}
 function exportData(){const b=new Blob([JSON.stringify({seed:SEED,live:state.live},null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='BACK2U_Datenstand.json';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);toast('Daten als JSON gespeichert')}
 
