@@ -20,7 +20,7 @@ Aus der vom Nutzer freigegebenen 30er-Designübersicht werden **genau diese 25**
 - Lagoon Prism
 - Fresh Horizon
 
-Die sechs übrigen Designs der ursprünglichen 30er-Auswahl (07, 08, 09, 14, 26) sind **nicht** Teil der Theme-Auswahl. Hinweis: Die Presets sind als CSS-basierte Farb- und Glaseffekte umgesetzt; die generierten Konzeptbilder werden **nicht** als vollständige Dashboard-Hintergründe eingesetzt, da sie eigene UI-Elemente und möglicherweise beispielhafte Zahlen enthalten. Die tatsächlichen Dashboard-Daten bleiben aus der realen API/Cloudflare-Verbindung.
+Die fünf übrigen Designs der ursprünglichen 30er-Auswahl (07, 08, 09, 14, 26) sind **nicht** Teil der Theme-Auswahl. Hinweis: Die Presets sind als CSS-basierte Farb- und Glaseffekte umgesetzt; die generierten Konzeptbilder werden **nicht** als vollständige Dashboard-Hintergründe eingesetzt, da sie eigene UI-Elemente und möglicherweise beispielhafte Zahlen enthalten. Die tatsächlichen Dashboard-Daten bleiben aus der realen API/Cloudflare-Verbindung.
 
 ## Bedienung
 
