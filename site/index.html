@@ -80,6 +80,19 @@ body.story-open{overflow:hidden}
 .story-foot b{color:#a794ff}
 .story-foot>span:last-child{text-align:right;max-width:64%}
 @media(max-width:420px){.story-mode-switch{padding:9px 8px;font-size:11px}.story-toolbar>span{font-size:9px}.story-control{padding:8px 9px;font-size:10px}}
+
+/* Lifetime totals: isolated overview card, independent of active 7/28/90-day period. */
+.lifetime-views-card{padding:23px 25px;border-radius:24px;border:1px solid #96d4fb5b;margin:20px 0 15px;background:linear-gradient(135deg,#215f9d1d,#6944b925)}
+.lifetime-views-heading{font-size:14px;font-weight:660;margin:12px 0 6px;color:#dbeaff}
+.lifetime-views-total{font-size:clamp(36px,6.2vw,58px);line-height:1.1;font-weight:830;letter-spacing:-.052em;font-variant-numeric:tabular-nums;background:linear-gradient(100deg,#e8f7ff,#a4b8ff);color:transparent;background-clip:text;-webkit-background-clip:text;word-break:break-word}
+.lifetime-views-subtitle{font-size:11px;line-height:1.45;color:#aabfe0;margin-top:8px}
+.lifetime-views-breakdown{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;border-top:1px solid #b3dcff30;margin-top:17px;padding-top:17px}
+.lifetime-breakdown-item{display:flex;flex-direction:column;gap:6px;min-width:0}
+.lifetime-breakdown-platform{font-size:11px;color:#abc1e4}
+.lifetime-breakdown-item b{font-size:clamp(15px,2.7vw,23px);font-weight:740;font-variant-numeric:tabular-nums;color:#edf4ff;overflow-wrap:anywhere}
+.lifetime-breakdown-item small{font-size:10px;color:#a1b5d1;line-height:1.4}
+.lifetime-views-note{font-size:11px;line-height:1.6;color:#98aecb;margin-top:17px}
+@media(max-width:500px){.lifetime-views-card{padding:18px 16px}.lifetime-views-total{font-size:38px}.lifetime-views-breakdown{gap:7px}.lifetime-breakdown-item b{font-size:16px}.lifetime-breakdown-platform{font-size:10px}}
 </style><meta name="robots" content="noindex,nofollow"/><style>
 #back2uLoginOverlay[hidden]{display:none!important}
 #back2uLoginOverlay{position:fixed;z-index:9999;inset:0;display:grid;place-items:center;padding:20px;background:rgba(2,8,22,.82);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px)}
@@ -105,6 +118,7 @@ body.story-open{overflow:hidden}
 <section id="overview" class="view active">
   <div class="hero-grid"><div class="hero-main glass"><div class="card-top"><div class="eyebrow">01 / MOMENTUM</div><span class="pill pill-blue" id="rangeLabel">28-Tage-Ansicht</span></div><div class="hero-label" id="heroLabel">Gesamtaufrufe</div><div class="hero-big" id="heroValue">1.727.668</div><div class="hero-bottom"><span class="delta" id="heroDelta">Exportwerte</span><span id="heroFootnote">YouTube, Instagram und TikTok</span></div><div id="heroSpark" class="hero-spark"></div></div>
     <div class="platform-stack" id="platformStack"></div></div>
+  <section id="lifetimeViewsCard" class="lifetime-views-card glass" aria-label="All-Time Videoaufrufe"><div class="eyebrow">ALL TIME / VIDEO-AUFRUFE</div><div class="lifetime-views-heading">Alle bisher erfassten Videoaufrufe</div><div class="lifetime-views-total" id="lifetimeViewsTotal">–</div><div class="lifetime-views-subtitle" id="lifetimeViewsSubtitle">Lade offizielle Video-Gesamtwerte …</div><div class="lifetime-views-breakdown" id="lifetimeViewsBreakdown"></div><div class="lifetime-views-note" id="lifetimeViewsNote">Gesamtaufrufe der verfügbaren Videos, nicht die vollständige Historie des Kontos.</div></section>
   <div id="followerCards" class="follower-cards" aria-label="Follower und Abonnenten"></div>
   <div id="dailyFreshness" class="daily-freshness" role="status"></div>
   <div class="section-heading"><div><div class="eyebrow">02 / SIGNAL</div><h2>Deine Entwicklung</h2><p>Die Aufrufe im Zeitverlauf – unterschiedliche Messgrößen werden gekennzeichnet.</p></div><div id="trendLegend" class="legend"></div></div>
@@ -279,6 +293,42 @@ function getFollowerStand(p){
  const asOf=hasLive?(profile.asOf||state.live?.generatedAt||null):hasArchive?historicalDate:null;
  return {p,count,asOf,source:hasLive?'api':hasArchive?'archiv':'fehlt'};
 }
+function lifetimeViewsByPlatform(p){
+ const videos=state.live?.platforms?.[p]?.videos;
+ if(!Array.isArray(videos)||!videos.length)return {platform:p,total:null,count:0,known:0,complete:false};
+ const unique=new Map();
+ for(let i=0;i<videos.length;i++){
+  const v=videos[i];
+  const key=String(v?.id||v?.url||('row-'+i));
+  if(!unique.has(key))unique.set(key,v);
+  else if(typeof v?.views==='number'&&Number.isFinite(v.views))unique.set(key,v);
+ }
+ const clean=[...unique.values()];
+ const known=clean.filter(v=>typeof v?.views==='number'&&Number.isFinite(v.views)&&v.views>=0);
+ const total=known.length?known.reduce((sum,v)=>sum+v.views,0):null;
+ return {platform:p,total,count:clean.length,known:known.length,complete:known.length===clean.length};
+}
+function renderLifetimeViews(){
+ const ids=platforms();
+ const stats=ids.map(lifetimeViewsByPlatform);
+ const present=stats.filter(x=>x.total!==null);
+ const total=present.length?present.reduce((n,x)=>n+x.total,0):null;
+ const complete=present.length===ids.length&&stats.every(x=>x.complete);
+ const all=ids.length===3;
+ $('#lifetimeViewsTotal').textContent=fmt(total);
+ $('#lifetimeViewsSubtitle').textContent=all
+  ?complete?'YouTube + Instagram + TikTok · erfasste Lifetime-Aufrufe':'Teilsumme der verfügbaren Lifetime-Videoaufrufe'
+  :complete?NAMES[ids[0]]+' · erfasste Lifetime-Videoaufrufe':NAMES[ids[0]]+' · bisher verfügbare Videoaufrufe';
+ $('#lifetimeViewsBreakdown').innerHTML=stats.map(x=>'<div class="lifetime-breakdown-item"><span class="lifetime-breakdown-platform">'+tagPlatform(x.platform)+'</span><b>'+fmt(x.total)+'</b><small>'+x.count+' Videos'+(!x.complete?' · '+x.known+' mit Aufrufzahlen':'')+'</small></div>').join('');
+ const covered=stats.reduce((n,x)=>n+x.count,0);
+ const validated=stats.reduce((n,x)=>n+x.known,0);
+ let note=covered?fmt(validated)+' Videos mit erfassten Aufrufzahlen; Stand der letzten verfügbaren API-Daten.':'Noch kein authentifizierter API-Videobestand geladen.';
+ note+=' Die Karte ist unabhängig vom 7-/28-/90-Tage-Filter.';
+ note+=' Es sind aufsummierte Videoaufrufe, nicht eindeutig verschiedene Zuschauer. Private, entfernte oder nicht abrufbare Inhalte können fehlen.';
+ if(!complete)note+=' Fehlende Werte wurden nicht geschätzt.';
+ $('#lifetimeViewsNote').textContent=note;
+}
+
 function renderFollowerCards(){
  const container=$('#followerCards');
  const names={yt:'YouTube',ig:'Instagram',tt:'TikTok'};
@@ -333,7 +383,7 @@ function renderOverview(){const x=allMetric();const historic=state.days===28&&!p
  const days=platforms().map(p=>series(p));const chartDays=days[0]||[];$('#heroSpark').innerHTML=sparkSvg(chartDays.map(r=>r.views??r.engaged??0));
  $('#platformStack').innerHTML=ps.map(p=>{const a=platformMetric(p);const v=a.views??a.engaged;const label=a.views!==null?'Aufrufe':a.engaged!==null?'Interessierte Aufrufe':'Keine Tageswerte';
  return `<div class="platform-card glass"><div><div class="platform-name">${tagPlatform(p)}</div><div class="platform-number">${fmt(v)}</div><div class="platform-caption">${label}</div></div><div class="platform-side"><span class="platform-rank">${a.fromSnapshot?'EXPORT · 28 TAGE':`${a.coverage} / ${state.days} Tage`}</span><small>${a.follows!==null?fmt(a.follows)+' '+(p==='yt'?'Netto-/Abo-Daten':'Follows'):''}</small></div></div>`}).join('');
- renderFollowerCards();renderDailyFreshness();renderTrend();renderTop();renderInsight();
+ renderLifetimeViews();renderFollowerCards();renderDailyFreshness();renderTrend();renderTop();renderInsight();
 }
 function renderTrend(){const ps=platforms(),dates=new Set();for(const p of ps)for(const r of series(p))dates.add(r.d);const xs=[...dates].sort();const dMap={};for(const p of ps)dMap[p]=new Map(series(p).map(r=>[r.d,r.views??r.engaged]));
  $('#trendLegend').innerHTML=ps.map(p=>`<span><i style="background:${COLORS[p]}"></i>${NAMES[p]}</span>`).join('');
