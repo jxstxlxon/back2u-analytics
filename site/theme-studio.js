@@ -65,6 +65,7 @@ function apply(){
  let p=byId[state.id],v=settings(),glass=el('glassSlider');
  let strength=glass?clamp(glass.value,0,100,48):48,alpha=p.light?.45+strength*.0039:.22+strength*.0056;
  document.body.dataset.themeTone=p.light?'light':'dark';
+ document.body.dataset.themeId=p.id;
  document.body.dataset.themeFamily=p.family;
  document.body.dataset.themeBackground=v.bgmode;
  document.body.classList.toggle('t-dense',v.density==='compact');
