@@ -102,7 +102,7 @@ body.story-open{overflow:hidden}
 #back2uLoginOverlay input{display:block;width:100%;padding:15px 16px;border-radius:12px;background:#061326cc;border:1px solid #adcafa5a;color:white;font:inherit;font-size:16px;margin-bottom:12px}
 #back2uLoginOverlay button{border:0;border-radius:12px;background:#449dfb;color:white;font:600 15px system-ui;padding:13px 16px;width:100%;cursor:pointer}
 #back2uLoginOverlay #back2uLoginError{min-height:20px;color:#ffc5c5;font-size:12px;margin-top:14px}
-</style><link rel="stylesheet" href="/theme-studio.css?v=1"><link rel="stylesheet" href="/theme-reference.css?v=2"><link rel="stylesheet" href="/ui-v3.css?v=3"><link rel="stylesheet" href="/ui-v4.css?v=4"></head>
+</style><link rel="stylesheet" href="/theme-studio.css?v=1"><link rel="stylesheet" href="/theme-reference.css?v=2"><link rel="stylesheet" href="/ui-v3.css?v=3"><link rel="stylesheet" href="/ui-v4.css?v=4"><link rel="stylesheet" href="/creator-hub-v5.css?v=5"></head>
 <body>
 <div class="ambient ambient-a"></div><div class="ambient ambient-b"></div><div class="ambient ambient-c"></div><div class="grain"></div>
 <div class="shell">
@@ -112,7 +112,7 @@ body.story-open{overflow:hidden}
 </header>
 <div class="masthead"><div><div class="eyebrow"><span class="tiny-orb"></span> OWN YOUR MOMENTUM <span id="sourceStamp" class="source-stamp">Daten bis 10.11.2026</span></div><h1>Dein Content.<br/><em>Deine Zahlen.</em></h1><p>Ein Ort für deine Videos, dein Wachstum und deine nächsten Entscheidungen.</p></div><div class="mast-right glass"><div class="mini-label">LENS / GLASS INTENSITY</div><div class="glass-toolbar"><button data-glass-preset="10" title="Kristallklar">Clear</button><button data-glass-preset="48" class="selected" title="Milchglas">Glass</button><button data-glass-preset="90" title="Stark getönt">Frost</button></div><input id="glassSlider" type="range" min="0" max="100" value="48" aria-label="Glasintensität einstellen"/><div class="glass-scale"><span>transparent</span><strong id="glassValue">48%</strong><span>tief</span></div></div></div>
 <div class="controlbar glass"><div class="platform-tabs" role="group" aria-label="Plattform auswählen"><button data-platform="all" class="selected">Alle</button><button data-platform="yt"><span class="platform-dot ytdot"></span>YouTube</button><button data-platform="ig"><span class="platform-dot igdot"></span>Instagram</button><button data-platform="tt"><span class="platform-dot ttdot"></span>TikTok</button></div><div class="period-tabs" role="group" aria-label="Zeitraum wählen"><button data-days="7">7 Tage</button><button data-days="28" class="selected">28 Tage</button><button data-days="90">90 Tage</button></div></div>
-<div class="section-nav" role="navigation" aria-label="Ansichten"><button data-section="overview" class="active"><span class="navglyph">◈</span> Übersicht</button><button data-section="videos"><span class="navglyph">▸</span> Video Radar</button><button data-section="experiments"><span class="navglyph">◎</span> Experimente</button><button data-section="audience"><span class="navglyph">◉</span> Zielgruppe</button><button data-section="system"><span class="navglyph">⌁</span> System</button></div>
+<div class="section-nav" role="navigation" aria-label="Ansichten"><button data-section="overview" class="active"><span class="navglyph">◈</span> Übersicht</button><button data-section="videos"><span class="navglyph">▸</span> Video Radar</button><button data-section="experiments"><span class="navglyph">◎</span> Experimente</button><button data-section="audience"><span class="navglyph">◉</span> Zielgruppe</button><button data-section="creator"><span class="navglyph">✦</span> Creator Hub</button><button data-section="system"><span class="navglyph">⌁</span> System</button></div>
 <div id="notice" class="notice" role="status"></div>
 <main>
 <section id="overview" class="view active">
@@ -144,6 +144,20 @@ body.story-open{overflow:hidden}
 </section>
 <section id="audience" class="view"><div class="section-heading"><div><div class="eyebrow">01 / COMMUNITY</div><h2>Wer deinen Content sieht</h2><p>Nur tatsächlich exportierte Zielgruppendaten – keine erfundenen Durchschnittswerte.</p></div></div><div id="audienceCards" class="audience-grid"></div>
  <div class="section-heading"><div><div class="eyebrow">02 / TIMING</div><h2>Wann deine Community aktiv ist</h2><p>TikTok-Aktivität der Follower – nicht automatisch die besten Uploadzeiten.</p></div></div><div class="glass pane"><div id="hourBars"></div><div class="smallprint">TikTok: durchschnittlich aktive Follower pro Stunde, 03.–09.11.2026. Ohne bestätigte Zeitzonenangabe. Für andere Plattformen fehlen entsprechende Stundenwerte.</div></div>
+</section>
+<section id="creator" class="view" aria-label="Creator Hub">
+ <div class="section-heading"><div><div class="eyebrow">DEIN CREATOR JAHRBUCH</div><h2>Was du erreicht hast</h2><p>Deine besten Videos, der Posting-Kalender und Ziele – einfach erklärt, mit echten Zahlen.</p></div><span class="pill">✦ Creator Hub</span></div>
+ <div id="creatorKpis" class="creator-kpis" aria-live="polite"></div>
+ <div class="creator-two-col">
+  <section class="glass creator-panel"><div class="creator-panel-title"><span>🏆</span><div><h3>Hall of Fame</h3><p>Deine erfolgreichsten Videos mit bekannten Gesamtaufrufen</p></div></div><div id="creatorHall" class="creator-hall"></div></section>
+  <section class="glass creator-panel"><div class="creator-panel-title"><span>🎯</span><div><h3>Deine Ziele</h3><p>Lege ein persönliches Ziel fest und verfolge deinen Fortschritt.</p></div></div><div id="creatorGoals"></div></section>
+ </div>
+ <section class="glass creator-panel"><div class="creator-panel-title creator-title-line"><div class="creator-heading"><span>📅</span><div><h3>Posting-Kalender</h3><p>Welche Videos an welchem Tag erschienen sind und wie viele Gesamtaufrufe sie bisher haben.</p></div></div><div class="creator-month-nav"><button type="button" id="creatorPrev" aria-label="Vorheriger Monat">‹</button><strong id="creatorMonthLabel">–</strong><button type="button" id="creatorNext" aria-label="Nächster Monat">›</button></div></div><div id="creatorCalendar" class="creator-calendar" aria-label="Veröffentlichungen im Monat"></div><div id="creatorDayDetail" class="creator-day-detail" aria-live="polite"></div></section>
+ <div class="creator-two-col">
+  <section class="glass creator-panel"><div class="creator-panel-title"><span>✨</span><div><h3>Meilensteine</h3><p>Erfolge, die deine vorhandenen Zahlen bereits belegen.</p></div></div><div id="creatorMilestones" class="creator-milestones"></div></section>
+  <section class="glass creator-panel"><div class="creator-panel-title"><span>📝</span><div><h3>Videoideen</h3><p>Ideen direkt notieren – gespeichert in diesem Browser.</p></div></div><form id="creatorIdeaForm" class="creator-idea-form"><input type="text" id="creatorIdeaInput" maxlength="160" placeholder="Neue Videoidee …" aria-label="Neue Videoidee" required/><button type="submit">+ Speichern</button></form><div id="creatorIdeas" class="creator-ideas"></div></section>
+ </div>
+ <div class="creator-method-note" id="creatorMethodNote">Fehlende Daten werden nicht geschätzt.</div>
 </section>
 <section id="system" class="view"><div class="section-heading"><div><div class="eyebrow">01 / DATA & CONNECTIONS</div><h2>Transparenz statt Blindflug</h2><p>Hier siehst du genau, was aktuell ist und welche Werte noch nicht vorliegen.</p></div></div><div id="connectionCards" class="connection-grid"></div>
  <div class="glass pane"><div class="pane-header"><h3>Daten & Aktualisierung</h3><button id="exportJson" class="small-button">Datensatz exportieren ↓</button></div><div id="systemInfo"></div></div>
@@ -720,7 +734,23 @@ async function saveStoryPng(){
 }
 
 function renderActive(){document.body.dataset.activeSection=state.section;setSyncStatus();$('#notice').textContent=state.days===90&&!state.live?'90 Tage: Die historischen Exporte decken nur rund vier Wochen ab. Angezeigt werden verfügbare Tage – keine hochgerechneten Werte.':'';
- if(state.section==='overview')renderOverview();else if(state.section==='videos')renderVideos();else if(state.section==='experiments')renderExperiments();else if(state.section==='audience')renderAudience();else if(state.section==='system')renderSystem();}
+ if(state.section==='overview')renderOverview();else if(state.section==='videos')renderVideos();else if(state.section==='experiments')renderExperiments();else if(state.section==='audience')renderAudience();else if(state.section==='creator')window.BACK2U_CREATOR_HUB?.render();else if(state.section==='system')renderSystem();}
+
+window.BACK2U_CREATOR_BRIDGE={
+ snapshot(){
+  const videos=mergedVideos().map(v=>({
+    platform:v.platform,id:String(v.id||''),title:String(v.title||''),date:String(v.date||''),
+    views:typeof v.views==='number'&&Number.isFinite(v.views)?v.views:null,
+    reportType:v.reportType||null,format:String(v.format||''),url:String(v.url||'')
+  }));
+  const follower=['yt','ig','tt'].map(getFollowerStand).map(x=>({platform:x.p,count:x.count,source:x.source,asOf:x.asOf}));
+  const daily=['yt','ig','tt'].map(p=>({platform:p,days:mergedDaily(p).map(x=>({
+    d:x.d,views:typeof x.views==='number'&&Number.isFinite(x.views)?x.views:null
+  }))}));
+  return {videos,follower,daily,lastUpdated:state.live?.generatedAt||null,hasLive:!!state.live};
+ }
+};
+
 function exportData(){const b=new Blob([JSON.stringify({seed:SEED,live:state.live},null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='BACK2U_Datenstand.json';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);toast('Daten als JSON gespeichert')}
 
 function showLogin(){const d=document.querySelector('#back2uLoginOverlay');d.hidden=false;document.querySelector('#back2uLoginPass').focus()}
@@ -790,5 +820,5 @@ function bind(){
 }
 window.BACK2U_REFRESH_CHART=()=>{if(state.section==='overview')renderTrend()};glassSet(state.glass);bind();renderActive();loadLive(false);
 })();
-</script><script src="/reference-theme-art.js?v=4" defer></script><script src="/theme-studio.js?v=4" defer></script><script src="/chart-v3.js?v=4" defer></script><script src="/story-composer-v3.js?v=4" defer></script>
+</script><script src="/reference-theme-art.js?v=4" defer></script><script src="/theme-studio.js?v=4" defer></script><script src="/chart-v3.js?v=4" defer></script><script src="/story-composer-v3.js?v=4" defer></script><script src="/creator-hub-v5.js?v=5" defer></script>
 </body></html>
