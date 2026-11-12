@@ -57,6 +57,8 @@ function settings(){
  for(let k of Object.keys(defaults)){let min=ranges[k][0],max=ranges[k][1];v[k]=clamp(o[k],min,max,defaults[k])}
  v.accent=color(o.accent,p.accent);v.secondary=color(o.secondary,p.secondary);v.tint=color(o.tint,p.accent);
  v.bgmode=['aurora','soft','quiet','bubbles'].includes(o.bgmode)?o.bgmode:(p.family==='aero'?'bubbles':'aurora');
+ v.layout=['auto','sidebar','wide'].includes(o.layout)?o.layout:'auto';
+ v.finish=['original','gem','chrome','frost','iridescent','spectral','obsidian','sunset','neon'].includes(o.finish)?o.finish:'original';
  v.density=o.density==='compact'?'compact':'normal';v.motion=o.motion!==false;
  return v;
 }
@@ -67,8 +69,8 @@ function apply(){
  const artEngine=window.BACK2U_REFERENCE_ART;
  const themeArt=typeof artEngine==='function'?artEngine({...p,accent:v.accent,secondary:v.secondary}):null;
  if(themeArt){
-  document.body.dataset.referenceLayout=themeArt.layout;
-  document.body.dataset.themeFinish=themeArt.finish;
+  document.body.dataset.referenceLayout=v.layout==='auto'?themeArt.layout:v.layout;
+  document.body.dataset.themeFinish=v.finish==='original'?themeArt.finish:v.finish;
   document.body.dataset.themeMotif=themeArt.type;
   document.body.dataset.themeArtwork='on';
   setvar('--t-scene-url','url("'+themeArt.url+'")');
@@ -101,13 +103,15 @@ function edit(k,value){
  else if(['accent','secondary','tint'].includes(k))o[k]=color(value,p.accent);
  else if(k==='bgmode')o[k]=['aurora','soft','quiet','bubbles'].includes(value)?value:'aurora';
  else if(k==='density')o[k]=value==='compact'?'compact':'normal';
+ else if(k==='layout')o[k]=['auto','sidebar','wide'].includes(value)?value:'auto';
+ else if(k==='finish')o[k]=['original','gem','chrome','frost','iridescent','spectral','obsidian','sunset','neon'].includes(value)?value:'original';
  else if(k==='motion')o[k]=!!value;
  else return;
  state.edits[state.id]=o;save();apply();
 }
 function refreshEditor(){
  const v=settings();
- ['accent','secondary','tint','bgmode','density'].concat(Object.keys(defaults)).forEach(k=>{
+ ['accent','secondary','tint','bgmode','density','layout','finish'].concat(Object.keys(defaults)).forEach(k=>{
   if(el('theme_'+k))el('theme_'+k).value=v[k];
   if(el('theme_out_'+k))el('theme_out_'+k).textContent=v[k]+(['blur','radius'].includes(k)?' px':'%');
  });
@@ -150,7 +154,9 @@ function setup(){
  '<div class="theme-colors">',colorControl('accent','Hauptfarbe'),colorControl('secondary','Zweitfarbe'),colorControl('tint','Farbüberlagerung'),'</div>',
  controls,
  '<label class="theme-choice">Hintergrund<select id="theme_bgmode" data-setting="bgmode"><option value="aurora">Aurora</option><option value="soft">Weicher Verlauf</option><option value="quiet">Ruhig</option><option value="bubbles">Glass Bubbles</option></select></label>',
- '<label class="theme-choice">Layout<select id="theme_density" data-setting="density"><option value="normal">Komfortabel</option><option value="compact">Kompakt</option></select></label>',
+ '<label class="theme-choice">Bild-Layout<select id="theme_layout" data-setting="layout"><option value="auto">Wie die Vorlage</option><option value="sidebar">Leuchtende Seitenleiste</option><option value="wide">Breites Dashboard</option></select></label>',
+ '<label class="theme-choice">Glasoberfläche<select id="theme_finish" data-setting="finish"><option value="original">Wie die Vorlage</option><option value="neon">Neon Liquid</option><option value="gem">Crystal Gem</option><option value="chrome">Chrome</option><option value="frost">Frosted</option><option value="iridescent">Iridescent</option><option value="spectral">Holographic</option><option value="obsidian">Obsidian</option><option value="sunset">Sunset Pearl</option></select></label>',
+ '<label class="theme-choice">Abstände<select id="theme_density" data-setting="density"><option value="normal">Komfortabel</option><option value="compact">Kompakt</option></select></label>',
  '<label class="theme-checkbox"><input id="theme_motion" type="checkbox" data-setting="motion"> Animationen</label>',
  '<div class="theme-dialog-footer"><button id="themeReset" type="button">Dieses Theme zurücksetzen</button><button id="themeDone" type="button">Fertig</button></div><small id="themeStatus" aria-live="polite"></small>',
  '</section></div></section>'
