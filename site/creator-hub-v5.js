@@ -88,13 +88,26 @@ function renderHall(m){
   return '<div class="creator-hall-row"><span class="creator-medal">'+medal+'</span><div class="creator-hall-title"><strong>'+esc(v.title||'Video ohne Titel')+'</strong><small>'+esc(p)+(validDate(v.date)?' · '+esc(v.date.split('-').reverse().join('.')):'')+'</small></div><b>'+fmt(v.views)+'<small>Aufrufe</small></b></div>';
  }).join('');
 }
+function parseGoalInput(raw){
+ const s=String(raw||'').trim().toLowerCase().replace(/\s+/g,'').replace(',','.');
+ const match=/^(\d+(?:\.\d+)?)([km]?)$/.exec(s);
+ if(!match)return null;
+ const unit=match[2]==='m'?1000000:match[2]==='k'?1000:1;
+ const value=Number(match[1])*unit;
+ return Number.isSafeInteger(value)&&value>=1&&value<=1e12?value:null;
+}
+function shortened(n){
+ if(n>=1e6&&n%1e6===0)return String(n/1e6)+'m';
+ if(n>=1000&&n%1000===0)return String(n/1000)+'k';
+ return String(n);
+}
 function renderGoals(m){
  const goal=getGoal(m.total),percentage=m.total===null?0:Math.max(0,Math.min(100,Math.round(m.total/goal*100)));
  $('creatorGoals').innerHTML='<div class="creator-goal-progress"><strong>'+fmt(m.total)+' <span>von '+fmt(goal)+' Aufrufen</span></strong><div class="creator-progress-track" role="progressbar" aria-valuemin="0" aria-valuemax="'+goal+'" aria-valuenow="'+(m.total||0)+'"><div style="width:'+percentage+'%"></div></div><p>'+percentage+' % erreicht'+(m.total===null?' · Video-Gesamtzahlen fehlen':'')+'</p></div>'
- +'<form id="creatorGoalForm" class="creator-goal-form"><label for="creatorGoalInput">Mein nächstes Ziel</label><div><input id="creatorGoalInput" type="number" min="1" max="1000000000000" step="1000" value="'+goal+'" required/><button type="submit">Ziel speichern</button></div></form>'
+ +'<form id="creatorGoalForm" class="creator-goal-form"><label for="creatorGoalInput">Mein nächstes Ziel · z. B. 10k oder 10m</label><div><input id="creatorGoalInput" type="text" inputmode="decimal" maxlength="18" pattern="[0-9.,kKmM ]+" value="'+shortened(goal)+'" placeholder="z. B. 10m" required/><button type="submit">Ziel speichern</button></div></form>'
  +'<p class="creator-small-note">Gezählt werden nur Videos mit bekannten Gesamtaufrufen. Fehlende Videos sind nicht enthalten.</p>';
  $('creatorGoalForm').addEventListener('submit',e=>{
-  e.preventDefault();const value=Number($('creatorGoalInput').value);
+  e.preventDefault();const value=parseGoalInput($('creatorGoalInput').value);
   if(!Number.isSafeInteger(value)||value<1||value>1e12){$('creatorGoalInput').setCustomValidity('Bitte ein gültiges Ziel zwischen 1 und einer Billion eingeben.');$('creatorGoalInput').reportValidity();return}
   $('creatorGoalInput').setCustomValidity('');save(GOAL_KEY,value);renderGoals(m);
  });
@@ -132,8 +145,10 @@ function renderCalendar(m){
  for(let day=1;day<=info.count;day++){
   const key=month+'-'+String(day).padStart(2,'0'),posts=m.byDay.get(key)||[];
   const known=posts.filter(knownTotal),views=known.length?known.reduce((n,v)=>n+v.views,0):null;
+  const platformCount=['yt','ig','tt'].map(p=>posts.filter(v=>v.platform===p).length);
+  const platformDots='<span class="creator-cal-platforms">'+platformCount.map((n,i)=>n?'<i data-p="'+['yt','ig','tt'][i]+'" title="'+['YouTube','Instagram','TikTok'][i]+': '+n+'">'+n+'</i>':'').join('')+'</span>';
   const label=key+' · '+posts.length+' Videoeinträge'+(views===null?'':', '+fmt(views)+' bekannte Gesamtaufrufe');
-  html+='<button type="button" class="creator-cal-day'+(posts.length?' has-posts':'')+(key===selectedDay?' selected':'')+'" data-date="'+key+'" aria-label="'+esc(label)+'"><strong>'+day+'</strong>'+(posts.length?'<span>'+posts.length+' '+(posts.length===1?'Video':'Videos')+'</span><small>'+(views===null?'Aufrufe: –':fmt(views)+' Views')+'</small>':'<span class="creator-no-post">·</span>')+'</button>';
+  html+='<button type="button" class="creator-cal-day'+(posts.length?' has-posts':'')+(key===selectedDay?' selected':'')+'" data-date="'+key+'" aria-label="'+esc(label)+'"><strong>'+day+'</strong>'+(posts.length?'<span>'+posts.length+' '+(posts.length===1?'Video':'Videos')+'</span>'+platformDots+'<small>'+(views===null?'Aufrufe: –':fmt(views)+' insgesamt')+'</small>':'<span class="creator-no-post">·</span>')+'</button>';
  }
  $('creatorCalendar').innerHTML=html;
  $('creatorCalendar').querySelectorAll('[data-date]').forEach(btn=>btn.addEventListener('click',()=>{selectedDay=btn.dataset.date;renderCalendar(m)}));
@@ -145,7 +160,17 @@ function renderCalendar(m){
  $('creatorCalendar').querySelectorAll('[data-date]').forEach(btn=>btn.classList.toggle('selected',btn.dataset.date===selectedDay));
  const entries=m.byDay.get(selectedDay)||[];
  $('creatorDayDetail').innerHTML='<div class="creator-day-header"><strong>'+esc(selectedDay.split('-').reverse().join('.'))+'</strong><span>'+entries.length+' '+(entries.length===1?'veröffentlichtes Plattformvideo':'veröffentlichte Plattformvideos')+'</span></div>'
- +(entries.length?entries.slice(0,32).map(v=>'<div class="creator-day-video"><span class="creator-platform-tag">'+esc(P[v.platform]||v.platform)+'</span><span>'+esc(v.title||'Video ohne Titel')+'</span><strong>'+ (knownTotal(v)?fmt(v.views)+' Gesamtaufrufe':'Aufrufe nicht vergleichbar')+'</strong></div>').join(''):'<p class="creator-empty">Für diesen Tag sind keine Veröffentlichungen erfasst.</p>')
+ +(entries.length?entries.slice(0,32).map(v=>{
+  const image=String(v.thumb||'');
+  const validThumb=/^https:\/\//i.test(image);
+  const url=String(v.url||'');
+  const validLink=/^https:\/\//i.test(url);
+  const caption=esc(v.title||'Video ohne Titel');
+  const label=knownTotal(v)?fmt(v.views)+' bisherige Gesamtaufrufe':'Keine vergleichbaren Gesamtaufrufe';
+  const medal=validThumb?'<img src="'+esc(image)+'" alt="" loading="lazy" decoding="async"/>':'<span>▶</span>';
+  const title=validLink?'<a href="'+esc(url)+'" target="_blank" rel="noopener noreferrer">'+caption+'</a>':'<span>'+caption+'</span>';
+  return '<article class="creator-day-video v7-day-video"><div class="v7-day-thumb">'+medal+'</div><div class="v7-day-body"><div class="v7-day-top"><span class="creator-platform-tag" data-p="'+esc(v.platform)+'">'+esc(P[v.platform]||v.platform)+'</span><small>'+esc(v.format||'Video')+'</small></div>'+title+'<small>'+label+'</small></div></article>';
+ }).join(''):'<p class="creator-empty">Für diesen Tag sind keine Veröffentlichungen erfasst.</p>')
  +(entries.length>32?'<small>Weitere '+fmt(entries.length-32)+' Videoeinträge sind im Video Radar zu finden.</small>':'');
 }
 function renderMilestones(m){
