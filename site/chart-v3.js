@@ -1,0 +1,85 @@
+/* BACK2U V3 – truthful numeric axes, data-quality-aware summaries and theme-matched SVG. */
+(function(){
+'use strict';
+const MODES=['line','area','bar'];let mode='line';
+const chart=document.getElementById('trendChart');
+const modes=document.querySelectorAll('#chartModes [data-chart-mode]');
+const f=(n)=>Number.isFinite(n)?new Intl.NumberFormat('de-DE',{maximumFractionDigits:0}).format(n):'–';
+const esc=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const cssColor=(p,fallback)=>'var(--chart-'+p+', '+fallback+')';
+const colorFor={yt:'#ff7b92',ig:'#a995ff',tt:'#39dbc9'};
+function niceStep(n){const q=Math.pow(10,Math.floor(Math.log10(n||1))),v=n/q;return(v<=1?1:v<=2?2:v<=2.5?2.5:v<=5?5:10)*q}
+function draw(ctx){
+ const {ps,xs,dMap,NAMES,days,range}=ctx;
+ document.getElementById('trendLegend').innerHTML=ps.map(p=>'<span><i class="legend-color-'+p+'" style="background:'+cssColor(p,colorFor[p])+'"></i>'+esc(NAMES[p])+'</span>').join('');
+ document.getElementById('chartTitle').textContent='Tagesverlauf · '+(mode==='bar'?'Balken':mode==='area'?'Flächen':'Linien');
+ document.getElementById('chartSubtitle').textContent=range.start+' bis '+range.end;
+ modes.forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.chartMode===mode)));
+ const cards=document.getElementById('chartKpis'),note=document.getElementById('chartSummaryNote'),foot=document.getElementById('chartFoot');
+ if(xs.length<2){chart.innerHTML='<div class="empty">Für diesen Zeitraum liegen zu wenige Tagesdaten vor.</div>';cards.textContent='';note.textContent='Fehlende Werte werden nicht geschätzt.';foot.textContent='Kein Vergleich ohne ausreichend Daten.';return}
+ const observed=xs.map(d=>{
+  const values=ps.map(p=>dMap[p].get(d)).filter(v=>typeof v==='number'&&Number.isFinite(v)&&v>=0);
+  return{d,coverage:values.length,value:values.reduce((a,b)=>a+b,0)};
+ }).filter(r=>r.coverage>0);
+ const complete=observed.filter(r=>r.coverage===ps.length);
+ const peaks=complete.length?complete:observed;
+ const sum=observed.reduce((a,r)=>a+r.value,0);
+ const avg=observed.length?sum/observed.length:null;
+ const highest=peaks.reduce((best,r)=>!best||r.value>best.value?r:best,null);
+ const lowest=peaks.reduce((best,r)=>!best||r.value<best.value?r:best,null);
+ const entries=[
+  ['Erfasste Summe',f(sum),observed.length+' Tage mit Messwerten'],
+  ['Ø je erfasstem Tag',avg===null?'–':f(Math.round(avg)),'nicht pro Kalendertag'],
+  ['Höchster Tag',highest?f(highest.value):'–',highest?highest.d.slice(5).replace('-','.')+'.':'keine Daten'],
+  ['Niedrigster Tag',lowest?f(lowest.value):'–',lowest?lowest.d.slice(5).replace('-','.')+'.':'keine Daten']
+ ];
+ cards.innerHTML=entries.map(e=>'<div class="chart-kpi"><span class="chart-kpi-label">'+esc(e[0])+'</span><strong class="chart-kpi-number">'+esc(e[1])+'</strong><small class="chart-kpi-meta">'+esc(e[2])+'</small></div>').join('');
+ note.textContent='Datenabdeckung: '+observed.length+' / '+days+' Kalendertage · '+complete.length+' vollständige Plattformtage'+(complete.length?' (Peak/Low daraus)':' (Peak/Low nur erfasste Teilsummen)')+'. Keine Hochrechnung; mehrere Plattform-Messgrößen sind nicht immer direkt vergleichbar.';
+ const all=ps.flatMap(p=>xs.map(x=>dMap[p].get(x)).filter(v=>typeof v==='number'&&Number.isFinite(v)&&v>=0));
+ const max=Math.max(1,...all),tick=niceStep(max/4),ymax=Math.ceil(max/tick)*tick;
+ const W=1000,H=295,L=83,R=18,T=16,B=41,PW=W-L-R,PH=H-T-B;
+ const x=i=>L+PW*i/(xs.length-1),y=v=>T+PH*(1-v/ymax);
+ let out='<svg viewBox="0 0 '+W+' '+H+'" role="img" aria-label="Tagesdiagramm mit numerischer Y-Achse und '+ps.length+' Plattformreihen" preserveAspectRatio="xMidYMid meet"><defs>';
+ for(const p of ps)out+='<linearGradient id="v3gr-'+p+'" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" style="stop-color:'+cssColor(p,colorFor[p])+';stop-opacity:.24"/><stop offset="100%" style="stop-color:'+cssColor(p,colorFor[p])+';stop-opacity:0"/></linearGradient>';
+ out+='</defs>';
+ for(let i=0;i<=4;i++){
+  const v=Math.round(ymax*(4-i)/4),yy=y(v);
+  out+='<line class="chart-grid" x1="'+L+'" x2="'+(W-R)+'" y1="'+yy+'" y2="'+yy+'"/><text class="chart-axis-label" x="'+(L-12)+'" y="'+(yy+4.2)+'" text-anchor="end">'+f(v)+'</text>';
+ }
+ for(const p of ps){
+  const valid=xs.map((d,i)=>({i,d,v:dMap[p].get(d)})).filter(d=>typeof d.v==='number'&&Number.isFinite(d.v)&&d.v>=0);
+  if(!valid.length)continue;
+  const stroke=cssColor(p,colorFor[p]);
+  if(mode==='bar'){
+   const group=Math.min(20,Math.max(3,PW/xs.length*.77)),barW=Math.max(1,group/ps.length*.85);
+   for(const q of valid){const xx=x(q.i)-group/2+ps.indexOf(p)*(group/ps.length),yy=y(q.v);out+='<rect x="'+xx.toFixed(2)+'" y="'+yy.toFixed(2)+'" width="'+barW.toFixed(2)+'" height="'+Math.max(0,T+PH-yy).toFixed(2)+'" rx="1.2" fill="'+stroke+'" opacity=".90"/>'}
+  }else{
+   const groups=[];
+   for(const q of valid){const last=groups[groups.length-1];if(!last||q.i-last[last.length-1].i>1)groups.push([q]);else last.push(q)}
+   for(const group of groups){
+    if(group.length<2)continue;
+    const path=group.map((q,i)=>(i?'L':'M')+x(q.i).toFixed(1)+','+y(q.v).toFixed(1)).join('');
+    if(mode==='area')out+='<path d="'+path+'L'+x(group[group.length-1].i)+','+(T+PH)+'L'+x(group[0].i)+','+(T+PH)+'Z" fill="url(#v3gr-'+p+')"/>';
+    out+='<path class="chart-series-line" d="'+path+'" fill="none" stroke="'+stroke+'"/>';
+   }
+   const q=valid[valid.length-1];out+='<circle class="chart-point" cx="'+x(q.i)+'" cy="'+y(q.v)+'" r="4.2" fill="'+stroke+'"/>';
+  }
+ }
+ const stepX=Math.max(1,Math.floor(xs.length/5));
+ for(let i=0;i<xs.length;i++){if(i!==0&&i!==xs.length-1&&i%stepX!==0)continue;out+='<text class="chart-axis-label" x="'+x(i)+'" y="'+(H-11)+'" text-anchor="middle">'+xs[i].slice(5).replace('-','.')+'.</text>'}
+ out+='<rect id="chartHit" x="'+L+'" y="'+T+'" width="'+PW+'" height="'+PH+'" fill="transparent" style="touch-action:pan-y"/></svg>';
+ chart.innerHTML=out;
+ foot.textContent='Verfügbare Tageswerte aus API/Export, keine Schätzung. YouTube kann je nach Tag Gesamt- oder interessierte Aufrufe enthalten; TikTok-Tageswerte können aus dem Archiv stammen.';
+ const hit=document.getElementById('chartHit'),hover=document.getElementById('chartHoverLabel');
+ if(hit){const handler=e=>{
+  const rect=chart.getBoundingClientRect(),pixel=(e.clientX-rect.left)/rect.width*W;
+  const i=Math.max(0,Math.min(xs.length-1,Math.round((pixel-L)/PW*(xs.length-1)))),d=xs[i];
+  hover.textContent=d.slice(8)+'.'+d.slice(5,7)+'.'+d.slice(0,4)+' · '+ps.map(p=>NAMES[p]+': '+f(dMap[p].get(d))).join(' · ');
+ };
+ hit.addEventListener('pointermove',handler);hit.addEventListener('pointerdown',handler)}
+}
+window.BACK2U_CHARTS={render:draw,setMode(next){if(MODES.includes(next)){mode=next;window.BACK2U_REFRESH_CHART?.()}},getMode:()=>mode};
+modes.forEach(btn=>btn.addEventListener('click',()=>window.BACK2U_CHARTS.setMode(btn.dataset.chartMode)));
+window.addEventListener('back2u-theme-changed',()=>window.BACK2U_REFRESH_CHART?.());
+window.BACK2U_REFRESH_CHART?.();
+})();
