@@ -101,13 +101,13 @@ function draw(ctx){
  const breakdown=document.getElementById('chartDayBreakdown');
  let selectedIndex=-1;
  // Event delegation survives date-card re-rendering and works with keyboard/touch.
- if(breakdown)breakdown.addEventListener('click',e=>{
+ if(breakdown)breakdown.onclick=e=>{
   const btn=e.target.closest?.('button[data-day-step]');
   if(!btn||!breakdown.contains(btn)||btn.disabled)return;
   const delta=Number(btn.dataset.dayStep);
   if(delta!==-1&&delta!==1)return;
   updateSelection(Math.max(0,Math.min(xs.length-1,selectedIndex+delta)));
- });
+ };
  const updateSelection=i=>{
   if(i===selectedIndex)return;
   selectedIndex=i;
