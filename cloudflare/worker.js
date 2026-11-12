@@ -740,11 +740,17 @@ async function route(req,env){
   const [insights,daily]=await Promise.all([
    get(env,'direct_video_insights_v1'),get(env,'direct_ig_daily_v1')
   ]);
+  const yt=insights?.platforms?.yt;
+  const ranges=Object.fromEntries([7,28,90].map(days=>[String(days),{
+   period:yt?.periods?.[String(days)]||null,
+   videos:(yt?.videos||[]).filter(v=>Object.keys(v?.metrics||{}).some(k=>k.endsWith(days+'d'))).length
+  }]));
   return json({youtubeVideoInsights:{
-   updatedAt:insights?.platforms?.yt?.updatedAt||null,
-   videoCount:insights?.platforms?.yt?.videos?.length||0,
-   periods:Object.keys(insights?.platforms?.yt?.periods||{}).map(Number).sort((a,b)=>a-b),
-   period:insights?.platforms?.yt?.period||null
+   updatedAt:yt?.updatedAt||null,
+   videoCount:yt?.videos?.length||0,
+   periods:Object.keys(yt?.periods||{}).map(Number).sort((a,b)=>a-b),
+   ranges,
+   period:yt?.period||null
   },instagramVideoInsights:{
    updatedAt:insights?.platforms?.ig?.updatedAt||null,
    videoCount:insights?.platforms?.ig?.videos?.length||0
