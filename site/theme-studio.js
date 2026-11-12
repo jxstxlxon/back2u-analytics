@@ -116,8 +116,8 @@ function apply(){
    :cursorMode==='orb'
    ?'<circle cx="14" cy="14" r="11" fill="#75dcfa" fill-opacity=".72" stroke="#fff" stroke-width="3"/><circle cx="10" cy="9" r="4" fill="#fff" opacity=".85"/><circle cx="14" cy="14" r="6" fill="none" stroke="#2cb5df" stroke-width="1.8"/>'
    :'<path d="M4 2L4 29L12 21L17 29L22 26L17 17L29 16Z" fill="#d5f8ff" stroke="#8aa8ff" stroke-width="2.2"/><path d="M4 2L13 13L4 29" fill="none" stroke="#fff" stroke-width="1.8"/>';
-  const image='<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32">'+icon+'</svg>';
-  const hotspot=cursorMode==='orb'?'14 14':'4 2';
+  const image='<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 32 32">'+icon+'</svg>';
+  const hotspot=cursorMode==='orb'?'10 10':'3 2';
   setvar('--aero-cursor','url("data:image/svg+xml,'+encodeURIComponent(image)+'") '+hotspot+', auto');
  }else setvar('--aero-cursor','auto');
  const type=adaptiveType(p,v),mainHue=colorHue(v.accent);
