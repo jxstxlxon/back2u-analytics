@@ -346,3 +346,26 @@ body[data-theme-family="aero"] :is(.platform-tabs button.selected,.period-tabs b
 .story-slide-mark img{width:97%;height:96%;object-fit:contain}
 .story-slide-brand{font-size:4cqw;min-width:0}
 .story-slide-brand small{font-size:1.9cqw;letter-spacing:.08em;line-height:1.2}
+
+/* Radar GPU budget: grouping and paging are already memoized; retain glass at lower blur cost. */
+body[data-active-section="videos"] .ambient{opacity:.035!important;filter:none!important}
+body[data-active-section="videos"][data-theme-artwork="on"] .video-list-panel,
+body[data-active-section="videos"][data-theme-artwork="on"] .detail-panel,
+body[data-active-section="videos"][data-theme-artwork="on"] .tools{
+ -webkit-backdrop-filter:blur(clamp(6px,var(--t-blur),15px)) saturate(132%)!important;
+ backdrop-filter:blur(clamp(6px,var(--t-blur),15px)) saturate(132%)!important
+}
+@media(max-width:760px){
+ body[data-theme-tone] .top-grid .video-card:last-child{
+  display:flex!important;grid-column:1/-1;flex-direction:row;min-width:0
+ }
+ body[data-theme-tone] .top-grid .video-card:last-child .video-poster{
+  width:41%;height:auto;min-height:147px;flex:0 0 41%
+ }
+ body[data-theme-tone] .top-grid .video-card:last-child .video-info{flex:1;min-width:0}
+}
+@media(max-width:420px){
+ body[data-theme-tone] .top-grid{grid-template-columns:1fr!important}
+ body[data-theme-tone] .top-grid .video-card:last-child{display:flex;grid-column:auto;flex-direction:column}
+ body[data-theme-tone] .top-grid .video-card:last-child .video-poster{width:100%;height:180px;flex:none}
+}
