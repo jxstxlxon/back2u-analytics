@@ -585,13 +585,14 @@ function groupPlatformLabel(g,metric){
 function officialVideoInsightHtml(v){
  const a=v?.analytics;
  if(!a||!a.source)return '';
+ const days=[7,28,90].includes(state.days)?state.days:28;
  const entries=v.platform==='yt'?[
-  ['28-Tage-Videoaufrufe','views28d','number'],
-  ['Interessierte Aufrufe · 28 Tage','engagedViews28d','number'],
-  ['Wiedergabezeit · 28 Tage','watchMinutes28d','minutes'],
-  ['Ø Wiedergabedauer · 28 Tage','averageViewSeconds28d','seconds'],
-  ['Ø Wiedergabeanteil · 28 Tage','averageViewPercentage28d','percent'],
-  ['Shares · 28 Tage','shares28d','number']
+  ['Videoaufrufe · '+days+' Tage','views'+days+'d','number'],
+  ['Interessierte Aufrufe · '+days+' Tage','engagedViews'+days+'d','number'],
+  ['Wiedergabezeit · '+days+' Tage','watchMinutes'+days+'d','minutes'],
+  ['Ø Wiedergabedauer · '+days+' Tage','averageViewSeconds'+days+'d','seconds'],
+  ['Ø Wiedergabeanteil · '+days+' Tage','averageViewPercentage'+days+'d','percent'],
+  ['Shares · '+days+' Tage','shares'+days+'d','number']
  ]:[
   ['Geteilt · Gesamt','shares','number'],
   ['Gespeichert · Gesamt','saves','number'],
@@ -608,7 +609,8 @@ function officialVideoInsightHtml(v){
    return '<div class="detail-metric"><b>'+esc(output)+'</b><small>'+esc(label)+'</small></div>';
   }).join('');
  if(!tiles)return '';
- const period=a.period?.start&&a.period?.end?' · '+esc(a.period.start)+' bis '+esc(a.period.end):'';
+ const p=v.platform==='yt'?a.periods?.[String(days)]:null;
+ const period=p?.start&&p?.end?' · '+esc(p.start)+' bis '+esc(p.end):'';
  return '<div class="detail-note">Offizielle zusätzliche Videokennzahlen · '+esc(a.source)+period+
   '. „–“ = nicht von der API geliefert. Zeitraumwerte dürfen nicht mit Lifetime-Aufrufen verwechselt werden.</div>'+
   '<div class="detail-metrics">'+tiles+'</div>';
