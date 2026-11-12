@@ -252,3 +252,41 @@ body[data-theme-tone] .v73-plan-entry button{
  border-radius:9px;border:1px solid rgba(var(--t-accent-rgb),.36);color:var(--t-ink-muted);
  background:transparent;min-height:34px;min-width:34px;cursor:pointer
 }
+/* BACK2U V7.4: crossposted clips share a single day card without losing source rows. */
+body[data-theme-tone] .v74-clip-group{
+ display:grid!important;grid-template-columns:56px minmax(0,1fr)!important;
+ gap:11px!important;align-items:start!important;overflow:visible;
+ padding:13px 2px!important;
+}
+body[data-theme-tone] .v74-clip-title{
+ display:block;margin:0;color:var(--t-ink-strong);
+ font:790 12px/1.45 var(--t-font-display,system-ui);overflow-wrap:anywhere;
+}
+body[data-theme-tone] .v74-clip-platforms{
+ display:grid;grid-template-columns:repeat(3,minmax(0,1fr));
+ gap:6px;width:100%;margin-top:4px;
+}
+body[data-theme-tone] .v74-clip-platform{
+ display:flex;flex-direction:column;gap:4px;
+ min-width:0;padding:8px 9px;border-radius:10px;
+ border:1px solid rgba(var(--t-accent-rgb),.31);
+ background:rgba(var(--t-card),.4);
+}
+body[data-theme-tone] .v74-clip-platform a,body[data-theme-tone] .v74-clip-platform>span{
+ color:var(--t-ink-strong);font:770 11px/1.4 var(--t-font-ui,system-ui);
+ overflow-wrap:anywhere;text-decoration:underline;text-underline-offset:2px;
+}
+body[data-theme-tone] .v74-clip-platform small{
+ color:var(--t-ink-label);font:610 10px/1.45 var(--t-font-ui,system-ui);overflow-wrap:anywhere;
+}
+body[data-theme-tone] .v74-clip-method{
+ padding:9px 12px;margin:13px 0 2px;border-radius:11px;
+ color:var(--t-ink-label);background:rgba(var(--t-card),.38);
+ font:610 10px/1.55 var(--t-font-ui,system-ui);
+}
+@media(max-width:760px){
+ body[data-theme-tone] .v74-clip-platforms{grid-template-columns:minmax(0,1fr)}
+ body[data-theme-tone] .v74-clip-group{grid-template-columns:46px minmax(0,1fr)!important}
+ body[data-theme-tone] .v74-clip-group .v7-day-thumb{width:46px;height:59px}
+ body[data-theme-tone] .v74-clip-platform{padding:8px 9px}
+}
