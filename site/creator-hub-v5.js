@@ -185,17 +185,17 @@ function renderCalendar(m){
   plansByDay.get(v.date).push(v);
  }
  for(const entries of plansByDay.values())entries.sort((a,b)=>a.time.localeCompare(b.time));
- const activeDates=new Set(monthlyGroups.map(g=>g.date));
+ const activeDates=new Set(monthlyVideos.map(v=>v.date)); // posting days include later crossposts
  const validLifetime=monthlyVideos.filter(knownTotal);
  const lifetimeViews=validLifetime.length?validLifetime.reduce((n,v)=>n+v.views,0):null;
  const prev=shiftMonth(month,-1);
  const previousCount=crosspostGroups(m.videos.filter(v=>validDate(v.date)&&v.date.startsWith(prev+'-'))).length;
  const completeMonth=month<now().slice(0,7);
- const viewNote=validLifetime.length<monthlyVideos.length?'Einige Video-Gesamtzahlen fehlen':'Gesamtaufrufe dieser Videos bis jetzt';
+ const viewNote=validLifetime.length<monthlyVideos.length?'Teilweise fehlen Plattform-Gesamtaufrufe':'Plattformwerte addiert · keine einzigartigen Zuschauer';
  $('creatorMonthSummary').innerHTML=[
   ['Videos (gruppiert)',fmt(monthlyGroups.length),fmt(monthlyVideos.length)+' Plattform-Uploads · '+(completeMonth?'Vormonat: '+fmt(previousCount)+' Clips':'laufender Monat')],
   ['Tage mit Posts',fmt(activeDates.size),'Mindestens ein Video veröffentlicht'],
-  ['Aufrufe dieser Videos',fmt(lifetimeViews),viewNote],
+  ['Bekannte Plattformaufrufe',fmt(lifetimeViews),viewNote],
   ['Geplante Ideen',fmt(monthlyPlans.length),'Nur lokal gespeichert · keine veröffentlichten Videos']
  ].map(x=>'<div class="creator-month-stat"><small>'+esc(x[0])+'</small><strong>'+esc(x[1])+'</strong><span>'+esc(x[2])+'</span></div>').join('');
  let html=names.map(name=>'<span class="creator-cal-weekday">'+name+'</span>').join('');
