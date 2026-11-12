@@ -154,6 +154,26 @@ function render(){
  const preview=$('scPreview');
  const typography=p.fontProfile==='aero'?'"Trebuchet MS",Verdana,sans-serif':p.fontProfile==='tech'?'"Arial Narrow","Segoe UI",sans-serif':p.fontProfile==='glass'?'"Helvetica Neue","Segoe UI",sans-serif':p.fontProfile==='geometric'?'"Century Gothic","Aptos","Trebuchet MS",sans-serif':p.light||p.fontProfile==='elegant'?'"Aptos","Segoe UI",sans-serif':'"Segoe UI",-apple-system,sans-serif';
  const storyArt=window.BACK2U_REFERENCE_ART?window.BACK2U_REFERENCE_ART(p):null;
+ // The entire editor (not only the 9:16 preview) follows this slide's effective theme.
+ // Colors are from the existing Theme Studio settings, including user-edited accents.
+ overlay.dataset.storyThemeId=id;
+ overlay.dataset.storyThemeTone=p.light?'light':'dark';
+ overlay.style.setProperty('--sc-accent',p.accent);
+ overlay.style.setProperty('--sc-secondary',p.secondary);
+ overlay.style.setProperty('--sc-accent-rgb',rgb(p.accent));
+ overlay.style.setProperty('--sc-secondary-rgb',rgb(p.secondary));
+ overlay.style.setProperty('--sc-card-rgb',rgb(p.card));
+ overlay.style.setProperty('--sc-bg-rgb',rgb(p.bg));
+ overlay.style.setProperty('--sc-theme-bg',p.bg);
+ overlay.style.setProperty('--sc-theme-art',storyArt?'url("'+storyArt.url+'")':'none');
+ overlay.style.setProperty('--sc-text',p.light?'#132e43':'#f9f4f1');
+ overlay.style.setProperty('--sc-muted',p.light?'#33516a':'#e2cbd1');
+ overlay.style.setProperty('--sc-panel',p.light?'rgba(255,255,255,.79)':'rgba('+rgb(p.card)+',.88)');
+ overlay.style.setProperty('--sc-input',p.light?'rgba(255,255,255,.86)':'rgba('+rgb(p.bg2)+',.90)');
+ overlay.style.setProperty('--sc-button',p.light?'rgba('+rgb(p.accent)+',.19)':'rgba('+rgb(p.accent)+',.22)');
+ overlay.style.setProperty('--sc-border',p.light?'rgba('+rgb(p.accent)+',.43)':'rgba('+rgb(p.accent)+',.56)');
+ overlay.style.setProperty('--sc-scene-shade',p.light?'rgba(238,249,255,.27)':'rgba(7,11,22,.30)');
+ overlay.style.setProperty('--sc-font',typography);
  preview.dataset.storyLayout=s.layout;
  preview.style.setProperty('--story-image',storyArt?'url("'+storyArt.url+'")':'none');
  preview.style.setProperty('--story-bg',p.bg);
