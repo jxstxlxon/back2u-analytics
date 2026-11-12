@@ -46,7 +46,7 @@
   overflow-wrap:anywhere;
   box-shadow:inset 0 1px 0 rgba(255,255,255,.4),0 4px 15px rgba(var(--t-accent-rgb),.16)!important;
  }
- body.theme-open #themeStudioToggle{display:none!important}
+ body.theme-open[data-theme-tone] .topbar #themeStudioToggle{display:none!important}
  body[data-theme-tone] .topbar .sync-indicator{
   grid-area:sync;min-width:0;max-width:100%;
   display:flex;align-items:center;gap:6px;
