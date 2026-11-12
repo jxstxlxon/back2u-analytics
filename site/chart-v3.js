@@ -16,7 +16,7 @@ function draw(ctx){
  document.getElementById('chartSubtitle').textContent=range.start+' bis '+range.end;
  modes.forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.chartMode===mode)));
  const cards=document.getElementById('chartKpis'),note=document.getElementById('chartSummaryNote'),foot=document.getElementById('chartFoot');
- if(xs.length<2){chart.innerHTML='<div class="empty">Für diesen Zeitraum liegen zu wenige Tagesdaten vor.</div>';cards.textContent='';const dayPanel=document.getElementById('chartDayBreakdown');if(dayPanel)dayPanel.textContent='Keine vollständige Tagesauswertung verfügbar.';note.textContent='Fehlende Werte werden nicht geschätzt.';foot.textContent='Kein Vergleich ohne ausreichend Daten.';return}
+ if(xs.length<2){window.BACK2U_V7_SELECTED_DAY=null;window.BACK2U_V7?.dayPie(null,ctx);chart.innerHTML='<div class="empty">Für diesen Zeitraum liegen zu wenige Tagesdaten vor.</div>';cards.textContent='';const dayPanel=document.getElementById('chartDayBreakdown');if(dayPanel)dayPanel.textContent='Keine vollständige Tagesauswertung verfügbar.';note.textContent='Fehlende Werte werden nicht geschätzt.';foot.textContent='Kein Vergleich ohne ausreichend Daten.';return}
  const observed=xs.map(d=>{
   const values=ps.map(p=>dMap[p].get(d)).filter(v=>typeof v==='number'&&Number.isFinite(v)&&v>=0);
   return{d,coverage:values.length,value:values.reduce((a,b)=>a+b,0)};
@@ -80,6 +80,8 @@ function draw(ctx){
   selectedIndex=i;
   if(hit)hit.dataset.selectedIndex=String(i);
   const d=xs[i],fullDate=d.slice(8)+'.'+d.slice(5,7)+'.'+d.slice(0,4);
+  window.BACK2U_V7_SELECTED_DAY=d;
+  window.BACK2U_V7?.dayPie(d,ctx);
   const total=ps.map(p=>dMap[p].get(d)).filter(v=>typeof v==='number'&&Number.isFinite(v)).reduce((a,b)=>a+b,0);
   const covered=ps.filter(p=>typeof dMap[p].get(d)==='number').length;
   const parts=ps.map(p=>{
@@ -120,7 +122,8 @@ function draw(ctx){
   });
  hit.addEventListener('keydown',e=>{if(e.key==='ArrowLeft'||e.key==='ArrowRight'){e.preventDefault();const cur=Number(hit.dataset.selectedIndex??xs.length-1);const next=Math.max(0,Math.min(xs.length-1,cur+(e.key==='ArrowLeft'?-1:1)));hit.dataset.selectedIndex=next;updateSelection(next)}});
  }
- updateSelection(xs.length-1);
+ const latestWithData=xs.findLastIndex(d=>ps.some(p=>typeof dMap[p].get(d)==='number'&&Number.isFinite(dMap[p].get(d))));
+ updateSelection(latestWithData>=0?latestWithData:xs.length-1);
 }
 window.BACK2U_CHARTS={render:draw,setMode(next){if(MODES.includes(next)){mode=next;window.BACK2U_THEMES?.setChartMode?.(next);window.BACK2U_REFRESH_CHART?.()}},getMode:()=>mode};
 modes.forEach(btn=>btn.addEventListener('click',()=>window.BACK2U_CHARTS.setMode(btn.dataset.chartMode)));
