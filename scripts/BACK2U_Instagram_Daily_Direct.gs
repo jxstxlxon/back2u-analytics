@@ -25,10 +25,21 @@ function b2uIgDailyFetch_(id,metricNames,day){
  };
  const r=b2uIgRequest_(id+'/insights',query);
  const metrics={};
+ const matchingDayEnd=Utilities.formatDate(new Date((start+86400)*1000),'UTC','yyyy-MM-dd');
  for(const entry of r?.data||[]){
   const name=String(entry?.name||'');
   if(!Object.hasOwn(B2U_IG_METRIC_PAIRS,name))continue;
-  const raw=entry?.total_value?.value;
+  let raw=entry?.total_value?.value;
+  if((raw===null||raw===undefined||raw==='')&&Array.isArray(entry?.values)){
+   // Meta sometimes returns the day-series format instead of total_value.
+   // Never add several days or assign an ambiguous window to one date.
+   const samples=entry.values;
+   if(samples.length!==1)continue;
+   const sample=samples[0];
+   const endTime=String(sample?.end_time||'').slice(0,10);
+   if(endTime!==matchingDayEnd)continue;
+   raw=sample.value;
+  }
   if(raw===null||raw===undefined||raw==='')continue;
   const value=Number(raw);
   if(Number.isSafeInteger(value)&&value>=0)
