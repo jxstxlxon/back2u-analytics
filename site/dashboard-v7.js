@@ -63,7 +63,7 @@ function experiments(){
  for(let d=range.start;d<=range.end;d=increment(d))days.push(d);
  const counts=new Map(days.map(d=>[d,0]));
  for(const v of vids)counts.set(v.date,(counts.get(v.date)||0)+1);
- const buckets=[{name:'Keine Uploads',test:n=>n===0},{name:'1–2 Uploads',test:n=>n>=1&&n<=2},{name:'3–4 Uploads',test:n=>n>=3&&n<=4},{name:'5+ Uploads',test:n=>n>=5}]
+ const buckets=[{name:'Keine erfassten Uploads',test:n=>n===0},{name:'1–2 Uploads',test:n=>n>=1&&n<=2},{name:'3–4 Uploads',test:n=>n>=3&&n<=4},{name:'5+ Uploads',test:n=>n>=5}]
   .map(x=>({...x,count:days.filter(d=>x.test(counts.get(d)||0)).length}));
  const nPosts=vids.length,activeDays=days.filter(d=>counts.get(d)>0).length;
  const max=Math.max(0,...counts.values());
@@ -75,10 +75,35 @@ function experiments(){
  ];
  $('experimentKpis').innerHTML=kp.map(x=>'<article class="glass metric-box"><small>'+esc(x[0])+'</small><strong>'+esc(x[1])+'</strong><p>'+esc(x[2])+'</p></article>').join('');
  const maxB=Math.max(1,...buckets.map(x=>x.count));
- $('uploadChart').innerHTML='<div class="v7-rhythm" role="img" aria-label="Verteilung von Uploadtagen">'+buckets.map(x=>
+ const recent=days.slice(-28);
+ const dayVideos=new Map(recent.map(d=>[d,vids.filter(v=>v.date===d)]));
+ const peak=Math.max(1,...recent.map(d=>dayVideos.get(d).length));
+ const periods=recent.length<days.length?'Letzte 28 Tage des gewählten Zeitraums':'Ausgewählter Zeitraum';
+ $('uploadChart').innerHTML='<p class="v73-rhythm-heading">'+periods+' · erfasste Plattform-Veröffentlichungen, keine Videoaufrufe</p>'
+  +'<div class="v73-upload-calendar" role="group" aria-label="Erfasste Veröffentlichungen pro Tag">'+recent.map(d=>{
+    const posts=dayVideos.get(d),cnt=posts.length,by=Object.fromEntries(['yt','ig','tt'].map(p=>[p,posts.filter(v=>v.platform===p).length]));
+    return '<button type="button" class="v73-upload-day" data-upload-day="'+d+'" aria-label="'+d+' · '+cnt+' erfasste Veröffentlichungen" aria-pressed="false">'
+     +'<strong>'+cnt+'</strong><span class="v73-upload-bar" aria-hidden="true">'+['yt','ig','tt'].map(p=>by[p]?'<i style="height:'+(by[p]/peak*100)+'%;background:'+colors[p]+'"></i>':'').join('')+'</span>'
+     +'<small>'+d.slice(8)+'.'+d.slice(5)+'</small></button>';
+   }).join('')+'</div>'
+  +'<div class="v73-upload-detail" id="v73UploadDetail" aria-live="polite"></div>'
+  +'<p class="v73-rhythm-heading">Tage nach Anzahl erfasster Uploads</p>'
+  +'<div class="v7-rhythm" role="img" aria-label="Verteilung von Uploadtagen">'+buckets.map(x=>
    '<div class="v7-rhythm-row"><span>'+x.name+'</span><div class="v7-rhythm-rail"><i style="width:'+x.count/maxB*100+'%"></i></div><b>'+x.count+' Tage</b></div>'
- ).join('')+'</div>';
- $('uploadNote').textContent='Diese Darstellung zeigt nur, wie regelmäßig du veröffentlicht hast. Sie behauptet nicht, dass mehr Uploads automatisch mehr Aufrufe bringen.';
+  ).join('')+'</div>';
+ const showDay=d=>{
+  const posts=dayVideos.get(d)||[];
+  $('uploadChart').querySelectorAll('[data-upload-day]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.uploadDay===d)));
+  const counts=['yt','ig','tt'].filter(p=>m.platforms.includes(p)).map(p=>names[p]+': '+posts.filter(v=>v.platform===p).length);
+  $('v73UploadDetail').innerHTML='<strong>'+d.split('-').reverse().join('.')+' · '+posts.length+' erfasste Veröffentlichungen</strong>'
+   +'<p>'+counts.join(' · ')+'</p>'
+   +(posts.length?'<ul>'+posts.slice(0,5).map(v=>'<li>'+esc(names[v.platform])+' · '+esc(safeTitle(v.title)||'Video ohne Titel')+'</li>').join('')+'</ul>'
+   +(posts.length>5?'<small>Weitere '+(posts.length-5)+' Einträge im Video Radar.</small>':'')
+   :'<small>Keine Veröffentlichung in den derzeit erfassten Videoeinträgen – das beweist keinen vollständigen Upload-Stopp.</small>');
+ };
+ $('uploadChart').querySelectorAll('[data-upload-day]').forEach(btn=>btn.addEventListener('click',()=>showDay(btn.dataset.uploadDay)));
+ if(recent.length)showDay([...recent].reverse().find(d=>dayVideos.get(d).length>0)||recent.at(-1));
+ $('uploadNote').textContent='Die Balken zählen erfasste Veröffentlichungen je Plattform – bei Crossposts können mehrere Einträge zum selben Clip gehören. Fehlende Videoeinträge sind möglich (insbesondere bei noch nicht vollständig erfasstem TikTok-Verlauf). Das Diagramm ist kein Beweis, dass mehr Uploads mehr Aufrufe verursachen.';
  // Do not use daily account views as a proxy for the performance of today's uploads.
  const lifetimeRows=vids.filter(lifetime);
  const cohorts=new Map();
@@ -198,6 +223,7 @@ function rankFormats(m){
  return [...groups].map(([name,a])=>({p:name.split('|')[0],format:name.split('|').slice(1).join('|'),n:a.length,median:median(a)})).filter(x=>x.n>=4).sort((a,b)=>b.median-a.median);
 }
 const availableSlots=['11:00','15:00','19:00','02:00'];
+const PLAN_KEY='back2u_creator_scheduled_v73';
 function planRows(formats,slots,days){
  const rows=[];const date0=increment(today());
  for(let d=0;d<days;d++){
