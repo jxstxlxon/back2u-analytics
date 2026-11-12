@@ -787,7 +787,7 @@ window.BACK2U_CREATOR_BRIDGE={
   const videos=mergedVideos().map(v=>({
     platform:v.platform,id:String(v.id||''),title:String(v.title||''),date:String(v.date||''),
     views:typeof v.views==='number'&&Number.isFinite(v.views)?v.views:null,
-    reportType:v.reportType||null,format:String(v.format||''),url:String(v.url||'')
+    reportType:v.reportType||null,format:String(v.format||''),url:String(v.url||''),thumb:String(v.thumb||'')
   }));
   const follower=['yt','ig','tt'].map(getFollowerStand).map(x=>({platform:x.p,count:x.count,source:x.source,asOf:x.asOf}));
   const daily=['yt','ig','tt'].map(p=>({platform:p,days:mergedDaily(p).map(x=>({
