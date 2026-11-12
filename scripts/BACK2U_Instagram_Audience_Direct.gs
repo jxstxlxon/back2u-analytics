@@ -60,10 +60,10 @@ function b2uIgProfileForAudience_(){
  }
  throw new Error('Meta-Zugriff auf @lxon_jxmpstyle fehlt; keine Daten wurden verändert.');
 }
-function b2uIgDemography_(id,category){
+function b2uIgDemography_(id,category,timeframe){
  const data=b2uIgRequest_(id+'/insights',{
   metric:'follower_demographics',period:'lifetime',
-  metric_type:'total_value',breakdown:category,timeframe:'last_30_days'
+  metric_type:'total_value',breakdown:category,timeframe
  });
  // Expected Meta Graph: data[0].total_value.breakdowns[0].results
  const nested=data?.data?.[0]?.total_value?.breakdowns||[];
@@ -104,18 +104,34 @@ function back2uInstagramAudienceDirect(){
  if(!secret||secret.length<24)throw new Error('BACK2U_CLOUDFLARE_FEED_SECRET fehlt.');
  const profile=b2uIgProfileForAudience_();
  const id=String(profile.id);
- const age=b2uIgAudiencePercent_(b2uIgDemography_(id,'age'),'age');
- const gender=b2uIgAudiencePercent_(b2uIgDemography_(id,'gender'),'gender');
- const countries=b2uIgAudiencePercent_(b2uIgDemography_(id,'country'),'country');
+ // Different Graph API versions accept different demographic timeframes.
+ // Fetch all three distributions for the SAME timeframe; never combine
+ // age from one timeframe with country from another.
+ let reports,selectedTimeframe=null,sourceError=null;
+ for(const timeframe of ['last_30_days','this_month']){
+  try{
+   reports={
+    age:b2uIgDemography_(id,'age',timeframe),
+    gender:b2uIgDemography_(id,'gender',timeframe),
+    countries:b2uIgDemography_(id,'country',timeframe)
+   };
+   selectedTimeframe=timeframe;break;
+  }catch(e){sourceError=e}
+ }
+ if(!selectedTimeframe)throw new Error('Meta follower_demographics nicht verfügbar: '+
+  String(sourceError?.message||sourceError).slice(0,180));
+ const age=b2uIgAudiencePercent_(reports.age,'age');
+ const gender=b2uIgAudiencePercent_(reports.gender,'gender');
+ const countries=b2uIgAudiencePercent_(reports.countries,'country');
  const fmt=d=>Utilities.formatDate(d,'UTC','yyyy-MM-dd');
  const asOf=fmt(new Date()),source='Meta Graph API (direct)';
  const payload={
   schema:1,platform:'ig',accountId:'lxon_jxmpstyle',snapshotDate:asOf,
   audience:{age:age.rows,gender:gender.rows,countries:countries.rows},
   audienceMeta:{
-   age:{source,basis:'Anteile an '+age.total+' Instagram-Followern mit bekannter Altersverteilung, nicht zwingend alle Follower'},
-   gender:{source,basis:'Anteile an '+gender.total+' Instagram-Followern im Geschlechtsbericht; Nicht angegeben bleibt separat'},
-   countries:{source,basis:'Anteile an '+countries.total+' Instagram-Followern mit bekannter Länderzuordnung; fehlende Länder bleiben unbekannt'}
+   age:{source,basis:'Anteile an '+age.total+' Instagram-Followern mit Alterszuordnung, nicht alle Follower; Meta-Zeitraum '+selectedTimeframe},
+   gender:{source,basis:'Anteile an '+gender.total+' Instagram-Followern im Geschlechtsbericht, unbekannt bleibt separat; Meta-Zeitraum '+selectedTimeframe},
+   countries:{source,basis:'Anteile an '+countries.total+' Instagram-Followern mit Länderzuordnung, nicht alle Follower; Meta-Zeitraum '+selectedTimeframe}
   }
  };
  const response=UrlFetchApp.fetch(BACK2U_IG_AUDIENCE_URL,{
