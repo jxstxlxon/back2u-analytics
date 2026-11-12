@@ -387,14 +387,23 @@ async function ingestYoutubeDaily(req,env){
    if(value===null||value<0||!Number.isSafeInteger(value))return json({error:'Invalid '+field},422);
    numeric[field]=value;
   }
+  const more={};
+  for(const field of ['shares','engagedViews','watchMinutes','averageViewSeconds']){
+   if(row[field]===undefined||row[field]===null)continue;
+   const value=Number(row[field]);
+   if(!Number.isFinite(value)||value<0||
+      (field!=='averageViewSeconds'&&field!=='watchMinutes'&&!Number.isSafeInteger(value)))
+    return json({error:'Invalid YouTube '+field},422);
+   more[field]=value;
+  }
   byDate.set(d,{d,views:numeric.views,likes:numeric.likes,comments:numeric.comments,
    follows:numeric.subscribersGained-numeric.subscribersLost,
    subscribersGained:numeric.subscribersGained,subscribersLost:numeric.subscribersLost,
-   source:'YouTube Analytics API'});
+   ...more,source:'YouTube Analytics API'});
  }
  const old=await get(env,'yt_analytics_daily');
  const merged=new Map((old?.daily||[]).map(row=>[row.d,row]));
- for(const [k,v] of byDate)merged.set(k,v);
+ for(const [k,v] of byDate)merged.set(k,{...(merged.get(k)||{}),...v});
  const daily=[...merged.values()].sort((a,b)=>a.d.localeCompare(b.d)).slice(-125);
  const subscriberCount=num(data.subscriberCount);
  const snapshot={daily,updatedAt:new Date().toISOString(),
