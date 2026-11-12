@@ -50,6 +50,28 @@ let category='all';
 const el=id=>document.getElementById(id);
 const color=(c,d)=>typeof c==='string'&&/^#[\da-f]{6}$/i.test(c)?c:d;
 const rgb=x=>{x=color(x,'#000000');return [1,3,5].map(n=>parseInt(x.slice(n,n+2),16)).join(',')};
+function luminance(hex){
+ let a=[1,3,5].map(i=>parseInt(hex.slice(i,i+2),16)/255).map(v=>v<=.04045?v/12.92:Math.pow((v+.055)/1.055,2.4));
+ return .2126*a[0]+.7152*a[1]+.0722*a[2];
+}
+function colorHue(hex){
+ let r=parseInt(hex.slice(1,3),16)/255,g=parseInt(hex.slice(3,5),16)/255,b=parseInt(hex.slice(5,7),16)/255;
+ let max=Math.max(r,g,b),min=Math.min(r,g,b),delta=max-min;if(!delta)return 206;
+ let h=max===r?((g-b)/delta)%6:max===g?(b-r)/delta+2:(r-g)/delta+4;
+ return ((h*60)+360)%360;
+}
+function adaptiveType(p,v){
+ const aero=p.family==='aero',pearl=p.light,metal=['n02','n10','n25','n27'].includes(p.id);
+ return {
+  fontUI:aero?'"Trebuchet MS","Segoe UI",Verdana,sans-serif':pearl?'"Aptos","Segoe UI Variable Text","Segoe UI",Arial,sans-serif':'"Segoe UI Variable Text","Segoe UI",-apple-system,BlinkMacSystemFont,sans-serif',
+  fontDisplay:aero?'"Trebuchet MS","Arial Rounded MT Bold","Segoe UI",sans-serif':metal?'"Arial Narrow","Segoe UI Variable Display","Segoe UI",sans-serif':pearl?'"Aptos Display","Segoe UI Variable Display","Segoe UI",sans-serif':'"Segoe UI Variable Display",-apple-system,BlinkMacSystemFont,sans-serif',
+  text:p.light?'#102c43':'#f5f8ff',
+  secondary:p.light?'#2e526c':'#c3d5e9',
+  label:p.light?'#1f4661':'#d6e9ff',
+  neutral:p.light?'#244b65':'#b6d0e8',
+  onAccent:luminance(v.accent)>.48?'#132a3f':'#ffffff'
+ };
+}
 const clamp=(v,a,b,def)=>{v=Number(v);return Number.isFinite(v)?Math.min(b,Math.max(a,v)):def};
 const save=()=>{try{localStorage.setItem(key,JSON.stringify(state))}catch(e){}};
 function settings(){
@@ -81,6 +103,16 @@ function apply(){
  document.body.dataset.themeBackground=v.bgmode;
  document.body.classList.toggle('t-dense',v.density==='compact');
  document.body.classList.toggle('t-still',!v.motion);
+ const type=adaptiveType(p,v),mainHue=colorHue(v.accent);
+ setvar('--t-font-ui',type.fontUI);setvar('--t-font-display',type.fontDisplay);
+ setvar('--t-ink-strong',type.text);setvar('--t-ink-muted',type.secondary);setvar('--t-ink-label',type.label);
+ setvar('--t-on-accent',type.onAccent);
+ setvar('--t-chart-axis',type.neutral);setvar('--t-chart-grid',p.light?'rgba(33,72,100,.42)':'rgba(193,216,245,.25)');
+ ['yt','ig','tt'].forEach((k,i)=>{
+  let hue=(mainHue+[0,112,219][i])%360;
+  let l=p.light?([33,35,32][i]):([68,73,71][i]);
+  setvar('--chart-'+k,'hsl('+hue+' 78% '+l+'%)');
+ });
  setvar('--t-bg',p.bg);setvar('--t-bg2',p.bg2);setvar('--t-card',rgb(p.card));
  setvar('--t-accent',v.accent);setvar('--t-accent-rgb',rgb(v.accent));
  setvar('--t-secondary',v.secondary);setvar('--t-secondary-rgb',rgb(v.secondary));
@@ -96,6 +128,7 @@ function apply(){
  const label=el('themeCurrentName');if(label)label.textContent=p.name;
  const trigger=el('themeStudioToggle');if(trigger)trigger.title='Theme: '+p.name;
  refreshEditor();
+ window.dispatchEvent(new CustomEvent('back2u-theme-changed',{detail:{id:p.id,accent:v.accent,secondary:v.secondary,light:p.light}}));
 }
 function edit(k,value){
  let o=state.edits[state.id]||{},p=byId[state.id];
@@ -188,6 +221,15 @@ function setup(){
  document.querySelectorAll('[data-glass-preset]').forEach(b=>b.addEventListener('click',()=>requestAnimationFrame(apply)));
  apply();renderGrid();
 }
+window.BACK2U_THEMES={
+ list:()=>presets.map(p=>({id:p.id,name:p.name,family:p.family,light:p.light})),
+ current:()=>state.id,
+ get:id=>{let p=byId[id]||byId[state.id];let o=state.edits[p.id]||{};return {...p,
+  accent:color(o.accent,p.accent),secondary:color(o.secondary,p.secondary),
+  tint:color(o.tint,p.accent),
+  fontProfile:p.family==='aero'?'aero':p.light?'elegant':'futuristic'};},
+ use:id=>{if(byId[id]){state.id=id;save();apply();renderGrid();return true}return false}
+};
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',setup,{once:true});
 else setup();
 })();
