@@ -19,7 +19,8 @@ const profiles={
 };
 const cache={};
 function art(p){
- if(cache[p.id])return cache[p.id];
+ const cacheKey=p.id+'|'+p.accent+'|'+p.secondary;
+ if(cache[cacheKey])return cache[cacheKey];
  const prof=profiles[p.id]||['ribbon','sidebar','neon'];
  const [type,layout,finish]=prof;
  const bright=p.light,ac=p.accent,sc=p.secondary,bg=p.bg,mid=p.bg2;
@@ -59,7 +60,8 @@ function art(p){
  '<filter id="mist"><feGaussianBlur stdDeviation="95"/></filter><filter id="smear"><feGaussianBlur stdDeviation="19"/></filter></defs>'+
  base+fog+details+'</svg>';
  const result={url:'data:image/svg+xml,'+encodeURIComponent(svg),layout,finish,type};
- cache[p.id]=result;return result;
+ if(Object.keys(cache).length>90){for(const key of Object.keys(cache).slice(0,20))delete cache[key]}
+ cache[cacheKey]=result;return result;
 }
 window.BACK2U_REFERENCE_ART=art;
 })();
