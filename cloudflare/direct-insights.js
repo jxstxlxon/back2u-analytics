@@ -37,6 +37,8 @@ export function validateDirectVideoInsights(body,now=Date.now()){
   if(!r.metrics||typeof r.metrics!=='object'||Array.isArray(r.metrics))throw Error('Missing metrics');
   const permitted=p==='yt'?YT_METRICS:IG_METRICS;
   rejectBadKeys(r.metrics,permitted);
+  if(p==='yt'&&Object.keys(r.metrics).some(k=>!k.endsWith(body.periodDays+'d')))
+   throw Error('Metric does not match the selected YouTube reporting window');
   const vals={};
   for(const [key,v] of Object.entries(r.metrics)){
    if(v===null||v===undefined)continue;
