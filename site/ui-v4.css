@@ -320,3 +320,29 @@ body[data-theme-family="aero"] :is(.platform-tabs button.selected,.period-tabs b
 @media(prefers-reduced-motion:reduce){
  body[data-theme-tone] .list-row,body[data-theme-tone] .glass{transition:none!important}
 }
+
+
+/* Reference-style horizontal BACK2U brand in every desktop sidebar. */
+@media(min-width:1100px){
+ body[data-reference-layout="sidebar"] .section-nav{padding-top:99px}
+ body[data-reference-layout="sidebar"] .section-nav::before{
+  content:"CREATOR COMMAND CENTER";
+  top:17px;left:14px;right:14px;
+  width:auto;height:65px;min-height:65px;
+  box-sizing:border-box;
+  padding:46px 3px 7px;
+  border-bottom:1px solid rgba(var(--t-accent-rgb),.34);
+  background-image:url("/back2u-wordmark.svg");
+  background-size:150px 43px;background-position:0 0;background-repeat:no-repeat;
+  font:750 9px var(--t-font-ui,system-ui);
+  color:var(--t-ink-label);letter-spacing:.11em;text-align:left;
+  display:block;white-space:nowrap
+ }
+}
+.story-slide-mark{
+ width:31cqw;flex:0 0 31cqw;height:11cqw;
+ border-radius:2.3cqw;background:linear-gradient(126deg,rgba(255,255,255,.20),rgba(var(--story-card-rgb),.35));
+}
+.story-slide-mark img{width:97%;height:96%;object-fit:contain}
+.story-slide-brand{font-size:4cqw;min-width:0}
+.story-slide-brand small{font-size:1.9cqw;letter-spacing:.08em;line-height:1.2}
