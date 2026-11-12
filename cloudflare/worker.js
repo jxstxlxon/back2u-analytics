@@ -735,6 +735,7 @@ async function route(req,env){
   return json({youtubeVideoInsights:{
    updatedAt:insights?.platforms?.yt?.updatedAt||null,
    videoCount:insights?.platforms?.yt?.videos?.length||0,
+   periods:Object.keys(insights?.platforms?.yt?.periods||{}).map(Number).sort((a,b)=>a-b),
    period:insights?.platforms?.yt?.period||null
   },instagramVideoInsights:{
    updatedAt:insights?.platforms?.ig?.updatedAt||null,
