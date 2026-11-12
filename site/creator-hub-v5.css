@@ -137,3 +137,44 @@ body[data-theme-tone] #creator{min-width:0}
  .creator-idea-form button{min-height:39px}
 }
 @media(prefers-reduced-motion:reduce){.creator-cal-day,.creator-progress-track>div{transition:none}}
+
+
+/* PERFORMANCE FIRST — user-selectable via Theme Studio. Full Liquid Glass remains available.
+   SVG scene artworks, distinct theme layouts, accent tokens and text styles are preserved. */
+body[data-performance="smooth"][data-theme-artwork="on"]{
+ background-attachment:scroll!important;
+}
+body[data-performance="smooth"] :is(.ambient,.grain){
+ display:none!important;
+}
+body[data-performance="smooth"] .glass{
+ -webkit-backdrop-filter:blur(clamp(6px,var(--t-blur),16px)) saturate(128%)!important;
+ backdrop-filter:blur(clamp(6px,var(--t-blur),16px)) saturate(128%)!important;
+ transition:box-shadow .16s,border-color .16s,background-color .16s!important;
+}
+body[data-performance="smooth"] .section-nav{
+ -webkit-backdrop-filter:blur(clamp(5px,var(--t-blur),13px)) saturate(128%)!important;
+ backdrop-filter:blur(clamp(5px,var(--t-blur),13px)) saturate(128%)!important;
+}
+body[data-performance="smooth"] #trendChart svg .chart-series-line{filter:none!important}
+body[data-performance="smooth"] .chart-card{
+ box-shadow:inset 0 1px 0 rgba(255,255,255,.38),0 7px 24px rgba(0,0,0,.14)!important
+}
+body[data-performance="smooth"][data-active-section="videos"] :is(.video-list-panel,.detail-panel,.tools){
+ -webkit-backdrop-filter:blur(9px) saturate(120%)!important;
+ backdrop-filter:blur(9px) saturate(120%)!important;
+}
+@media(max-width:820px){
+ body[data-performance="smooth"] .glass{
+  -webkit-backdrop-filter:blur(clamp(4px,var(--t-blur),10px)) saturate(118%)!important;
+  backdrop-filter:blur(clamp(4px,var(--t-blur),10px)) saturate(118%)!important;
+ }
+ body[data-performance="smooth"] .section-nav{
+  -webkit-backdrop-filter:blur(8px) saturate(115%)!important;
+  backdrop-filter:blur(8px) saturate(115%)!important;
+ }
+}
+@media(prefers-reduced-motion:reduce){
+ body[data-performance="smooth"] .creator-progress-track>div,
+ body[data-performance="smooth"] .creator-cal-day{transition:none!important}
+}
