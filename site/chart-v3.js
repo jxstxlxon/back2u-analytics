@@ -74,7 +74,10 @@ function draw(ctx){
  foot.textContent='Verfügbare Tageswerte aus API/Export, keine Schätzung. YouTube kann je nach Tag Gesamt- oder interessierte Aufrufe enthalten; TikTok-Tageswerte können aus dem Archiv stammen.';
  const hit=document.getElementById('chartHit'),hover=document.getElementById('chartHoverLabel');
  const breakdown=document.getElementById('chartDayBreakdown');
+ let selectedIndex=-1;
  const updateSelection=i=>{
+  if(i===selectedIndex)return;
+  selectedIndex=i;
   if(hit)hit.dataset.selectedIndex=String(i);
   const d=xs[i],fullDate=d.slice(8)+'.'+d.slice(5,7)+'.'+d.slice(0,4);
   const total=ps.map(p=>dMap[p].get(d)).filter(v=>typeof v==='number'&&Number.isFinite(v)).reduce((a,b)=>a+b,0);
@@ -94,13 +97,27 @@ function draw(ctx){
    if(typeof v==='number'&&Number.isFinite(v)){dot.setAttribute('cx',x(i));dot.setAttribute('cy',y(v))}
   }
  };
- if(hit){const handler=e=>{
-  const rect=chart.getBoundingClientRect(),pixel=(e.clientX-rect.left)/rect.width*W;
-  const i=Math.max(0,Math.min(xs.length-1,Math.round((pixel-L)/PW*(xs.length-1))));
-  updateSelection(i);
- };
- hit.addEventListener('pointermove',handler);
- hit.addEventListener('pointerdown',handler);
+ if(hit){
+  let pendingIndex=-1,frame=0;
+  const handler=e=>{
+   const rect=chart.getBoundingClientRect(),pixel=(e.clientX-rect.left)/rect.width*W;
+   const i=Math.max(0,Math.min(xs.length-1,Math.round((pixel-L)/PW*(xs.length-1))));
+   if(i===selectedIndex||i===pendingIndex)return;
+   pendingIndex=i;
+   if(frame)return;
+   frame=requestAnimationFrame(()=>{
+    frame=0;
+    if(pendingIndex>=0)updateSelection(pendingIndex);
+    pendingIndex=-1;
+   });
+  };
+  hit.addEventListener('pointermove',handler);
+ hit.addEventListener('pointerdown',e=>{
+   if(frame){cancelAnimationFrame(frame);frame=0}
+   pendingIndex=-1;
+   const rect=chart.getBoundingClientRect(),pixel=(e.clientX-rect.left)/rect.width*W;
+   updateSelection(Math.max(0,Math.min(xs.length-1,Math.round((pixel-L)/PW*(xs.length-1)))));
+  });
  hit.addEventListener('keydown',e=>{if(e.key==='ArrowLeft'||e.key==='ArrowRight'){e.preventDefault();const cur=Number(hit.dataset.selectedIndex??xs.length-1);const next=Math.max(0,Math.min(xs.length-1,cur+(e.key==='ArrowLeft'?-1:1)));hit.dataset.selectedIndex=next;updateSelection(next)}});
  }
  updateSelection(xs.length-1);
