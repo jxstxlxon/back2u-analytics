@@ -278,9 +278,13 @@ function videoMetricLabel(v,metric){
  const period=videoReportDays(v);
  return period?label+' · '+period+' Tage':label+' · Gesamt';
 }
+function matchesVideoSearch(v,q){
+ const haystack=[v.title,v.format,NAMES[v.platform],v.platform,v.id].filter(Boolean).join(' ').toLowerCase();
+ return haystack.includes(q);
+}
 function videoFiltered(){let arr=mergedVideos().filter(v=>platforms().includes(v.platform));
  // Do not hide older uploads that may have had new views during the report.
- if(state.query){const q=state.query.toLowerCase().trim();arr=arr.filter(v=>String(v.title||'').toLowerCase().includes(q)||String(v.format||'').toLowerCase().includes(q))}
+ if(state.query){const q=state.query.toLowerCase().trim();arr=arr.filter(v=>matchesVideoSearch(v,q))}
  if(state.fmt!=='all')arr=arr.filter(v=>v.format===state.fmt);
  return arr.sort((a,b)=>state.sort==='recent'?String(b.date||'').localeCompare(String(a.date||'')): (Number(videoMetricValue(b,state.sort))||0)-(Number(videoMetricValue(a,state.sort))||0)||String(b.date||'').localeCompare(String(a.date||'')));
 }
@@ -551,7 +555,7 @@ function updateLibraryExpander(count){
 function renderGroupedVideos(){
  const all=crossPlatformVideoGroups();
  let groups=all;
- if(state.query){const q=state.query.toLowerCase().trim();groups=groups.filter(g=>g.members.some(v=>String(v.title||'').toLowerCase().includes(q))||String(g.format||'').toLowerCase().includes(q));}
+ if(state.query){const q=state.query.toLowerCase().trim();groups=groups.filter(g=>g.members.some(v=>matchesVideoSearch(v,q))||String(g.format||'').toLowerCase().includes(q));}
  if(state.fmt!=='all')groups=groups.filter(g=>g.members.some(v=>v.format===state.fmt)||g.format===state.fmt);
  groups=groups.sort((a,b)=>state.sort==='recent'?String(b.date).localeCompare(String(a.date)):(Number(b[state.sort])||0)-(Number(a[state.sort])||0)||String(b.date).localeCompare(String(a.date)));
  $('#videoCount').textContent=fmt(groups.length)+' Video-Gruppen';
