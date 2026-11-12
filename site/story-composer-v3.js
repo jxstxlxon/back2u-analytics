@@ -42,7 +42,7 @@ const selected=()=>composer.slides[composer.selected];
 const persist=()=>{try{localStorage.setItem(KEY,JSON.stringify(composer))}catch(e){}};
 const typeOptions=sel=>TYPES.map(([v,label])=>'<option value="'+v+'"'+(v===sel?' selected':'')+'>'+esc(label)+'</option>').join('');
 const themeOptions=()=>'<option value="auto">Wie mein Dashboard</option>'+themes.list().map(x=>'<option value="'+esc(x.id)+'">'+esc(x.name)+'</option>').join('');
-const logo='<img src="/back2u-mark.svg" alt="" width="48" height="48" decoding="async"/>';
+const logo='<img src="/back2u-wordmark.svg" alt="BACK2U" width="128" height="38" decoding="async"/>';
 const root=document.createElement('div');root.id='storyEditorRoot';root.className='story-editor-shell';
 root.innerHTML='<section class="story-editor-controls" aria-label="Story-Bilder bearbeiten">'
  +'<h2>Story Studio <span style="opacity:.65">/ 9:16</span></h2>'
@@ -166,7 +166,7 @@ function render(){
  preview.style.setProperty('--story-muted',p.light?(p.readability==='strong'?'#203c54':'#345672'):(p.readability==='strong'?'#f0f7ff':'#d7e7fc'));
  preview.style.setProperty('--story-ui',typography);preview.style.setProperty('--story-display',typography);
  preview.innerHTML='<div class="story-slide-inner">'
- +'<div class="story-slide-header"><span class="story-slide-mark">'+logo+'</span><span class="story-slide-brand">BACK2U<small>CREATOR COMMAND CENTER</small></span></div>'
+ +'<div class="story-slide-header"><span class="story-slide-mark">'+logo+'</span><span class="story-slide-brand">DASHBOARD<small>CREATOR COMMAND CENTER</small></span></div>'
  +'<div class="story-slide-headline"><h2>'+esc(s.title)+'</h2><p>'+esc(P_NAMES[s.platform])+' · '+s.days+' Tage · '+esc(p.name)+'</p></div>'
  +s.slots.map((k,i)=>displaySlot(k,{p,data,s},i)).join('')
  +'<div class="story-slide-footer"><span>BACK2U DASHBOARD</span><span>'+esc(data.apiLoaded?'API-Stand':'Archivstand')+' '+esc(data.updated)+(data.complete?'':' · Teilwerte')+'</span></div>'
@@ -246,10 +246,10 @@ async function canvasStory(){
  const bgVeil=((100-(p.backgroundIntensity??76))/100*.59);
  if(bgVeil>0){c.fillStyle='rgba('+rgb(p.card)+','+bgVeil.toFixed(3)+')';c.fillRect(0,0,360,640)}
  const shade=c.createLinearGradient(0,0,360,640);shade.addColorStop(0,p.light?'rgba(255,255,255,.28)':'rgba(5,12,31,.18)');shade.addColorStop(1,p.light?'rgba(255,255,255,.16)':'rgba(1,5,22,.31)');c.fillStyle=shade;c.fillRect(0,0,360,640);
- c.fillStyle=p.accent;c.strokeStyle='#ffffff9c';c.lineWidth=1;c.beginPath();c.roundRect(25,22,40,40,11);c.fill();c.stroke();
- try{const mark=await loadImg('/back2u-mark.svg');c.drawImage(mark,26,23,38,38)}catch(e){c.fillStyle='#fff';c.font='900 22px '+font;c.fillText('B2',31,49)}
- c.fillStyle=ink;c.font='850 23px '+font;c.fillText('BACK2U',76,41);
- c.fillStyle=muted;c.font='700 8.5px '+font;c.fillText('CREATOR COMMAND CENTER',76,54);
+ c.fillStyle='rgba(20,59,101,.27)';c.strokeStyle='#ffffff9c';c.lineWidth=1;c.beginPath();c.roundRect(25,22,133,40,11);c.fill();c.stroke();
+ try{const mark=await loadImg('/back2u-wordmark.svg');c.drawImage(mark,28,24,126,34)}catch(e){c.fillStyle='#fff';c.font='900 21px '+font;c.fillText('BACK2U',32,49)}
+ c.fillStyle=ink;c.font='850 14px '+font;c.fillText('DASHBOARD',168,41);
+ c.fillStyle=muted;c.font='700 7.7px '+font;c.fillText('CREATOR COMMAND CENTER',168,54);
  c.font='850 28px '+font;c.fillStyle=ink;
  const title=String(s.title).slice(0,56),words=title.split(/\s+/);
  let line='',titleRows=[];
