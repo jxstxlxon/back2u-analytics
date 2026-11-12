@@ -54,6 +54,21 @@
    showAutomatic(state);
    try{const direct=await api('/api/direct-audience/status');showDirect(direct.sources)}
    catch{const node=$('directAudienceStatus');if(node)node.textContent='Direktstatus kann gerade nicht geladen werden.'}
+   try{
+    const report=await api('/api/direct-insights/status');
+    const node=$('directInsightsStatus');
+    if(node){
+     const y=report.youtubeVideoInsights||{},i=report.instagramVideoInsights||{},d=report.instagramDaily||{};
+     node.textContent='YouTube Videoanalysen: '+(y.videoCount||0)+' Videos'+
+      ' · Instagram Reel-Insights: '+(i.videoCount||0)+' Videos'+
+      ' · Meta-Tageswerte: '+(d.days||0)+' Tage'+
+      (d.dataThrough?' (bis '+d.dataThrough.split('-').reverse().join('.')+')':'')+
+      '. Fehlende Kennzahlen bleiben offen.';
+    }
+   }catch{
+    const node=$('directInsightsStatus');
+    if(node)node.textContent='Zusatzstatistiken: Noch kein Direktbericht verfügbar.';
+   }
    status(existing?'Private Zielgruppendaten vorhanden · Stand '+String(state.snapshotDate||'unbekannt')+'.':'Noch keine privaten Zielgruppendaten importiert.');
   }catch(e){status('Importstatus konnte nicht geladen werden: '+e.message)}
   $('audienceSyncNow').addEventListener('click',async()=>{
