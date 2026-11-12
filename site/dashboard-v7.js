@@ -118,9 +118,10 @@ function experiments(){
   +formats.slice(0,6).map(x=>'<div class="v7-format-row"><span class="v7-platform-mark" data-p="'+x.platform+'">'+names[x.platform]+'</span><strong>'+esc(x.format)+'</strong><b>'+fmt(Math.round(x.mid))+'</b><small>typische Aufrufe · '+x.n+' Videos</small></div>').join(''):
   '<div class="v7-empty">Noch zu wenige Videos mit vergleichbaren Gesamtwerten je Format vorhanden.</div>';
  $('roadmap').innerHTML=[
-  ['01 / FESTLEGEN','Eine Sache ändern','Vergleiche z. B. zwei Hooks oder zwei Uploadzeiten. Format und Videolänge möglichst ähnlich halten.'],
-  ['02 / MESSEN','Beide nach 24 Stunden prüfen','Verwende für beide Gruppen denselben Zeitpunkt nach Upload und schreibe die tatsächlichen 24h-Aufrufe auf.'],
-  ['03 / VERGLEICHEN','Genug Videos sammeln','Mindestens 5 Videos je Variante; Durchschnitt und Streuung vergleichen. Kein eindeutiger Sieger bei zu wenig Daten.']
+  ['01 / HYPOTHESE','Teste nur eine Veränderung','Zum Beispiel zwei Hooks oder 2 gegen 4 Uploads pro Tag auf EINER Plattform. Gleiche Formate, ähnliche Qualität und feste Messregeln.'],
+  ['02 / TESTPLAN','Varianten zeitlich fair verteilen','Verteile A und B möglichst über vergleichbare Wochentage. Zusätzliche Uploads und laufende Trends können Ergebnisse verzerren.'],
+  ['03 / MESSEN','Alle Videos nach 24 Stunden prüfen','Trage 24h-Aufrufe je Video ein. Bisherige Gesamtaufrufe aus dem Dashboard sind kein Ersatz für einen identischen Messzeitpunkt.'],
+  ['04 / EINORDNEN','Tendenz statt Kausalbeweis','Mindestens fünf Videos je Variante sammeln. Median, Ausreißer und mögliche Formatunterschiede berücksichtigen; keine sichere Wirkung nur aus mehr Uploads ableiten.']
  ].map(x=>'<div class="step"><div class="step-label">'+x[0]+'</div><h4>'+x[1]+'</h4><p>'+x[2]+'</p></div>').join('');
  $('formatCards').innerHTML=formats.length?formats.slice(0,6).map(x=>
   '<article class="glass format-card"><small>'+names[x.platform]+' · '+x.n+' Videos</small><b>'+esc(x.format)+'</b><strong>'+fmt(Math.round(x.mid))+'</strong><p>Median der bisherigen Gesamtaufrufe · kein Beweis für den besten Uploadzeitpunkt</p></article>'
@@ -245,7 +246,7 @@ function renderPlanner(){
  const root=$('v7Planner');if(!root)return;
  const m=model(),selectedPlatforms=m.platforms.filter(p=>names[p]),best=rankFormats(m).filter(x=>selectedPlatforms.includes(x.p)),planStored=restore('back2u_v7_plan',{slots:'11:00, 15:00, 19:00, 02:00',days:3});
  const slots=parseSlots(planStored.slots);if(!slots.length)slots.push(...availableSlots);
- root.innerHTML='<p class="v7-help">Empfehlungen aus deinen bekannten Videos – keine automatische KI-Auswertung und kein automatisches Posten. Die Uhrzeiten sind deine Testslots, keine wissenschaftlich ermittelte Bestzeit.</p>'
+ root.innerHTML='<p class="v7-help">Empfehlungen aus deinen bekannten Videos – keine automatische KI-Auswertung und kein automatisches Posten. Die Uhrzeiten sind deine Testslots, keine wissenschaftlich ermittelte Bestzeit. Auch 02:00 gilt kalendarisch am angezeigten Tag (nicht am Vorabend).</p>'
  +'<form id="v7PlannerForm" class="v7-planner-form"><label>Deine Uhrzeiten<input id="v7PlannerSlots" type="text" value="'+esc(planStored.slots)+'" placeholder="11:00, 15:00, 19:00, 02:00" /></label>'
  +'<label>Tage<select id="v7PlannerDays"><option value="3" '+(planStored.days===3?'selected':'')+'>Nächste 3 Tage</option><option value="7" '+(planStored.days===7?'selected':'')+'>Nächste 7 Tage</option></select></label><button type="submit">Plan erstellen</button></form>'
  +'<div class="v7-plan-insight"><strong>Formate mit guten bisherigen Ergebnissen</strong><p>'+(best.length?best.slice(0,3).map(x=>names[x.p]+' · '+esc(x.format)+' ('+x.n+' Videos)').join(' · '):'Noch zu wenige vergleichbare Videodaten für eine Rangfolge.')+'</p></div>'
