@@ -178,3 +178,22 @@ body[data-performance="smooth"][data-active-section="videos"] :is(.video-list-pa
  body[data-performance="smooth"] .creator-progress-track>div,
  body[data-performance="smooth"] .creator-cal-day{transition:none!important}
 }
+
+
+/* The monthly creator recap is immediately readable and uses the active theme palette. */
+.creator-month-summary{
+ display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:0 0 17px
+}
+.creator-month-stat{
+ min-width:0;padding:13px;border:1px solid rgba(var(--t-accent-rgb),.37);border-top-color:rgba(255,255,255,.62);
+ border-radius:14px;background:linear-gradient(145deg,rgba(var(--t-accent-rgb),.12),rgba(var(--t-secondary-rgb),.09));
+ display:flex;flex-direction:column;gap:5px
+}
+.creator-month-stat small{font:700 11px var(--t-font-ui,system-ui);color:var(--t-ink-muted)}
+.creator-month-stat strong{font:840 clamp(17px,1.8vw,26px) var(--t-font-display,system-ui);color:var(--t-ink-strong);letter-spacing:-.04em;font-variant-numeric:tabular-nums}
+.creator-month-stat span{font:600 10px/1.45 var(--t-font-ui,system-ui);color:var(--t-ink-muted)}
+@media(max-width:570px){
+ .creator-month-summary{grid-template-columns:1fr 1fr;gap:7px}
+ .creator-month-stat{padding:10px}
+ .creator-month-stat:last-child{grid-column:1/-1}
+}
