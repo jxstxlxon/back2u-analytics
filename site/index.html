@@ -102,7 +102,7 @@ body.story-open{overflow:hidden}
 #back2uLoginOverlay input{display:block;width:100%;padding:15px 16px;border-radius:12px;background:#061326cc;border:1px solid #adcafa5a;color:white;font:inherit;font-size:16px;margin-bottom:12px}
 #back2uLoginOverlay button{border:0;border-radius:12px;background:#449dfb;color:white;font:600 15px system-ui;padding:13px 16px;width:100%;cursor:pointer}
 #back2uLoginOverlay #back2uLoginError{min-height:20px;color:#ffc5c5;font-size:12px;margin-top:14px}
-</style><link rel="stylesheet" href="/theme-studio.css?v=1"><link rel="stylesheet" href="/theme-reference.css?v=2"><link rel="stylesheet" href="/ui-v3.css?v=3"><link rel="stylesheet" href="/ui-v4.css?v=4"><link rel="stylesheet" href="/creator-hub-v5.css?v=6"><link rel="stylesheet" href="/mobile-theme-polish-v6.css?v=6"><link rel="stylesheet" href="/dashboard-v7.css?v=12"><link rel="stylesheet" href="/audience-import.css?v=1"><link rel="stylesheet" href="/guest-access.css?v=1"></head>
+</style><link rel="stylesheet" href="/theme-studio.css?v=1"><link rel="stylesheet" href="/theme-reference.css?v=2"><link rel="stylesheet" href="/ui-v3.css?v=3"><link rel="stylesheet" href="/ui-v4.css?v=4"><link rel="stylesheet" href="/creator-hub-v5.css?v=6"><link rel="stylesheet" href="/mobile-theme-polish-v6.css?v=6"><link rel="stylesheet" href="/dashboard-v7.css?v=12"><link rel="stylesheet" href="/audience-import.css?v=2"><link rel="stylesheet" href="/guest-access.css?v=1"></head>
 <body>
 <div class="ambient ambient-a"></div><div class="ambient ambient-b"></div><div class="ambient ambient-c"></div><div class="grain"></div>
 <div class="shell">
@@ -182,15 +182,23 @@ body.story-open{overflow:hidden}
   <p class="guest-access-help">Achtung: Wer den Link besitzt, darf bis zum Ablauf die sichtbaren Dashboard-Daten ansehen und ggf. kopieren oder fotografieren. Widerrufen blockiert neue Seitenaufrufe, kann aber bereits angesehene Daten nicht zurückholen.</p>
  </section>
  <section id="audienceImportPanel" class="glass pane audience-import-panel" hidden aria-label="Zielgruppendaten privat importieren">
-  <div class="pane-header"><h3>🔒 Fehlende Zielgruppendaten privat importieren</h3><span class="pill">Nur Admin</span></div>
-  <p>Hier werden bestätigte YouTube- und TikTok-Zielgruppenwerte direkt in deiner privaten Cloudflare-D1-Datenbank gespeichert, nicht im öffentlichen GitHub-Repository. Gastzugänge können die Ergebnisse anschließend nur ansehen.</p>
+  <div class="pane-header"><h3>🔄 Zielgruppen-Synchronisierung</h3><span class="pill">Nur Admin</span></div>
+  <p>BACK2U V7.6 aktualisiert alle neun Zielgruppenaufteilungen automatisch aus deinen verbundenen Plattformkonten. Die Werte werden ausschließlich in Cloudflare D1 gespeichert. Gäste dürfen sie nur lesen.</p>
+  <div class="audience-auto-panel">
+   <h4>Automatische Zielgruppen-Aktualisierung</h4>
+   <div id="audienceAutoSyncStatus" role="status" aria-live="polite">Verbindung wird geprüft …</div>
+   <button type="button" id="audienceSyncNow">Jetzt aktualisieren</button>
+   <p id="audienceAutoSyncHint">Für automatische Updates muss einmalig WINDSOR_API_KEY als Cloudflare-Secret gespeichert werden. Der bestehende Cloudflare-Cron führt dann höchstens einmal täglich einen vollständigen Abgleich durch.</p>
+  </div>
+  <details class="audience-manual-fallback"><summary>Manueller JSON-Import (Reserve)</summary><p>Nur nötig, wenn der automatische Datenabgleich ausfällt.</p>
   <form id="audienceImportForm">
    <label for="audienceImportFile">BACK2U-Audience-JSON auswählen</label>
    <input id="audienceImportFile" type="file" accept=".json,application/json" required/>
    <button type="submit" id="audienceImportButton">Zielgruppenwerte sicher importieren</button>
   </form>
   <div id="audienceImportStatus" role="status" aria-live="polite">Noch keine Importdatei ausgewählt.</div>
-  <small>Einmaliger Datenstand; nicht automatisch täglich aktualisiert. YouTube-Länder sind Aufrufanteile, YouTube-Alter/Geschlecht Zuschaueranteile und TikTok-Alter Followeranteile.</small>
+  <small>Der manuelle Import ist eine Momentaufnahme. Automatisch aktualisierte Berichte zeigen jeweils den Zeitraum und die Messbasis der Plattform.</small>
+  </details>
  </section>
  <div class="glass pane"><div class="pane-header"><h3>Daten & Aktualisierung</h3><button id="exportJson" class="small-button">Datensatz exportieren ↓</button></div><div id="systemInfo"></div></div>
  <div class="glass pane"><div class="pane-header"><h3>Verfügbare / fehlende Kennzahlen</h3><span class="pill">Keine stillen Schätzungen</span></div><div id="qualityMatrix"></div></div>
@@ -847,7 +855,7 @@ document.querySelector('#back2uLoginForm').addEventListener('submit',async(e)=>{
  try{
   const response=await fetch('/api/login',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({password:field.value}),credentials:'same-origin',cache:'no-store'});
   if(!response.ok)throw new Error(response.status===401?'Das Passwort ist nicht richtig.':'Die Anmeldung ist gerade nicht erreichbar ('+response.status+').');
-  field.value='';document.querySelector('#back2uLoginOverlay').hidden=true;await loadLive(true);
+  field.value='';document.querySelector('#back2uLoginOverlay').hidden=true;await loadLive(true);window.dispatchEvent(new Event('back2u:auth'));
  }catch(x){err.textContent=x.message||'Anmeldung fehlgeschlagen'}
  finally{b.disabled=false}
 });
@@ -917,5 +925,5 @@ window.BACK2U_REFRESH_CHART=()=>{if(state.section==='overview')renderTrend()};gl
  renderActive();loadLive(false);
 })();
 </script><script src="/reference-theme-art.js?v=4" defer></script><script src="/theme-studio.js?v=4" defer></script><script src="/chart-v3.js?v=6" defer></script><script src="/story-composer-v3.js?v=6" defer></script><script src="/creator-hub-v5.js?v=9" defer></script><script src="/dashboard-v7.js?v=12" defer></script>
-<script src="/guest-access.js?v=1" defer></script><script src="/audience-import.js?v=1" defer></script>
+<script src="/guest-access.js?v=1" defer></script><script src="/audience-import.js?v=2" defer></script>
 </body></html>

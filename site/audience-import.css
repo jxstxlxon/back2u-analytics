@@ -9,3 +9,19 @@
 #audienceImportForm button:disabled{opacity:.5;cursor:wait}
 #audienceImportStatus{margin:11px 0;min-height:19px;color:var(--t-ink-strong);font:690 11px/1.5 var(--t-font-ui,system-ui)}
 @media(max-width:670px){#audienceImportForm{display:grid;grid-template-columns:minmax(0,1fr)}#audienceImportForm button{width:100%}}
+
+/* V7.6 – theme-aware auto sync panel, mobile-first */
+#audienceImportPanel .audience-auto-panel{min-width:0;margin:12px 0;padding:14px 15px;
+ border:1px solid rgba(var(--t-accent-rgb),.34);border-radius:15px;background:rgba(var(--t-card),.38)}
+#audienceImportPanel .audience-auto-panel h4{margin:0 0 8px;color:var(--t-ink-strong);font:800 15px/1.45 var(--t-font-display,system-ui)}
+#audienceAutoSyncStatus{color:var(--t-ink-strong);font:650 12px/1.6 var(--t-font-ui,system-ui);overflow-wrap:anywhere}
+#audienceAutoSyncHint{margin:10px 0 0;color:var(--t-ink-label);font:600 11px/1.6 var(--t-font-ui,system-ui)}
+#audienceSyncNow{display:inline-flex;align-items:center;justify-content:center;margin-top:12px;
+ min-height:44px;padding:10px 14px;border:1px solid rgba(var(--t-accent-rgb),.53);border-radius:12px;
+ background:rgba(var(--t-accent-rgb),.25);color:var(--t-ink-strong);font:760 12px var(--t-font-ui,system-ui);cursor:pointer}
+#audienceSyncNow:disabled{opacity:.55;cursor:not-allowed}
+#audienceImportPanel .audience-manual-fallback{min-width:0;margin:12px 0;
+ padding:12px;border:1px solid rgba(var(--t-accent-rgb),.23);border-radius:13px}
+#audienceImportPanel .audience-manual-fallback summary{cursor:pointer;color:var(--t-ink-strong);font:760 12px/1.5 var(--t-font-ui,system-ui)}
+#audienceImportPanel .audience-manual-fallback p{color:var(--t-ink-label);font:610 11px/1.5 var(--t-font-ui,system-ui)}
+@media(max-width:650px){#audienceImportPanel .audience-auto-panel{padding:12px}#audienceSyncNow{width:100%}}
