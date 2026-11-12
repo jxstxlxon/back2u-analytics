@@ -302,7 +302,7 @@ function setSection(s){
  $$('[data-section]').forEach(x=>x.classList.toggle('active',x.dataset.section===s));
  $$('.view').forEach(x=>x.classList.toggle('active',x.id===s));
  renderActive();
- if(window.scrollY>0)window.scrollTo({top:0,behavior:'instant'});
+ if(window.scrollY>0)window.scrollTo({top:0,behavior:'auto'});
 }
 function setPeriod(d){state.days=d;$$('[data-days]').forEach(x=>x.classList.toggle('selected',Number(x.dataset.days)===d));state.page=1;state.selected=null;try{localStorage.setItem('back2u_view_preferences_v5',JSON.stringify({platform:state.platform,days:state.days}))}catch{}renderActive()}
 function setPlatform(p){state.platform=p;$$('[data-platform]').forEach(x=>x.classList.toggle('selected',x.dataset.platform===p));state.page=1;state.selected=null;try{localStorage.setItem('back2u_view_preferences_v5',JSON.stringify({platform:state.platform,days:state.days}))}catch{}renderActive()}
