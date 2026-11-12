@@ -86,6 +86,7 @@ function settings(){
  v.aeroCursor=['auto','aqua','orb','crystal'].includes(o.aeroCursor)?o.aeroCursor:'auto';
  v.readability=['auto','strong'].includes(o.readability)?o.readability:'auto';
  v.chartMode=['line','area','bar'].includes(o.chartMode)?o.chartMode:'line';
+ v.performance=o.performance==='full'?'full':'smooth';
  v.motion=o.motion!==false;
  return v;
 }
@@ -106,6 +107,7 @@ function apply(){
  document.body.dataset.themeId=p.id;
  document.body.dataset.themeFamily=p.family;
  document.body.dataset.themeBackground=v.bgmode;
+ document.body.dataset.performance=v.performance;
  document.body.classList.toggle('t-dense',v.density==='compact');
  document.body.classList.toggle('t-still',!v.motion);
  const cursorMode=p.family==='aero'?v.aeroCursor:'auto';
@@ -116,8 +118,8 @@ function apply(){
    :cursorMode==='orb'
    ?'<circle cx="14" cy="14" r="11" fill="#75dcfa" fill-opacity=".72" stroke="#fff" stroke-width="3"/><circle cx="10" cy="9" r="4" fill="#fff" opacity=".85"/><circle cx="14" cy="14" r="6" fill="none" stroke="#2cb5df" stroke-width="1.8"/>'
    :'<path d="M4 2L4 29L12 21L17 29L22 26L17 17L29 16Z" fill="#d5f8ff" stroke="#8aa8ff" stroke-width="2.2"/><path d="M4 2L13 13L4 29" fill="none" stroke="#fff" stroke-width="1.8"/>';
-  const image='<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32">'+icon+'</svg>';
-  const hotspot=cursorMode==='orb'?'14 14':'4 2';
+  const image='<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 32 32">'+icon+'</svg>';
+  const hotspot=cursorMode==='orb'?'10 10':'3 2';
   setvar('--aero-cursor','url("data:image/svg+xml,'+encodeURIComponent(image)+'") '+hotspot+', auto');
  }else setvar('--aero-cursor','auto');
  const type=adaptiveType(p,v),mainHue=colorHue(v.accent);
@@ -174,6 +176,7 @@ function edit(k,value){
  else if(k==='aeroCursor')o[k]=['auto','aqua','orb','crystal'].includes(value)?value:'auto';
  else if(k==='readability')o[k]=['auto','strong'].includes(value)?value:'auto';
  else if(k==='chartMode')o[k]=['line','area','bar'].includes(value)?value:'line';
+ else if(k==='performance')o[k]=value==='full'?'full':'smooth';
  else if(k==='layout')o[k]=['auto','sidebar','wide'].includes(value)?value:'auto';
  else if(k==='finish')o[k]=['original','gem','chrome','frost','iridescent','spectral','obsidian','sunset','neon'].includes(value)?value:'original';
  else if(k==='motion')o[k]=!!value;
@@ -182,7 +185,7 @@ function edit(k,value){
 }
 function refreshEditor(){
  const v=settings();
- ['accent','secondary','tint','bgmode','density','layout','finish','typography','readability','chartMode','aeroCursor'].concat(Object.keys(defaults)).forEach(k=>{
+ ['accent','secondary','tint','bgmode','density','layout','finish','typography','readability','chartMode','aeroCursor','performance'].concat(Object.keys(defaults)).forEach(k=>{
   if(el('theme_'+k))el('theme_'+k).value=v[k];
   if(el('theme_out_'+k))el('theme_out_'+k).textContent=v[k]+(['blur','radius'].includes(k)?' px':'%');
  });
@@ -231,6 +234,7 @@ function setup(){
  '<label class="theme-choice">Schriftart<select id="theme_typography" data-setting="typography"><option value="original">Passend zum Theme (Standard)</option><option value="modern">Segoe UI · Modern</option><option value="glass">Helvetica/Segoe · Liquid Glass</option><option value="aero">Trebuchet · Frutiger Aero</option><option value="geometric">Century Gothic/Aptos · Geometrisch</option><option value="elegant">Aptos · Elegant</option><option value="tech">Arial Narrow · Tech</option></select></label>',
  '<label class="theme-choice" id="themeAeroCursorRow" hidden>Frutiger-Aero-Cursor<select id="theme_aeroCursor" data-setting="aeroCursor"><option value="auto">System-Cursor</option><option value="aqua">Aqua Glass Arrow</option><option value="orb">Glass Orb</option><option value="crystal">Crystal Pointer</option></select></label>',
  '<label class="theme-choice">Diagrammstil<select id="theme_chartMode" data-setting="chartMode"><option value="line">Linien</option><option value="area">Flächen</option><option value="bar">Balken</option></select></label>',
+ '<label class="theme-choice">Leistung & Glas<select id="theme_performance" data-setting="performance"><option value="smooth">Flüssig (empfohlen)</option><option value="full">Volle Effekte (mehr Leistung nötig)</option></select></label>',
  '<label class="theme-choice">Textkontrast<select id="theme_readability" data-setting="readability"><option value="auto">Automatisch lesbar</option><option value="strong">Extra deutlich</option></select></label>',
  '<label class="theme-choice">Abstände<select id="theme_density" data-setting="density"><option value="normal">Komfortabel</option><option value="compact">Kompakt</option></select></label>',
  '<label class="theme-checkbox"><input id="theme_motion" type="checkbox" data-setting="motion"> Animationen</label>',

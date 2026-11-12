@@ -28,13 +28,13 @@ function draw(ctx){
  const highest=peaks.reduce((best,r)=>!best||r.value>best.value?r:best,null);
  const lowest=peaks.reduce((best,r)=>!best||r.value<best.value?r:best,null);
  const entries=[
-  ['Erfasste Summe',f(sum),observed.length+' Tage mit Messwerten'],
-  ['Ø je erfasstem Tag',avg===null?'–':f(Math.round(avg)),'nicht pro Kalendertag'],
+  ['Zusammen gezählt',f(sum),observed.length+' Tage mit bekannten Zahlen'],
+  ['Ø pro Tag mit Daten',avg===null?'–':f(Math.round(avg)),'nur Tage mit bekannten Zahlen'],
   ['Höchster Tag',highest?f(highest.value):'–',highest?highest.d.slice(5).replace('-','.')+'.':'keine Daten'],
   ['Niedrigster Tag',lowest?f(lowest.value):'–',lowest?lowest.d.slice(5).replace('-','.')+'.':'keine Daten']
  ];
  cards.innerHTML=entries.map(e=>'<div class="chart-kpi"><span class="chart-kpi-label">'+esc(e[0])+'</span><strong class="chart-kpi-number">'+esc(e[1])+'</strong><small class="chart-kpi-meta">'+esc(e[2])+'</small></div>').join('');
- note.textContent='Datenabdeckung: '+observed.length+' / '+days+' Kalendertage · '+complete.length+' vollständige Plattformtage'+(complete.length?' (Peak/Low daraus)':' (Peak/Low nur erfasste Teilsummen)')+'. Keine Hochrechnung; mehrere Plattform-Messgrößen sind nicht immer direkt vergleichbar.';
+ note.textContent='Zahlen vorhanden für '+observed.length+' von '+days+' Tagen. '+complete.length+' Tage haben Werte von allen gewählten Plattformen. '+(complete.length?'Höchster und niedrigster Tag stammen aus diesen gemeinsamen Tagen.':'Für den höchsten und niedrigsten Tag sind nur teilweise Zahlen bekannt.')+' Fehlende Tage werden nicht geschätzt.';
  const all=ps.flatMap(p=>xs.map(x=>dMap[p].get(x)).filter(v=>typeof v==='number'&&Number.isFinite(v)&&v>=0));
  const max=Math.max(1,...all),tick=niceStep(max/4),ymax=Math.ceil(max/tick)*tick;
  const W=1000,H=295,L=83,R=18,T=16,B=41,PW=W-L-R,PH=H-T-B;
@@ -71,10 +71,13 @@ function draw(ctx){
  for(const p of ps)out+='<circle id="chartFocus-'+p+'" r="5.3" cx="0" cy="0" stroke="var(--t-bg,#0a1327)" stroke-width="2" fill="'+cssColor(p,colorFor[p])+'" style="pointer-events:none"/>';
  out+='<rect id="chartHit" x="'+L+'" y="'+T+'" width="'+PW+'" height="'+PH+'" fill="transparent" tabindex="0" role="slider" aria-label="Datum im Diagramm auswählen" style="touch-action:pan-y"/></svg>';
  chart.innerHTML=out;
- foot.textContent='Verfügbare Tageswerte aus API/Export, keine Schätzung. YouTube kann je nach Tag Gesamt- oder interessierte Aufrufe enthalten; TikTok-Tageswerte können aus dem Archiv stammen.';
+ foot.textContent='Die Plattformen zählen Aufrufe teilweise unterschiedlich. Die Zahlen stammen aus deinen gespeicherten Berichten; sie sind nicht immer direkt vergleichbar.';
  const hit=document.getElementById('chartHit'),hover=document.getElementById('chartHoverLabel');
  const breakdown=document.getElementById('chartDayBreakdown');
+ let selectedIndex=-1;
  const updateSelection=i=>{
+  if(i===selectedIndex)return;
+  selectedIndex=i;
   if(hit)hit.dataset.selectedIndex=String(i);
   const d=xs[i],fullDate=d.slice(8)+'.'+d.slice(5,7)+'.'+d.slice(0,4);
   const total=ps.map(p=>dMap[p].get(d)).filter(v=>typeof v==='number'&&Number.isFinite(v)).reduce((a,b)=>a+b,0);
@@ -94,13 +97,27 @@ function draw(ctx){
    if(typeof v==='number'&&Number.isFinite(v)){dot.setAttribute('cx',x(i));dot.setAttribute('cy',y(v))}
   }
  };
- if(hit){const handler=e=>{
-  const rect=chart.getBoundingClientRect(),pixel=(e.clientX-rect.left)/rect.width*W;
-  const i=Math.max(0,Math.min(xs.length-1,Math.round((pixel-L)/PW*(xs.length-1))));
-  updateSelection(i);
- };
- hit.addEventListener('pointermove',handler);
- hit.addEventListener('pointerdown',handler);
+ if(hit){
+  let pendingIndex=-1,frame=0;
+  const handler=e=>{
+   const rect=chart.getBoundingClientRect(),pixel=(e.clientX-rect.left)/rect.width*W;
+   const i=Math.max(0,Math.min(xs.length-1,Math.round((pixel-L)/PW*(xs.length-1))));
+   if(i===selectedIndex||i===pendingIndex)return;
+   pendingIndex=i;
+   if(frame)return;
+   frame=requestAnimationFrame(()=>{
+    frame=0;
+    if(pendingIndex>=0)updateSelection(pendingIndex);
+    pendingIndex=-1;
+   });
+  };
+  hit.addEventListener('pointermove',handler);
+ hit.addEventListener('pointerdown',e=>{
+   if(frame){cancelAnimationFrame(frame);frame=0}
+   pendingIndex=-1;
+   const rect=chart.getBoundingClientRect(),pixel=(e.clientX-rect.left)/rect.width*W;
+   updateSelection(Math.max(0,Math.min(xs.length-1,Math.round((pixel-L)/PW*(xs.length-1)))));
+  });
  hit.addEventListener('keydown',e=>{if(e.key==='ArrowLeft'||e.key==='ArrowRight'){e.preventDefault();const cur=Number(hit.dataset.selectedIndex??xs.length-1);const next=Math.max(0,Math.min(xs.length-1,cur+(e.key==='ArrowLeft'?-1:1)));hit.dataset.selectedIndex=next;updateSelection(next)}});
  }
  updateSelection(xs.length-1);
