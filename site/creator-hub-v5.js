@@ -44,6 +44,10 @@ function crosspostGroups(videos){
   groups.push(group);
   if(key){if(!index.has(key))index.set(key,[]);index.get(key).push(group)}
  }
+ for(const group of groups){
+  const preferred=group.items.find(x=>x.platform==='yt')||group.items.find(x=>x.platform==='ig')||group.items[0];
+  group.title=preferred.title||'Video ohne Titel';
+ }
  return groups.sort((a,b)=>a.date.localeCompare(b.date)||String(a.title||'').localeCompare(String(b.title||'')));
 }
 
