@@ -73,6 +73,20 @@
     const node=$('directInsightsStatus');
     if(node)node.textContent='Zusatzstatistiken: Noch kein Direktbericht verfügbar.';
    }
+   try{
+    const audit=await api('/api/direct-parity');
+    const node=$('directParityStatus');
+    if(node){
+     const missing=(audit.checks||[]).filter(x=>!x.pass);
+     node.textContent='Direktquellen-Datenprüfung: '+audit.summary.passed+'/'+audit.summary.total+' erfüllt. '+
+      (missing.length?'Offen: '+missing.map(x=>x.label+' ('+x.details+')').join(' · '):
+       'Datenabdeckung vollständig; echter 7-Tage-Parallelvergleich und D1-Backup bleiben Pflicht.')+
+      ' Keine automatische Windsor-Abschaltung.';
+    }
+   }catch{
+    const node=$('directParityStatus');
+    if(node)node.textContent='Datenqualitätsprüfung nicht erreichbar; Windsor bleibt aktiv.';
+   }
    status(existing?'Private Zielgruppendaten vorhanden · Stand '+String(state.snapshotDate||'unbekannt')+'.':'Noch keine privaten Zielgruppendaten importiert.');
   }catch(e){status('Importstatus konnte nicht geladen werden: '+e.message)}
   $('audienceSyncNow').addEventListener('click',async()=>{
