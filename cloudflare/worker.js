@@ -296,6 +296,14 @@ async function ingestDirectInsights(req,env,kind){
  }
  const previous=last?.platforms?.[value.platform];
  if(previous?.snapshotDate>value.snapshotDate)return json({error:'Older video insights report'},409);
+ if(value.platform==='yt'){
+  const window=String(value.period?.days||28)+'d';
+  const oldCount=(previous?.videos||[]).filter(v=>
+   Object.keys(v.metrics||{}).some(k=>k.endsWith(window))).length;
+  // A suddenly truncated API report must not erase the saved, complete report.
+  if(oldCount>=20&&value.videos.length<Math.ceil(oldCount*.55))
+   return json({error:'Suspiciously incomplete YouTube '+window+' report; previous data kept'},422);
+ }
  await put(env,key,mergeDirectVideoInsights(last,value));
  return json({ok:true,platform:value.platform,source:value.source,videos:value.videos.length,
   period:value.period||'lifetime',snapshotDate:value.snapshotDate});
