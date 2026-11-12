@@ -129,11 +129,11 @@
   });
   $('audienceSyncNow').addEventListener('click',async()=>{
    const button=$('audienceSyncNow'),target=$('audienceAutoSyncStatus');
-   button.disabled=true;target.textContent='Rufe neun aktuelle Zielgruppen-Berichte bei Windsor.ai ab …';
+   button.disabled=true;target.textContent='Aktualisiere die für dein Konto freigeschalteten Zielgruppen-Berichte …';
    try{
     const result=await api('/api/audience/sync',{method:'POST',headers:{'content-type':'application/json'},body:'{}'});
     if(result.status!=='ok')throw new Error(result.error||result.reason||result.status);
-    target.textContent='Erfolgreich: 9 von 9 Aufteilungen aktualisiert · '+formatTime(result.lastSuccessAt)+'.';
+    target.textContent='Erfolgreich: '+String(result.groups??'–')+' geprüfte Zielgruppen-Aufteilungen aktualisiert · '+formatTime(result.lastSuccessAt)+'.';
     existing=true;
     const refresh=$('refreshBtn');if(refresh)refresh.click();
    }catch(e){target.textContent='Automatischer Abruf fehlgeschlagen: '+e.message+'. Die bisher gespeicherten Statistiken bleiben erhalten.'}
