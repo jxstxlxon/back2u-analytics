@@ -129,7 +129,7 @@ body.story-open{overflow:hidden}
 </section>
 <section id="videos" class="view">
   <div class="section-heading"><div><div class="eyebrow">01 / VIDEO INTELLIGENCE</div><h2>Jedes Video im Blick</h2><p>Rankings, Suche und Plattformvergleich. Werte stammen aus unterschiedlichen Berichtsarten.</p></div><span class="pill" id="videoCount"></span></div>
-  <div class="video-sync-row"><button type="button" class="small-button" id="tiktokSyncNow">↻ TikTok jetzt synchronisieren</button><span role="status" id="tiktokSyncHint">TikTok-Sandbox · offizieller Videoabruf</span></div>
+  <div class="video-sync-row"><button type="button" class="small-button" id="tiktokSyncNow">↻ TikTok jetzt synchronisieren</button><button type="button" class="small-button" id="tiktokAuditNow">◎ TikTok-Videos gegenprüfen</button><span role="status" id="tiktokSyncHint">TikTok-Sandbox · offizieller Videoabruf</span><span role="status" id="tiktokAuditHint">Zweiter TikTok-API-Test · schreibgeschützt</span></div>
   <label class="tiktok-archive-control" id="tiktokArchiveRow" hidden><input type="checkbox" id="showArchivedTikTok"/> <span>119 TikTok-Screenshot-Archiveinträge zusätzlich anzeigen (können API-Videos doppeln)</span></label>
   <div class="video-period-info" id="videoPeriodInfo" role="status"></div>
   <div class="tools glass"><label class="search-wrap"><span>⌕</span><input id="videoSearch" placeholder="Titel, Song, Format suchen ..." aria-label="Videos suchen" /></label><select id="videoSort" aria-label="Videos sortieren"><option value="views">Meiste Aufrufe</option><option value="likes">Meiste Likes</option><option value="comments">Meiste Kommentare</option><option value="follows">Meiste Follows</option><option value="recent">Neueste zuerst</option></select><select id="formatFilter" aria-label="Videoformat filtern"><option value="all">Alle Formate</option><option>Trend</option><option>Edit</option><option>Jumpstyle</option><option>Hakken</option><option>Training</option><option>Outfit</option><option>Outdoor</option></select></div>
@@ -325,6 +325,13 @@ function renderLifetimeViews(){
  let note=covered?fmt(validated)+' Videos mit erfassten Aufrufzahlen; Stand der letzten verfügbaren API-Daten.':'Noch kein authentifizierter API-Videobestand geladen.';
  note+=' Die Karte ist unabhängig vom 7-/28-/90-Tage-Filter.';
  note+=' Es sind aufsummierte Videoaufrufe, nicht eindeutig verschiedene Zuschauer. Private, entfernte oder nicht abrufbare Inhalte können fehlen.';
+ if(ids.includes('tt')){
+  const apiCount=state.live?.platforms?.tt?.videos?.length||0;
+  const raw=state.live?.platforms?.tt?.profile?.videoCount;
+  const official=Number.isSafeInteger(raw)&&raw>=0?raw:null;
+  if(apiCount&&official!==null&&apiCount!==official)
+   note+=' TikTok: '+fmt(apiCount)+' eindeutige API-Videoeinträge, aber '+fmt(official)+' öffentlich gemeldete Videos im TikTok-Profil. Unterschiede zwischen Datenquellen werden nicht künstlich angeglichen.';
+ }
  if(!complete)note+=' Fehlende Werte wurden nicht geschätzt.';
  $('#lifetimeViewsNote').textContent=note;
 }
@@ -712,13 +719,34 @@ async function syncTiktokNow(){
  }catch(e){hint.textContent='TikTok-Import: '+String(e.message||e);toast('TikTok-Import nicht abgeschlossen')}
  finally{btn.disabled=false;btn.textContent='↻ TikTok jetzt synchronisieren'}
 }
+async function auditTiktokNow(){
+ const btn=$('#tiktokAuditNow'),hint=$('#tiktokAuditHint');
+ if(btn.disabled)return;
+ btn.disabled=true;btn.textContent='◎ TikTok-Prüfung läuft …';
+ hint.textContent='Alle Video-IDs werden mit video.query kontrolliert. Keine Videos werden gelöscht.';
+ try{
+  const response=await fetch('/api/tiktok/audit',{
+   method:'POST',credentials:'same-origin',cache:'no-store',signal:AbortSignal.timeout(120000)});
+  const data=await response.json();
+  if(response.status===401){showLogin();throw Error('Bitte zuerst anmelden')}
+  if(!response.ok||!data.ok)throw Error(String(data.error||('API-Fehler '+response.status)));
+  const count=data.tiktokProfileVideoCount;
+  hint.textContent=data.queryComplete?
+   'Videoaudit: '+fmt(data.queryConfirmedIds)+' von '+fmt(data.uniqueValidStoredIds)+
+   ' IDs über video.query bestätigt'+(data.queryUnconfirmedIds?' · '+fmt(data.queryUnconfirmedIds)+' nicht bestätigt':'')+
+   (count!==null?' · TikTok-Profil: '+fmt(count):' · Profilzähler fehlt'):
+   'Videoaudit unvollständig ('+fmt(data.requestErrors?.length||0)+' API-Fehler). Keine Videos als fehlend gewertet.';
+  toast(data.queryComplete?'TikTok-Videoaudit abgeschlossen':'TikTok-Videoaudit nicht vollständig');
+ }catch(e){hint.textContent='Videoaudit: '+String(e.message||e);toast('TikTok-Videoaudit nicht abgeschlossen')}
+ finally{btn.disabled=false;btn.textContent='◎ TikTok-Videos gegenprüfen'}
+}
 function bind(){
  $$('[data-platform]').forEach(el=>el.addEventListener('click',()=>setPlatform(el.dataset.platform)));
  $$('[data-days]').forEach(el=>el.addEventListener('click',()=>setPeriod(Number(el.dataset.days))));
  $$('[data-section]').forEach(el=>el.addEventListener('click',()=>setSection(el.dataset.section)));
  $$('[data-go]').forEach(el=>el.addEventListener('click',()=>setSection(el.dataset.go)));
  $('#glassSlider').addEventListener('input',e=>glassSet(e.target.value));$$('[data-glass-preset]').forEach(el=>el.addEventListener('click',()=>glassSet(el.dataset.glassPreset)));
- $('#storyModeToggle').addEventListener('click',toggleStoryMode);$('#storyClose').addEventListener('click',()=>setStoryMode(false));$('#storySave').addEventListener('click',saveStoryPng);document.addEventListener('keydown',e=>{if(e.key==='Escape'&&state.storyMode)setStoryMode(false)});$('#refreshBtn').addEventListener('click',()=>loadLive(true));$('#tiktokSyncNow').addEventListener('click',syncTiktokNow);$('#showArchivedTikTok').addEventListener('change',e=>{state.includeTiktokArchive=e.target.checked;state.page=1;state.selected=null;renderActive()});$('#videoSearch').addEventListener('input',e=>{state.query=e.target.value;state.page=1;renderVideos()});$('#videoSort').addEventListener('change',e=>{state.sort=e.target.value;state.page=1;renderVideos()});$('#formatFilter').addEventListener('change',e=>{state.fmt=e.target.value;state.page=1;renderVideos()});$('#prevPage').addEventListener('click',()=>{state.page--;renderVideos()});$('#nextPage').addEventListener('click',()=>{state.page++;renderVideos()});$('#exportJson').addEventListener('click',exportData);
+ $('#storyModeToggle').addEventListener('click',toggleStoryMode);$('#storyClose').addEventListener('click',()=>setStoryMode(false));$('#storySave').addEventListener('click',saveStoryPng);document.addEventListener('keydown',e=>{if(e.key==='Escape'&&state.storyMode)setStoryMode(false)});$('#refreshBtn').addEventListener('click',()=>loadLive(true));$('#tiktokSyncNow').addEventListener('click',syncTiktokNow);$('#tiktokAuditNow').addEventListener('click',auditTiktokNow);$('#showArchivedTikTok').addEventListener('change',e=>{state.includeTiktokArchive=e.target.checked;state.page=1;state.selected=null;renderActive()});$('#videoSearch').addEventListener('input',e=>{state.query=e.target.value;state.page=1;renderVideos()});$('#videoSort').addEventListener('change',e=>{state.sort=e.target.value;state.page=1;renderVideos()});$('#formatFilter').addEventListener('change',e=>{state.fmt=e.target.value;state.page=1;renderVideos()});$('#prevPage').addEventListener('click',()=>{state.page--;renderVideos()});$('#nextPage').addEventListener('click',()=>{state.page++;renderVideos()});$('#exportJson').addEventListener('click',exportData);
 }
 glassSet(state.glass);bind();renderActive();loadLive(false);
 })();
