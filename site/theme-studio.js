@@ -44,8 +44,8 @@ const byId=Object.fromEntries(presets.map(p=>[p.id,p]));
 const key='back2u-theme-studio-v1';
 let state={id:'n01',edits:{}};
 try{let old=JSON.parse(localStorage.getItem(key)||'null');if(old&&byId[old.id]){state.id=old.id;if(old.edits&&typeof old.edits==='object'&&!Array.isArray(old.edits))state.edits=old.edits}}catch(e){}
-const defaults={tintStrength:14,glow:55,blur:27,sheen:56,radius:25,saturation:130,chartContrast:78};
-const ranges={tintStrength:[0,80],glow:[0,100],blur:[0,64],sheen:[0,100],radius:[12,42],saturation:[80,180],chartContrast:[20,100]};
+const defaults={tintStrength:14,glow:55,blur:27,sheen:56,radius:25,saturation:130,chartContrast:78,backgroundIntensity:76,outlineStrength:55};
+const ranges={tintStrength:[0,80],glow:[0,100],blur:[0,64],sheen:[0,100],radius:[12,42],saturation:[80,180],chartContrast:[20,100],backgroundIntensity:[0,100],outlineStrength:[0,100]};
 let category='all';
 const el=id=>document.getElementById(id);
 const color=(c,d)=>typeof c==='string'&&/^#[\da-f]{6}$/i.test(c)?c:d;
@@ -138,6 +138,8 @@ function apply(){
  setvar('--t-edge-alpha',(.15+v.sheen*.0034).toFixed(3));setvar('--t-top-alpha',(.27+v.sheen*.004).toFixed(3));setvar('--t-reflect-alpha',(.10+v.sheen*.0028).toFixed(3));
  setvar('--t-shadow-size',(v.glow*.29).toFixed(1)+'px');setvar('--t-shadow-alpha',(v.glow*.0018).toFixed(3));
  setvar('--t-radius',v.radius+'px');setvar('--t-saturation',v.saturation+'%');setvar('--t-chart-contrast',(v.chartContrast/100).toFixed(2));
+ setvar('--t-background-veil',((100-v.backgroundIntensity)/100*.72).toFixed(3));
+ setvar('--t-outline-alpha',(.17+.0063*v.outlineStrength).toFixed(3));
  setvar('--ink',p.light?'#102c43':'#edf6ff');setvar('--muted',p.light?'#33556f':'#b4c7da');setvar('--soft',p.light?'#556b81':'#8da9c3');
  setvar('--t-label',p.light?'#21435e':'#d9ecfa');setvar('--t-grid',p.light?'#426c93':'#95bde8');
  document.documentElement.style.colorScheme=p.light?'light':'dark';
@@ -193,7 +195,7 @@ const rangeControl=(key,label,min,max)=>'<label class="theme-slider">'+label+' <
 const colorControl=(key,label)=>'<label class="theme-color">'+label+'<input id="theme_'+key+'" data-setting="'+key+'" type="color"></label>';
 function setup(){
  const panel=document.createElement('div');panel.id='themeStudioPanel';panel.hidden=true;
- const controls=Object.keys(ranges).map(k=>rangeControl(k,({tintStrength:'Farb-Layer',glow:'Glow & Licht',blur:'Unschärfe',sheen:'Kantenglanz',radius:'Eckenradius',saturation:'Farbsättigung',chartContrast:'Diagrammkontrast'})[k],ranges[k][0],ranges[k][1])).join('');
+ const controls=Object.keys(ranges).map(k=>rangeControl(k,({tintStrength:'Farb-Layer',glow:'Glow & Licht',blur:'Unschärfe',sheen:'Kantenglanz',radius:'Eckenradius',saturation:'Farbsättigung',chartContrast:'Diagrammkontrast',backgroundIntensity:'Hintergrundmotiv',outlineStrength:'Rahmenintensität'})[k],ranges[k][0],ranges[k][1])).join('');
  panel.innerHTML=[
  '<div id="themeBackdrop" class="theme-backdrop"></div>',
  '<section class="theme-dialog glass" role="dialog" aria-modal="true" aria-labelledby="themeDialogTitle">',
