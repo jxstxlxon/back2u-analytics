@@ -27,8 +27,8 @@ export function validateDirectVideoInsights(body,now=Date.now()){
  if(p==='yt'&&(!YT_WINDOWS.includes(body.periodDays)||
   !validDay(body.periodStart)||!validDay(body.periodEnd)||
   body.periodStart>body.periodEnd||body.periodEnd>asOf||
-  (Date.parse(body.periodEnd+'T00:00:00Z')-Date.parse(body.periodStart+'T00:00:00Z'))>
-     (body.periodDays+1)*86400000))
+  (Date.parse(body.periodEnd+'T00:00:00Z')-Date.parse(body.periodStart+'T00:00:00Z'))!==
+     (body.periodDays-1)*86400000))
   throw Error('Invalid YouTube video analytics range');
  rowsUnique(body.videos,'id');
  const normalized=body.videos.map(r=>{
@@ -108,7 +108,12 @@ export function mergeInstagramDaily(old,next){
  const byDay=new Map((old?.daily||[]).map(r=>[r.date,r]));
  for(const r of next.daily){
   const former=byDay.get(r.date);
-  byDay.set(r.date,{date:r.date,metrics:{...(former?.metrics||{}),...r.metrics},asOf:next.updatedAt});
+  // Never let an older source snapshot replace newer values for the same day.
+  // Keep sourceSnapshotDate independent from the time D1 received the report.
+  const priorDay=String(former?.sourceSnapshotDate||former?.asOf||'').slice(0,10);
+  if(priorDay&&next.snapshotDate<priorDay)continue;
+  byDay.set(r.date,{date:r.date,metrics:{...(former?.metrics||{}),...r.metrics},
+   asOf:next.updatedAt,sourceSnapshotDate:next.snapshotDate});
  }
  return {schema:1,updatedAt:next.updatedAt,source:next.source,
   daily:[...byDay.values()].sort((a,b)=>a.date.localeCompare(b.date)).slice(-94)};
