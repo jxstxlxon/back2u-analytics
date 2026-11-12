@@ -1,5 +1,6 @@
 import {runAudienceAutoSync} from './audience-sync.js';
 import {validateDirectAudience,mergeDirectAudience,chooseEffectiveAudience} from './direct-audience.js';
+import {validateDirectMedia,mergeDirectMedia,overlayDirectMedia} from './direct-media.js';
 /* BACK2U Cloudflare Worker - private creator dashboard.
    Independent of Netlify. Do not publish API keys or creator analytics in static assets.
    The Cloudflare D1 binding DB must contain the back2u_store(key,value,updated_at) table.
@@ -255,6 +256,25 @@ async function ingestDirectAudience(req,env){
  return json({ok:true,platform:valid.platform,groups:3,snapshotDate:valid.snapshotDate,
   source:valid.platform==='yt'?'YouTube Analytics API':'Meta Graph API'});
 }
+async function ingestDirectMedia(req,env){
+ if(req.method!=='POST')return json({error:'POST only'},405);
+ const secret=env.BACK2U_GOOGLE_FEED_SECRET;
+ if(!secret||secret.length<24)return json({error:'Feed secret missing'},503);
+ const token=(req.headers.get('authorization')||'').replace(/^Bearer\s+/i,'');
+ if(!token||!(await equal(secret,token)))return json({error:'Forbidden'},403);
+ const raw=await req.text();
+ if(raw.length>1740000)return json({error:'Direct media payload too large'},413);
+ let data;try{data=JSON.parse(raw)}catch{return json({error:'Bad JSON'},400)}
+ let valid;try{valid=validateDirectMedia(data)}catch(e){return json({error:clamp(e?.message)},422)}
+ const old=await get(env,'direct_media_v1');
+ const prior=old?.platforms?.[valid.platform];
+ if(prior?.snapshotDate&&prior.snapshotDate>valid.snapshotDate)
+  return json({error:'Older catalog cannot replace newer direct catalog'},409);
+ const merged=mergeDirectMedia(old,valid);
+ await put(env,'direct_media_v1',merged);
+ return json({ok:true,platform:valid.platform,rows:valid.videos.length,snapshotDate:valid.snapshotDate});
+}
+
 async function directAudienceStatus(req,env){
  if(req.method!=='GET')return json({error:'GET only'},405);
  const direct=await get(env,'direct_audience_v1');
@@ -275,6 +295,8 @@ async function hydratedSnapshot(env){
   s.platforms.ig.profile={...s.platforms.ig.profile,followers:instagramProfile.followers,username:instagramProfile.username,
    asOf:instagramProfile.updatedAt,source:'Instagram Graph API',history:instagramProfile.history||[]};
  }
+ const catalog=await get(env,'direct_media_v1');
+ if(catalog?.schema===1)overlayDirectMedia(s,catalog);
  const tiktokProfile=await get(env,'tt_profile');
  const tiktokAuth=tiktokProfile?await get(env,'tt_oauth'):null;
  if(s.platforms.tt&&tiktokProfile?.openId&&tiktokProfile.openId===tiktokAuth?.openId&&
@@ -624,6 +646,7 @@ async function route(req,env){
  if(path==='/api/guest/redeem')return redeemGuest(req,env);
  if(path==='/api/youtube-daily/ingest')return ingestYoutubeDaily(req,env);
  if(path==='/api/direct-audience/ingest')return ingestDirectAudience(req,env);
+ if(path==='/api/direct-media/ingest')return ingestDirectMedia(req,env);
  if(path==='/api/instagram-profile/ingest')return ingestInstagramProfile(req,env);
  if(path==='/api/ingest'){
   if(req.method!=='POST')return json({error:'POST only'},405);
