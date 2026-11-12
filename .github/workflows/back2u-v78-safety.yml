@@ -27,3 +27,5 @@ jobs:
           for file in site/*.js; do node --check "$file"; done
       - name: Run data integrity and access-control tests
         run: npm test
+      - name: Verify Cloudflare bundle without deploying
+        run: npx --yes wrangler@4 deploy --dry-run --config wrangler.cloudflare.jsonc --outdir .wrangler-dry-run
