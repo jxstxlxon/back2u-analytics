@@ -58,14 +58,19 @@ export function mergeDirectVideoInsights(previous,next){
  const old=previous?.platforms?.[next.platform];
  const n=next.period?.days;
  const rows=new Map((old?.videos||[]).map(v=>[String(v.id),v]));
+ if(next.platform==='yt'){
+  // A video no longer present in a given window must NOT retain a stale
+  // 7/28/90-day number. Remove only that window across ALL old video IDs.
+  for(const [id,entry]of rows){
+   const metrics={...(entry.metrics||{})};
+   for(const key of Object.keys(metrics))if(key.endsWith(n+'d'))delete metrics[key];
+   if(Object.keys(metrics).length)rows.set(id,{id,metrics});
+   else rows.delete(id);
+  }
+ }
  for(const row of next.videos){
   const former=rows.get(row.id);
-  const metrics={...(former?.metrics||{})};
-  if(next.platform==='yt'){
-   // Refresh the chosen 7/28/90-day report; retain other periods.
-   for(const key of Object.keys(metrics))if(key.endsWith(n+'d'))delete metrics[key];
-  }
-  Object.assign(metrics,row.metrics);
+  const metrics={...(former?.metrics||{}),...row.metrics};
   rows.set(row.id,{id:row.id,metrics});
  }
  const periods=next.platform==='yt'?{...(old?.periods||{}),[String(n)]:next.period}:null;
@@ -116,6 +121,10 @@ export function overlayDirectInsights(snapshot,{video,daily}={}){
    const entry=data.get(String(v.id));if(!entry)continue;
    v.analytics={source:src.source,period:src.period,periods:src.periods,updatedAt:src.updatedAt,
     ...entry.metrics};
+   // Instagram shares are *lifetime* metrics and may legitimately participate
+   // in per-video / cross-platform ranking; YouTube shares are window-only.
+   if(p==='ig'&&typeof entry.metrics.shares==='number')v.shares=entry.metrics.shares;
+   if(p==='ig'&&typeof entry.metrics.saves==='number')v.saves=entry.metrics.saves;
   }
  }
  if(daily?.schema===1&&Array.isArray(daily.daily)&&snapshot.platforms.ig){
