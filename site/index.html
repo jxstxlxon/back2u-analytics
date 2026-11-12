@@ -280,8 +280,8 @@ function setSection(s){
  if(!valid.includes(s))return;
  state.section=s;
  document.body.dataset.activeSection=s;
- $('[data-section]').forEach(x=>x.classList.toggle('active',x.dataset.section===s));
- $('.view').forEach(x=>x.classList.toggle('active',x.id===s));
+ $$('[data-section]').forEach(x=>x.classList.toggle('active',x.dataset.section===s));
+ $$('.view').forEach(x=>x.classList.toggle('active',x.id===s));
  renderActive();
  if(window.scrollY>0)window.scrollTo({top:0,behavior:'instant'});
 }
