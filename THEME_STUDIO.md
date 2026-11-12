@@ -20,7 +20,7 @@ Aus der vom Nutzer freigegebenen 30er-Designübersicht werden **genau diese 25**
 - Lagoon Prism
 - Fresh Horizon
 
-Die fünf übrigen Designs der ursprünglichen 30er-Auswahl (07, 08, 09, 14, 26) sind **nicht** Teil der Theme-Auswahl. Hinweis: Die Presets sind als CSS-basierte Farb- und Glaseffekte umgesetzt; die generierten Konzeptbilder werden **nicht** als vollständige Dashboard-Hintergründe eingesetzt, da sie eigene UI-Elemente und möglicherweise beispielhafte Zahlen enthalten. Die tatsächlichen Dashboard-Daten bleiben aus der realen API/Cloudflare-Verbindung.
+Die fünf übrigen Designs der ursprünglichen 30er-Auswahl (07, 08, 09, 14, 26) sind **nicht** Teil der Theme-Auswahl. Die tatsächlichen Dashboard-Daten bleiben aus der realen API/Cloudflare-Verbindung. Die Designbilder enthalten teilweise beispielhafte oder veraltete Zahlen, die **nicht** als Hintergrund eingefügt werden dürfen, weil ansonsten echte und falsche UI/Statistiken überlagert würden. Stattdessen werden alle 36 Presets mit eigenen originalen SVG-Referenz-Artworks und Gruppenlayouts nachgebildet. Das ist **keine pixelgenaue 1:1-Reproduktion der Screenshots**; sie erfordert nach Live-Screenshots bei Bedarf weitere optische Feinabstimmung.
 
 ## Bedienung
 
@@ -70,3 +70,26 @@ Der bestehende Schieberegler **LENS / GLASS INTENSITY** bleibt erhalten und rege
 7. Video Radar, Plattformfilter, 7/28/90-Tage-Filter und Story-Export unverändert testen.
 
 Das Konzept ist als CSS-Interpretation der Bildentwürfe gedacht, nicht als Pixel-für-Pixel-Kopie. Falls die Live-Prüfung Layoutprobleme zeigt, Rückkehr zum bisherigen Cloudflare-Deployment möglich.
+
+
+## Visuelle Referenzumsetzung – Theme Studio V2 (12.11.2026)
+
+Der reine Farbthemenwechsel von PR #9 reichte nicht aus, um die ausgewählten Bildentwürfe wiederzuerkennen.
+
+**Neu in V2**:
+- \`site/reference-theme-art.js\` erzeugt **36 unterschiedliche, selbstständige SVG-Hintergrundartworks** (kein Fälschen der Dashboard-Oberfläche durch Screenshots). Die Motive folgen Bildgruppen: farbige 3D-Lichtbänder, geometrische Kristalle, edle Metallreflexe, Wasseroberflächen, Glaskugeln, Wolken und Naturblätter. Haupt- und Zweitfarbe färben auch das Artwork um.
+- \`site/theme-reference.css\` gibt jeder Bildgruppe passende Rahmen, Spiegelungen, Schattentiefe und Gläser, ohne einzelne Buttons oder Analytics-Funktionen zu ersetzen.
+- Für Presets 01–21 und Frutiger Aero wird auf großen Bildschirmen eine leuchtende **vertikale Navigation** verwendet, für neuere Presets 22/23/25/27/28/29 eine breitere Anordnung. Auf iPhone und kleinen Tablets bleibt die bestehende responsive Navigation erhalten.
+- In der Galerie enthält jedes Preset jetzt eine Artwork-Vorschau anstelle von nur einer Farbfläche. Die Namen und IDs bleiben identisch mit der nummerierten 30er-Bildübersicht.
+- **Zusätzliche Optionen pro Theme:** Layout (Original/Sidebar/Wide) und Glasfinish (Original/Neon/Crystal/Chrome/Frosted/Holographic/Obsidian/Sunset), beides optional. Die Originalwerte bleiben jeweils erhalten und sind durch Zurücksetzen wiederherstellbar.
+- Diagrammbeschriftungen und Gitternetzlinien sind speziell bei hellen Designs stärker kontrastiert. Die tatsächlichen Kurven und Zahlen stammen weiterhin ausschließlich aus den vorhandenen Daten.
+
+**Abnahmekriterien vor der endgültigen Freigabe:**
+1. Auf einem großen Desktop die Bilder **01 Cobalt Pulse, 04 Emerald Luxe, 22 Pearl Horizon, 25 Obsidian Prism, 29 Crystal Frost** gegen die ursprüngliche Bildübersicht halten. Besonders: Sidebar vs. Wide, Kartenform, Reflektionen, Farbflächen, Charts.
+2. Alle **11 Frutiger Aero** Varianten öffnen. Sie müssen im Hintergrund echte Wolken-/Wasser-/Blätter-/Bubbles-Motive zeigen und nicht nur grün/blau gefärbte Standardkarten.
+3. Mit der Farbsteuerung bei 01 und 22 die Hauptfarbe ändern, zurückschalten und Einstellungen nach dem Neuladen überprüfen. Das Artwork muss die geänderten Farben übernehmen.
+4. Desktop, iPad und iPhone überprüfen. Kein Verschwinden von Controls, keine Überlagerung durch die Sidebar, Charts bei hellen Themes lesbar.
+5. Video Radar, TikTok-Sync, Follower Intelligence, Zeitraumfilter, Instagram-Story-Export und D1-Daten unverändert prüfen.
+6. Erst nach sichtbarer Prüfung den neuen visuellen Stand als finale Bildreferenz-Implementierung abnehmen.
+
+**Grenze der Umsetzung:** Die generierten Fotos waren statische Konzeptbilder, deren genaue Lichtbrechungen, Illustrationen und Pixelpositionen nicht automatisch als echte responsive HTML-Elemente übernommen werden können. Die V2-Arts sind nachempfundene, eigene skalierbare Vektor-Illustrationen. Abweichungen zur jeweiligen Bildvorlage bleiben möglich und sind in Live-Screenshots zu kontrollieren.
