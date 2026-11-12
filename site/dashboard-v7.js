@@ -47,16 +47,16 @@ function dayPie(date,ctx){
   const engaged=ctx.metricTypes?.[p]==='engaged';
   const entry=records.find(x=>x.p===p);
   const share=entry&&sum>0?Math.round(entry.value/sum*1000)/10:null;
-  return '<div class="v7-pie-item"><span class="v7-pie-dot" style="background:'+colors[p]+'"></span><strong>'+names[p]+'</strong><b>'+fmt(entry?.value)+'</b><small>'+(engaged?'Nur interessierte Aufrufe · kein direkter Vergleich':share===null?'Keine vergleichbaren Tageszahlen':dec(share)+' % der bekannten Werte'+(complete?'':' · Teilabdeckung'))+'</small></div>';
+  return '<div class="v7-pie-item"><span class="v7-pie-dot" style="background:'+colors[p]+'"></span><strong>'+names[p]+'</strong><b>'+(share===null?'–':dec(share)+' %')+'</b><small>'+(engaged?'Interessierte Aufrufe nicht vergleichbar':share===null?'Keine Tageszahlen':'Anteil an bekannten Aufrufen'+(complete?'':' · Teilabdeckung'))+'</small></div>';
  }).join('');
  let cursor=0;const stops=[];
  for(const entry of records){const next=cursor+(sum>0?entry.value/sum*100:0);stops.push(colors[entry.p]+' '+cursor+'% '+next+'%');cursor=next}
  const ring=sum>0?'conic-gradient('+stops.join(',')+')':'conic-gradient(rgba(120,160,180,.25) 0% 100%)';
  const dateLabel=date.split('-').reverse().join('.');
- const caution='Die Werte stammen aus unterschiedlichen Plattformberichten. Bei TikTok können ältere Tagessummen aus Screenshots stammen. YouTube-Zahlen zu interessierten Aufrufen werden nicht in diese prozentuale Aufteilung gemischt.';
- root.innerHTML=(scopeNote?'<p class="v71-pie-scope">'+esc(scopeNote)+'</p>':'')+'<div class="v7-pie-chart" style="--v7-pie:'+esc(ring)+'"><div class="v7-pie-core"><small>'+dateLabel+'</small><b>'+fmt(records.length?sum:null)+'</b><small>erfasste Aufrufe</small></div></div>'
+ const caution='Plattformen können Aufrufe unterschiedlich zählen. YouTube-Zahlen zu interessierten Aufrufen werden nicht gemischt; einzelne TikTok-Tageswerte können aus älteren Screenshots stammen.';
+ root.innerHTML=(scopeNote?'<p class="v71-pie-scope">'+esc(scopeNote)+'</p>':'')+'<div class="v7-pie-chart" style="--v7-pie:'+esc(ring)+'"><div class="v7-pie-core"><small>'+dateLabel+'</small><b>'+records.length+' / '+ctx.ps.length+'</b><small>Plattformen erfasst</small></div></div>'
  +'<div class="v7-pie-list">'+leg+'</div>'
- +'<p class="v7-pie-note">'+(complete?'Alle ausgewählten Plattformen mit Tageszahlen.':'Nur '+records.length+' von '+ctx.ps.length+' Plattformen mit Tageszahlen. Prozentanteile gelten nur für vorhandene Werte – fehlende Werte sind nicht Null.')+' '+caution+'</p>';
+ +'<p class="v7-pie-note">'+(complete?'Alle '+ctx.ps.length+' ausgewählten Plattformen mit Tageszahlen.':'Nur '+records.length+' von '+ctx.ps.length+' Plattformen vorhanden; fehlende Werte sind keine Nullwerte.')+' Prozentwerte beziehen sich nur auf vorhandene Tagesdaten. '+caution+'</p>';
 }
 function experiments(){
  const m=model(),vids=totals(m),range=m.range,days=[];
