@@ -42,6 +42,27 @@
   if(a.status==='running'){node.textContent='Automatischer Abgleich läuft seit '+formatTime(a.lastAttemptAt)+'.';return}
   node.textContent='Automatik eingerichtet · erster Abgleich noch ausstehend. Du kannst ihn jetzt starten.';
  }
+
+ function showTikTokDaily(data){
+  const node=$('tiktokDailyStatus');if(!node)return;
+  const stats=data?.coverage||{},windows=stats.windows||{},sync=data?.sync||{};
+  const group=[7,28,90].map(days=>{
+   const known=windows[String(days)]?.known||{};
+   return days+'T: '+(known.views||0)+' Views-Tage / '+(known.profileViews||0)+' Profil-Tage';
+  });
+  const latest=stats.lastMeasuredDay||'–';
+  const mode=data.enabled?'Automatik freigegeben':'Automatik aus – kein geplanter Windsor-Abruf';
+  let details=mode+' · Letzter belegter Tag: '+latest+' · '+group.join(' · ');
+  if(sync.status==='ok')details+=' · Letzter Sync: '+formatTime(sync.lastSuccessAt);
+  if(sync.status==='error')details+=' · Letzter Fehler: '+String(sync.error||'Abruf fehlgeschlagen');
+  if(sync.status==='not_started')details+=' · Noch nicht einmalig getestet';
+  node.textContent=details+'. Fehlende Tage werden nicht als 0 gewertet.';
+ }
+ async function refreshTikTokDaily(){
+  const node=$('tiktokDailyStatus');
+  try{showTikTokDaily(await api('/api/tiktok-daily/status'))}
+  catch{if(node)node.textContent='TikTok-Tagesdatenstatus nicht erreichbar. Keine Daten wurden verändert.'}
+ }
  async function init(){
   if(initialized||location.protocol==='file:')return;
   const panel=$('audienceImportPanel');if(!panel)return;
@@ -87,8 +108,25 @@
     const node=$('directParityStatus');
     if(node)node.textContent='Datenqualitätsprüfung nicht erreichbar; Windsor bleibt aktiv.';
    }
+   await refreshTikTokDaily();
    status(existing?'Private Zielgruppendaten vorhanden · Stand '+String(state.snapshotDate||'unbekannt')+'.':'Noch keine privaten Zielgruppendaten importiert.');
   }catch(e){status('Importstatus konnte nicht geladen werden: '+e.message)}
+  const ttButton=$('tiktokDailySyncNow');
+  if(ttButton)ttButton.addEventListener('click',async()=>{
+   if(!confirm('Nur nach gesichertem D1-Backup und geprüftem Windsor-Zugang durchführen. TikTok-Tagesdaten jetzt einmalig abrufen?'))return;
+   ttButton.disabled=true;
+   const node=$('tiktokDailyStatus');
+   if(node)node.textContent='Prüfe 28 Tage über TikTok Organic …';
+   try{
+    const result=await api('/api/tiktok-daily/sync',{
+     method:'POST',headers:{'content-type':'application/json'},body:'{}'
+    });
+    if(result.status!=='ok')throw Error(result.error||result.reason||result.status);
+    await refreshTikTokDaily();
+    const refresh=$('refreshBtn');if(refresh)refresh.click();
+   }catch(e){if(node)node.textContent='Kein neuer TikTok-Tagesimport: '+e.message+'. Bestehende Werte bleiben gespeichert.'}
+   finally{ttButton.disabled=false}
+  });
   $('audienceSyncNow').addEventListener('click',async()=>{
    const button=$('audienceSyncNow'),target=$('audienceAutoSyncStatus');
    button.disabled=true;target.textContent='Rufe neun aktuelle Zielgruppen-Berichte bei Windsor.ai ab …';
