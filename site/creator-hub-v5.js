@@ -8,13 +8,20 @@ const $=id=>document.getElementById(id);
 const fmt=n=>typeof n==='number'&&Number.isFinite(n)?new Intl.NumberFormat('de-DE',{maximumFractionDigits:0}).format(n):'–';
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const P={yt:'YouTube',ig:'Instagram',tt:'TikTok'};
-const DATA_KEY='back2u_creator_ideas_v1',GOAL_KEY='back2u_creator_views_goal_v1';
+const DATA_KEY='back2u_creator_ideas_v1',GOAL_KEY='back2u_creator_views_goal_v1',PLAN_KEY='back2u_creator_scheduled_v73';
 const iso=/^\d{4}-\d{2}-\d{2}$/;
 const validDate=s=>iso.test(s)&&!Number.isNaN(Date.parse(s+'T12:00:00Z'));
 const now=()=>new Date().toLocaleDateString('sv-SE',{timeZone:'Europe/Berlin'});
 let month=now().slice(0,7),selectedDay=null,lastModel=null;
 const load=(key,fallback)=>{try{const x=JSON.parse(localStorage.getItem(key)||'null');return x===null?fallback:x}catch{return fallback}};
 const save=(key,value)=>{try{localStorage.setItem(key,JSON.stringify(value))}catch{}};
+function readPlanned(){
+ const raw=load(PLAN_KEY,[]);
+ if(!Array.isArray(raw))return [];
+ return raw.slice(0,500).filter(v=>v&&typeof v==='object'&&validDate(v.date)&&/^(?:[01]\d|2[0-3]):[0-5]\d$/.test(String(v.time||''))&&['yt','ig','tt'].includes(v.platform))
+ .map(v=>({id:String(v.id||'').slice(0,64),date:v.date,time:v.time,platform:v.platform,format:String(v.format||'Videoidee').slice(0,90),done:!!v.done}))
+ .filter(v=>v.id);
+}
 const knownTotal=v=>v.reportType==='lifetime'&&typeof v.views==='number'&&Number.isFinite(v.views)&&v.views>=0;
 const safeVideo=v=>v&&['yt','ig','tt'].includes(v.platform);
 function createModel(){
@@ -128,6 +135,13 @@ function renderCalendar(m){
  const names=['Mo','Di','Mi','Do','Fr','Sa','So'];
  const info=monthDays(month);
  const monthlyVideos=m.videos.filter(v=>validDate(v.date)&&v.date.startsWith(month+'-'));
+ const monthlyPlans=readPlanned().filter(v=>v.date.startsWith(month+'-'));
+ const plansByDay=new Map();
+ for(const v of monthlyPlans){
+  if(!plansByDay.has(v.date))plansByDay.set(v.date,[]);
+  plansByDay.get(v.date).push(v);
+ }
+ for(const entries of plansByDay.values())entries.sort((a,b)=>a.time.localeCompare(b.time));
  const activeDates=new Set(monthlyVideos.map(v=>v.date));
  const validLifetime=monthlyVideos.filter(knownTotal);
  const lifetimeViews=validLifetime.length?validLifetime.reduce((n,v)=>n+v.views,0):null;
@@ -138,27 +152,28 @@ function renderCalendar(m){
  $('creatorMonthSummary').innerHTML=[
   ['Veröffentlichungen',fmt(monthlyVideos.length),completeMonth?'Vormonat: '+fmt(previousCount)+' Videos':'Laufender Monat · bisher'],
   ['Tage mit Posts',fmt(activeDates.size),'Mindestens ein Video veröffentlicht'],
-  ['Aufrufe dieser Videos',fmt(lifetimeViews),viewNote]
+  ['Aufrufe dieser Videos',fmt(lifetimeViews),viewNote],
+  ['Geplante Ideen',fmt(monthlyPlans.length),'Nur lokal gespeichert · keine veröffentlichten Videos']
  ].map(x=>'<div class="creator-month-stat"><small>'+esc(x[0])+'</small><strong>'+esc(x[1])+'</strong><span>'+esc(x[2])+'</span></div>').join('');
  let html=names.map(name=>'<span class="creator-cal-weekday">'+name+'</span>').join('');
  for(let i=0;i<info.offset;i++)html+='<span class="creator-cal-empty"></span>';
  for(let day=1;day<=info.count;day++){
-  const key=month+'-'+String(day).padStart(2,'0'),posts=m.byDay.get(key)||[];
+  const key=month+'-'+String(day).padStart(2,'0'),posts=m.byDay.get(key)||[],planned=plansByDay.get(key)||[];
   const known=posts.filter(knownTotal),views=known.length?known.reduce((n,v)=>n+v.views,0):null;
   const platformCount=['yt','ig','tt'].map(p=>posts.filter(v=>v.platform===p).length);
   const platformDots='<span class="creator-cal-platforms">'+platformCount.map((n,i)=>n?'<i data-p="'+['yt','ig','tt'][i]+'" title="'+['YouTube','Instagram','TikTok'][i]+': '+n+'">'+n+'</i>':'').join('')+'</span>';
-  const label=key+' · '+posts.length+' Videoeinträge'+(views===null?'':', '+fmt(views)+' bekannte Gesamtaufrufe');
-  html+='<button type="button" class="creator-cal-day'+(posts.length?' has-posts':'')+(key===selectedDay?' selected':'')+'" data-date="'+key+'" aria-label="'+esc(label)+'"><strong>'+day+'</strong>'+(posts.length?'<span>'+posts.length+' '+(posts.length===1?'Video':'Videos')+'</span>'+platformDots+'<small>'+(views===null?'Aufrufe: –':fmt(views)+' insgesamt')+'</small>':'<span class="creator-no-post">·</span>')+'</button>';
+  const label=key+' · '+posts.length+' veröffentlichte Videoeinträge, '+planned.length+' geplante Ideen'+(views===null?'':', '+fmt(views)+' bekannte Gesamtaufrufe');
+  html+='<button type="button" class="creator-cal-day'+(posts.length?' has-posts':'')+(planned.length?' has-plan':'')+(key===selectedDay?' selected':'')+'" data-date="'+key+'" aria-label="'+esc(label)+'"><strong>'+day+'</strong>'+(posts.length?'<span>'+posts.length+' '+(posts.length===1?'Video':'Videos')+'</span>'+platformDots+'<small>'+(views===null?'Aufrufe: –':fmt(views)+' insgesamt')+'</small>':(planned.length?'':'<span class="creator-no-post">·</span>'))+(planned.length?'<small class="v73-planned-label">'+planned.length+' geplant</small>':'')+'</button>';
  }
  $('creatorCalendar').innerHTML=html;
  $('creatorCalendar').querySelectorAll('[data-date]').forEach(btn=>btn.addEventListener('click',()=>{selectedDay=btn.dataset.date;renderCalendar(m)}));
  if(!selectedDay||!selectedDay.startsWith(month+'-')){
-  const keys=[...m.byDay.keys()].filter(d=>d.startsWith(month+'-')).sort();
+  const keys=[...new Set([...m.byDay.keys(),...plansByDay.keys()])].filter(d=>d.startsWith(month+'-')).sort();
   selectedDay=keys.at(-1)||month+'-01';
  }
  // Preserve selection styling when the user changes months.
  $('creatorCalendar').querySelectorAll('[data-date]').forEach(btn=>btn.classList.toggle('selected',btn.dataset.date===selectedDay));
- const entries=m.byDay.get(selectedDay)||[];
+ const entries=m.byDay.get(selectedDay)||[],planned=plansByDay.get(selectedDay)||[];
  $('creatorDayDetail').innerHTML='<div class="creator-day-header"><strong>'+esc(selectedDay.split('-').reverse().join('.'))+'</strong><span>'+entries.length+' '+(entries.length===1?'veröffentlichtes Plattformvideo':'veröffentlichte Plattformvideos')+'</span></div>'
  +(entries.length?entries.slice(0,32).map(v=>{
   const image=String(v.thumb||'');
