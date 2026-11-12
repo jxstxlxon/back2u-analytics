@@ -187,6 +187,7 @@ body.story-open{overflow:hidden}
   <div class="audience-auto-panel">
    <h4>Direkte Plattform-APIs (V7.7)</h4>
    <div id="directAudienceStatus" role="status" aria-live="polite">Verbindung zu YouTube und Instagram wird geprüft …</div>
+   <div id="directInsightsStatus" role="status" aria-live="polite">Erweiterte Video- und Instagram-Tagesdaten werden geprüft …</div>
    <p id="directAudienceHint">Die direkten APIs werden über das bestehende Google Apps Script übertragen, nachdem die zwei neuen Zusatzdateien einmalig aktiviert wurden. Bei fehlenden Berechtigungen bleibt der letzte gespeicherte Wert sichtbar.</p>
    <h4>Windsor.ai (Bestand / TikTok-Fallback)</h4>
    <div id="audienceAutoSyncStatus" role="status" aria-live="polite">Verbindung wird geprüft …</div>
@@ -579,13 +580,47 @@ function crossPlatformVideoGroups(){
 function groupPlatformLabel(g,metric){
  return g.members.map(v=>'<span class="platform-chip" data-platform="'+esc(v.platform)+'">'+tagPlatform(v.platform)+' <b>'+fmt(videoMetricValue(v,metric))+'</b></span>').join('');
 }
+
+/* Official API video metrics are separate from lifetime video counters. */
+function officialVideoInsightHtml(v){
+ const a=v?.analytics;
+ if(!a||!a.source)return '';
+ const entries=v.platform==='yt'?[
+  ['28-Tage-Videoaufrufe','views28d','number'],
+  ['Interessierte Aufrufe · 28 Tage','engagedViews28d','number'],
+  ['Wiedergabezeit · 28 Tage','watchMinutes28d','minutes'],
+  ['Ø Wiedergabedauer · 28 Tage','averageViewSeconds28d','seconds'],
+  ['Ø Wiedergabeanteil · 28 Tage','averageViewPercentage28d','percent'],
+  ['Shares · 28 Tage','shares28d','number']
+ ]:[
+  ['Geteilt · Gesamt','shares','number'],
+  ['Gespeichert · Gesamt','saves','number'],
+  ['Interaktionen · Gesamt','interactions','number'],
+  ['Ø Wiedergabezeit','averageWatchMs','millis'],
+  ['Wiedergabezeit · Gesamt','totalWatchMs','totalMillis']
+ ];
+ const tiles=entries.filter(x=>typeof a[x[1]]==='number'&&Number.isFinite(a[x[1]]))
+  .map(([label,key,unit])=>{
+   const n=a[key];
+   const output=unit==='seconds'?dec(n)+' s':unit==='percent'?dec(n)+' %':
+    unit==='minutes'?dec(n)+' Min.':unit==='millis'?dec(n/1000)+' s':
+    unit==='totalMillis'?dec(n/60000)+' Min.':fmt(n);
+   return '<div class="detail-metric"><b>'+esc(output)+'</b><small>'+esc(label)+'</small></div>';
+  }).join('');
+ if(!tiles)return '';
+ const period=a.period?.start&&a.period?.end?' · '+esc(a.period.start)+' bis '+esc(a.period.end):'';
+ return '<div class="detail-note">Offizielle zusätzliche Videokennzahlen · '+esc(a.source)+period+
+  '. „–“ = nicht von der API geliefert. Zeitraumwerte dürfen nicht mit Lifetime-Aufrufen verwechselt werden.</div>'+
+  '<div class="detail-metrics">'+tiles+'</div>';
+}
+
 function renderGroupedVideoDetail(g){
  if(!g){$('#detailPanel').innerHTML='<div class="empty">Wähle ein Video aus.</div>';return;}
  const stats=[['Aufrufe',g.views],['Likes',g.likes],['Kommentare',g.comments],['Follows',g.follows],['Shares',g.shares]];
  const metrics=stats.map(pair=>'<div class="detail-metric"><b>'+fmt(pair[1])+'</b><small>'+pair[0]+(g.members.length>1?' · erfasste Summe':'')+'</small></div>').join('');
  const platformRows=g.members.map(v=>{
   const videoUrl=cleanUrl(v.url);
-  return '<div class="group-detail-platform"><div><strong>'+tagPlatform(v.platform)+'</strong><small>Aufrufe '+fmt(v.views)+' · Likes '+fmt(v.likes)+' · Kommentare '+fmt(v.comments)+' · Follows '+fmt(v.follows)+'</small></div>'+(videoUrl?'<a href="'+esc(videoUrl)+'" rel="noopener" target="_blank">Video öffnen ↗</a>':'')+'</div>';
+  return '<div class="group-detail-platform"><div><strong>'+tagPlatform(v.platform)+'</strong><small>Aufrufe '+fmt(v.views)+' · Likes '+fmt(v.likes)+' · Kommentare '+fmt(v.comments)+' · Follows '+fmt(v.follows)+'</small></div>'+(videoUrl?'<a href="'+esc(videoUrl)+'" rel="noopener" target="_blank">Video öffnen ↗</a>':'')+'</div>'+officialVideoInsightHtml(v);
  }).join('');
  $('#detailPanel').innerHTML='<div class="detail-art">'+image(g.first)+'</div><div class="detail-pill">'+(g.members.length>1?g.members.length+' Plattformen':'1 Plattform')+'</div><h3 class="detail-heading">'+esc(g.title)+'</h3><div class="detail-metrics">'+metrics+'</div><div class="detail-note">'+(g.members.length>1?'Summierte Kontoaufrufe, keine eindeutig verschiedenen Zuschauer.':'Einzelvideo-Gesamtwerte.')+' Follows pro Video werden nur addiert, soweit sie übermittelt wurden. „–“ bedeutet fehlende Daten. Automatische Video-Zuordnung erfolgt anhand von Titel und Datum; sie ist nicht durch identische Videodateien verifiziert.</div><div class="group-detail-header">AUFSCHLÜSSELUNG NACH PLATTFORM</div>'+platformRows;
 }
@@ -640,7 +675,7 @@ function renderVideos(){if(state.platform==='all'){const hasApi=Boolean(state.li
 }
 function renderDetail(){const v=state.selected;if(!v){$('#detailPanel').innerHTML='<div class="empty">Wähle links ein Video aus.</div>';return}const mm=matches(v),kpi=[['Aufrufe',videoMetricValue(v,'views')],['Likes',videoMetricValue(v,'likes')],['Kommentare',videoMetricValue(v,'comments')],['Follows',videoMetricValue(v,'follows')],['Shares',v.shares]];
  let platformsHtml=['yt','ig','tt'].map(p=>{const found=p===v.platform?{v,s:1}:mm[p];return `<div class="compare-row"><span>${tagPlatform(p)}</span><small>${found?'Titelzuordnung '+(found.s===1?'Original':Math.round(found.s*100)+' %'):'Nicht zugeordnet'}</small><b>${found?fmt(found.v.views):'–'}</b></div>`}).join('');
- const url=cleanUrl(v.url);$('#detailPanel').innerHTML=`<div class="detail-art">${image(v)}</div><div class="detail-pill">${tagPlatform(v.platform)}</div><div class="detail-pill">${esc(v.format||'Video')}</div><h3 class="detail-heading">${esc(v.title)}</h3><div class="detail-metrics">${kpi.map(x=>`<div class="detail-metric"><b>${fmt(x[1])}</b><small>${x[0]}</small></div>`).join('')}</div><div class="detail-note">${esc(metricDesc(v.platform))}. ${v.platform==='yt'?(videoReportDays(v)?'Berichtszeitraum: '+videoReportDays(v)+' Tage.':'Einzelvideo-Kennzahlen: bisherige Gesamtwerte.'):''} Veröffentlicht am ${esc(v.date)}. Werte sind Momentaufnahmen. Für Video-Zuordnungen werden Titel und Datum verglichen, nicht die Videodateien.</div><div class="compare-title">DASSELBE ODER ÄHNLICHE VIDEO AUF ANDEREN PLATTFORMEN</div>${platformsHtml}<div class="detail-note">Automatische Zuordnung = ungeprüfter Titelkandidat. Insbesondere ähnliche Serienfolgen können falsch zusammenpassen.</div>${url?`<a class="detail-link" href="${esc(url)}" target="_blank" rel="noopener">Originalvideo öffnen ↗</a>`:''}`;
+ const url=cleanUrl(v.url);$('#detailPanel').innerHTML=`<div class="detail-art">${image(v)}</div><div class="detail-pill">${tagPlatform(v.platform)}</div><div class="detail-pill">${esc(v.format||'Video')}</div><h3 class="detail-heading">${esc(v.title)}</h3><div class="detail-metrics">${kpi.map(x=>`<div class="detail-metric"><b>${fmt(x[1])}</b><small>${x[0]}</small></div>`).join('')}</div><div class="detail-note">${esc(metricDesc(v.platform))}. ${v.platform==='yt'?(videoReportDays(v)?'Berichtszeitraum: '+videoReportDays(v)+' Tage.':'Einzelvideo-Kennzahlen: bisherige Gesamtwerte.'):''} Veröffentlicht am ${esc(v.date)}. Werte sind Momentaufnahmen. Für Video-Zuordnungen werden Titel und Datum verglichen, nicht die Videodateien.</div>${officialVideoInsightHtml(v)}<div class="compare-title">DASSELBE ODER ÄHNLICHE VIDEO AUF ANDEREN PLATTFORMEN</div>${platformsHtml}<div class="detail-note">Automatische Zuordnung = ungeprüfter Titelkandidat. Insbesondere ähnliche Serienfolgen können falsch zusammenpassen.</div>${url?`<a class="detail-link" href="${esc(url)}" target="_blank" rel="noopener">Originalvideo öffnen ↗</a>`:''}`;
 }
 function uploadCounts(p){const arr=mergedVideos().filter(x=>x.platform===p),{start,end}=targetRange();let map={};for(let d=start;d<=end;d=shift(d,1))map[d]=0;for(const v of arr)if(v.date>=start&&v.date<=end)map[v.date]=(map[v.date]||0)+1;return map}
 function renderExperiments(){if(window.BACK2U_V7?.experiments){window.BACK2U_V7.experiments();return}const vids=allVideosNoSearch(),range=targetRange(),ps=platforms(),counts={};for(const p of ps)counts[p]=uploadCounts(p);
