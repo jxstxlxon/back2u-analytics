@@ -81,6 +81,7 @@ Der reine Farbthemenwechsel von PR #9 reichte nicht aus, um die ausgewählten Bi
 - \`site/theme-reference.css\` gibt jeder Bildgruppe passende Rahmen, Spiegelungen, Schattentiefe und Gläser, ohne einzelne Buttons oder Analytics-Funktionen zu ersetzen.
 - Für Presets 01–21 und Frutiger Aero wird auf großen Bildschirmen eine leuchtende **vertikale Navigation** verwendet, für neuere Presets 22/23/25/27/28/29 eine breitere Anordnung. Auf iPhone und kleinen Tablets bleibt die bestehende responsive Navigation erhalten.
 - In der Galerie enthält jedes Preset jetzt eine Artwork-Vorschau anstelle von nur einer Farbfläche. Die Namen und IDs bleiben identisch mit der nummerierten 30er-Bildübersicht.
+- **Zusätzliche Optionen pro Theme:** Layout (Original/Sidebar/Wide) und Glasfinish (Original/Neon/Crystal/Chrome/Frosted/Holographic/Obsidian/Sunset), beides optional. Die Originalwerte bleiben jeweils erhalten und sind durch Zurücksetzen wiederherstellbar.
 - Diagrammbeschriftungen und Gitternetzlinien sind speziell bei hellen Designs stärker kontrastiert. Die tatsächlichen Kurven und Zahlen stammen weiterhin ausschließlich aus den vorhandenen Daten.
 
 **Abnahmekriterien vor der endgültigen Freigabe:**
