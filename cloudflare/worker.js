@@ -328,6 +328,71 @@ async function ttSync(env){
    fullInventoryComparison:inventory.fullScan,
    tiktokFollowersUpdated:profileSync.known,statsScopeRequired:profileSync.reason==='user.info.stats not granted'};
 }
+/* Read-only cross-check of saved TikTok IDs against the independent video/query API.
+   Runs only on explicit owner request, never during the 30-minute cron. */
+async function ttAuditVideos(env){
+ const token=await ttAccess(env);
+ if(!token?.accessToken)throw Error('TikTok account not connected');
+ if(!String(token.scope||'').split(/[\s,]+/).includes('video.list'))
+   throw Error('TikTok video.list scope missing');
+ const snapshot=await get(env,'snapshot'),stored=snapshot?.platforms?.tt?.videos||[];
+ if(!stored.length)throw Error('No stored TikTok videos');
+ const unique=new Map();
+ for(const video of stored){const id=String(video?.id||'');if(/^\d{12,25}$/.test(id))unique.set(id,video)}
+ const ids=[...unique.keys()];
+ if(!ids.length||ids.length>800)throw Error('Audit supports up to 800 video IDs');
+ const scan=await get(env,'tt_scan_reconciliation');
+ const profile=await get(env,'tt_profile');
+ const accountVerified=!!(profile?.openId&&profile.openId===token.openId);
+ const batches=[];
+ for(let i=0;i<ids.length;i+=20)batches.push(ids.slice(i,i+20));
+ const found=new Set(),failures=[];
+ let calls=0;
+ for(let start=0;start<batches.length;start+=3){
+  const block=await Promise.all(batches.slice(start,start+3).map(async(selected,slot)=>{
+   const batch=start+slot+1;
+   try{
+    const response=await fetch('https://open.tiktokapis.com/v2/video/query/?fields=id,create_time,view_count',
+      {method:'POST',headers:{authorization:'Bearer '+token.accessToken,'content-type':'application/json'},
+       body:JSON.stringify({filters:{video_ids:selected}}),signal:AbortSignal.timeout(16000)});
+    const data=await response.json();
+    if(!response.ok||data?.error?.code!=='ok')
+     return {batch,error:'TikTok video.query: '+clamp(data?.error?.code||response.status)};
+    if(!Array.isArray(data.data?.videos))return {batch,error:'Invalid video.query response'};
+    const approved=new Set(selected),responseIds=data.data.videos.map(v=>String(v.id||''));
+    if(responseIds.some(id=>!approved.has(id)))return {batch,error:'Unexpected video ID in response'};
+    return {batch,ids:responseIds};
+   }catch(e){return {batch,error:clamp(e?.message||'Network error')}}
+  }));
+  for(const item of block){
+   calls++;
+   if(item.error)failures.push({batch:item.batch,error:item.error});
+   else for(const id of item.ids)found.add(id);
+  }
+ }
+ const complete=failures.length===0;
+ const notConfirmed=complete?ids.filter(id=>!found.has(id)):null;
+ const profileCount=accountVerified&&Number.isSafeInteger(profile.videoCount)?profile.videoCount:null;
+ const matchedList=scan?.fullScan===true;
+ let interpretation='query_incomplete';
+ if(complete)interpretation=notConfirmed.length===0?
+   (profileCount===null?'all_ids_confirmed':
+    profileCount===found.size?'all_counters_agree':'profile_counter_disagrees_with_both_video_endpoints'):
+   'some_listed_ids_not_confirmed_by_video_query';
+ const audit={asOf:new Date().toISOString(),storedVideoRows:stored.length,
+  uniqueValidStoredIds:ids.length,duplicateStoredRows:stored.length-ids.length,
+  queriedBatches:calls,totalBatches:batches.length,queryComplete:complete,
+  queryConfirmedIds:complete?found.size:null,queryUnconfirmedIds:complete?notConfirmed.length:null,
+  sampleUnconfirmed:complete?notConfirmed.slice(0,8).map(id=>({
+   id,date:day(unique.get(id)?.date),title:clamp(unique.get(id)?.title)
+  })):[],
+  tiktokProfileVideoCount:profileCount,profileAsOf:accountVerified?profile.updatedAt:null,
+  priorListFullScan:matchedList,priorListFetched:matchedList?scan.fetchedThisRun:null,
+  priorListAsOf:scan?.updatedAt||null,interpretation,
+  requestErrors:failures.slice(0,6),noDataDeleted:true};
+ await put(env,'tt_video_query_audit',audit);
+ return audit;
+}
 async function route(req,env){
  const path=new URL(req.url).pathname;
  if(path==='/api/health')return json({service:'BACK2U Cloud',configured:!!(env.DB&&env.DASHBOARD_PASSWORD&&env.SESSION_SECRET),dbReady:!!env.DB,
@@ -363,6 +428,7 @@ async function route(req,env){
   const s=await hydratedSnapshot(env);
   const scan=await get(env,'tt_page_cursor');
   const inventory=await get(env,'tt_scan_reconciliation');
+  const videoQueryAudit=await get(env,'tt_video_query_audit');
   const tt=s?.platforms?.tt?.videos||[];
   const ttOauth=await get(env,'tt_oauth');
   const ttProfile=s?.platforms?.tt?.profile||{};
@@ -375,6 +441,7 @@ async function route(req,env){
   return json({service:'BACK2U Cloud',source:s?.source||'none',generatedAt:s?.generatedAt||null,
    tiktokScan:{updatedAt:scan?.updatedAt||null,hasMore:scan?.hasMore??null,complete:scan?.complete??null,pagesLastBatch:scan?.pagesLastBatch||null},
    tiktokVideoDateRange:ttDates,
+   tiktokVideoQueryAudit:videoQueryAudit||null,
    tiktokVideoReconciliation:inventory?{
     ...inventory,
     officialPublicVideoCount:Number.isSafeInteger(ttProfile.videoCount)?ttProfile.videoCount:null,
@@ -394,6 +461,11 @@ async function route(req,env){
    return json({connected:t.connected,videosFound:t.videos.length,pages:t.pages,hasMore:t.hasMore,
     sample:t.videos.length?{title:t.videos[0].title,views:t.videos[0].views}:null});
   }catch(e){return json({error:clamp(e?.message)},502)}
+ }
+ if(path==='/api/tiktok/audit'){
+  if(req.method!=='POST')return json({error:'POST only'},405);
+  try{return json({ok:true,...await ttAuditVideos(env)})}
+  catch(e){return json({error:clamp(e?.message)},502)}
  }
  if(path==='/api/tiktok/sync'){
   if(req.method!=='POST')return json({error:'POST only'},405);
