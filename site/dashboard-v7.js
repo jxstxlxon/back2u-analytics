@@ -9,7 +9,7 @@ const fmt=n=>typeof n==='number'&&Number.isFinite(n)?new Intl.NumberFormat('de-D
 const dec=n=>typeof n==='number'&&Number.isFinite(n)?new Intl.NumberFormat('de-DE',{maximumFractionDigits:1}).format(n):'–';
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','"':'&quot;',"'":'&#39;'}[c]));
 const names={yt:'YouTube',ig:'Instagram',tt:'TikTok'};
-const colors={yt:'#f1728e',ig:'#aa87f5',tt:'#31d5c0'};
+const colors={yt:'var(--chart-yt, #ff7b92)',ig:'var(--chart-ig, #a995ff)',tt:'var(--chart-tt, #39dbc9)'};
 const has=x=>typeof x==='number'&&Number.isFinite(x)&&x>=0;
 const numeric=v=>Number.isFinite(v)&&v>=0?v:null;
 const safeDate=d=>/^\d{4}-\d{2}-\d{2}$/.test(d);

@@ -5,6 +5,7 @@ const MODES=['line','area','bar'];let mode='line';
 const chart=document.getElementById('trendChart');
 const modes=document.querySelectorAll('#chartModes [data-chart-mode]');
 const f=(n)=>Number.isFinite(n)?new Intl.NumberFormat('de-DE',{maximumFractionDigits:0}).format(n):'–';
+const fmtDate=d=>d.slice(8,10)+'.'+d.slice(5,7)+'.';
 const esc=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const cssColor=(p,fallback)=>'var(--chart-'+p+', '+fallback+')';
 const colorFor={yt:'#ff7b92',ig:'#a995ff',tt:'#39dbc9'};
@@ -32,19 +33,19 @@ function draw(ctx){
   return;
  }
  const complete=observed.filter(r=>r.coverage===ps.length);
- const peaks=complete.length?complete:observed;
+ const peaks=complete; // Only comparable days can define highest/lowest records.
  const sum=observed.reduce((a,r)=>a+r.value,0);
  const avg=observed.length?sum/observed.length:null;
  const highest=peaks.reduce((best,r)=>!best||r.value>best.value?r:best,null);
  const lowest=peaks.reduce((best,r)=>!best||r.value<best.value?r:best,null);
  const entries=[
-  ['Zusammen gezählt',f(sum),observed.length+' Tage mit bekannten Zahlen'],
-  ['Ø pro Tag mit Daten',avg===null?'–':f(Math.round(avg)),'nur Tage mit bekannten Zahlen'],
-  ['Höchster Tag',highest?f(highest.value):'–',highest?highest.d.slice(5).replace('-','.')+'.':'keine Daten'],
-  ['Niedrigster Tag',lowest?f(lowest.value):'–',lowest?lowest.d.slice(5).replace('-','.')+'.':'keine Daten']
+  ['Erfasste Aufrufe'+(complete.length===days?'':' · unvollständig'),f(sum),observed.length+' von '+days+' Tagen mit Daten · '+complete.length+' vollständig'],
+  ['Ø erfasste Aufrufe',avg===null?'–':f(Math.round(avg)),'Nur gemeldete Werte; unvollständige Tage können den Schnitt senken'],
+  ['Höchster Tag',highest?f(highest.value):'–',highest?fmtDate(highest.d):'keine vollständig erfassten Tage'],
+  ['Niedrigster Tag',lowest?f(lowest.value):'–',lowest?fmtDate(lowest.d):'keine vollständig erfassten Tage']
  ];
  cards.innerHTML=entries.map(e=>'<div class="chart-kpi"><span class="chart-kpi-label">'+esc(e[0])+'</span><strong class="chart-kpi-number">'+esc(e[1])+'</strong><small class="chart-kpi-meta">'+esc(e[2])+'</small></div>').join('');
- note.textContent='Zahlen vorhanden für '+observed.length+' von '+days+' Tagen. '+complete.length+' Tage haben Werte von allen gewählten Plattformen. '+(complete.length?'Höchster und niedrigster Tag stammen aus diesen gemeinsamen Tagen.':'Für den höchsten und niedrigsten Tag sind nur teilweise Zahlen bekannt.')+' Fehlende Tage werden nicht geschätzt.';
+ note.textContent='Zahlen vorhanden für '+observed.length+' von '+days+' Tagen. '+complete.length+' Tage haben Werte von allen gewählten Plattformen. '+(complete.length?'Höchster und niedrigster Tag stammen aus diesen gemeinsamen Tagen.':'Ohne vollständig erfasste gemeinsame Tage werden keine Rekordtage ausgewiesen.')+' Fehlende Tage werden nicht geschätzt.';
  const all=ps.flatMap(p=>xs.map(x=>dMap[p].get(x)).filter(v=>typeof v==='number'&&Number.isFinite(v)&&v>=0));
  const max=Math.max(1,...all),tick=niceStep(max/4),ymax=Math.ceil(max/tick)*tick;
  const W=1000,H=295,L=83,R=18,T=16,B=41,PW=W-L-R,PH=H-T-B;
@@ -76,7 +77,7 @@ function draw(ctx){
   }
  }
  const stepX=Math.max(1,Math.floor(xs.length/5));
- for(let i=0;i<xs.length;i++){if(i!==0&&i!==xs.length-1&&i%stepX!==0)continue;out+='<text class="chart-axis-label" x="'+x(i)+'" y="'+(H-11)+'" text-anchor="middle">'+xs[i].slice(5).replace('-','.')+'.</text>'}
+ for(let i=0;i<xs.length;i++){if(i!==0&&i!==xs.length-1&&i%stepX!==0)continue;out+='<text class="chart-axis-label" x="'+x(i)+'" y="'+(H-11)+'" text-anchor="middle">'+fmtDate(xs[i])+'</text>'}
  out+='<line id="chartSelectionLine" x1="0" x2="0" y1="'+T+'" y2="'+(T+PH)+'" stroke="var(--t-chart-axis,#b7d8ee)" stroke-opacity=".68" stroke-dasharray="5 4" stroke-width="1.5" style="pointer-events:none"/>';
  for(const p of ps)out+='<circle id="chartFocus-'+p+'" r="5.3" cx="0" cy="0" stroke="var(--t-bg,#0a1327)" stroke-width="2" fill="'+cssColor(p,colorFor[p])+'" style="pointer-events:none"/>';
  out+='<rect id="chartHit" x="'+L+'" y="'+T+'" width="'+PW+'" height="'+PH+'" fill="transparent" tabindex="0" role="slider" aria-label="Datum im Diagramm auswählen" style="touch-action:pan-y"/></svg>';
@@ -110,10 +111,15 @@ function draw(ctx){
   }
  };
  if(hit){
-  let pendingIndex=-1,frame=0;
-  const handler=e=>{
+  let pendingIndex=-1,frame=0,touchStart=null;
+  const indexAt=e=>{
    const rect=chart.getBoundingClientRect(),pixel=(e.clientX-rect.left)/rect.width*W;
-   const i=Math.max(0,Math.min(xs.length-1,Math.round((pixel-L)/PW*(xs.length-1))));
+   return Math.max(0,Math.min(xs.length-1,Math.round((pixel-L)/PW*(xs.length-1))));
+  };
+  const handler=e=>{
+   // iPhone scrolling must not silently change the selected day.
+   if(e.pointerType==='touch')return;
+   const i=indexAt(e);
    if(i===selectedIndex||i===pendingIndex)return;
    pendingIndex=i;
    if(frame)return;
@@ -124,12 +130,19 @@ function draw(ctx){
    });
   };
   hit.addEventListener('pointermove',handler);
- hit.addEventListener('pointerdown',e=>{
+  hit.addEventListener('pointerdown',e=>{
+   if(e.pointerType==='touch'){touchStart={x:e.clientX,y:e.clientY};return}
    if(frame){cancelAnimationFrame(frame);frame=0}
    pendingIndex=-1;
-   const rect=chart.getBoundingClientRect(),pixel=(e.clientX-rect.left)/rect.width*W;
-   updateSelection(Math.max(0,Math.min(xs.length-1,Math.round((pixel-L)/PW*(xs.length-1)))));
+   updateSelection(indexAt(e));
   });
+  hit.addEventListener('pointerup',e=>{
+   if(e.pointerType!=='touch'||!touchStart)return;
+   const moved=Math.hypot(e.clientX-touchStart.x,e.clientY-touchStart.y);
+   touchStart=null;
+   if(moved<=12)updateSelection(indexAt(e)); // deliberate tap only
+  });
+  hit.addEventListener('pointercancel',()=>{touchStart=null});
  hit.addEventListener('keydown',e=>{if(e.key==='ArrowLeft'||e.key==='ArrowRight'){e.preventDefault();const cur=Number(hit.dataset.selectedIndex??xs.length-1);const next=Math.max(0,Math.min(xs.length-1,cur+(e.key==='ArrowLeft'?-1:1)));hit.dataset.selectedIndex=next;updateSelection(next)}});
  }
  const latestWithData=xs.findLastIndex(d=>ps.some(p=>typeof dMap[p].get(d)==='number'&&Number.isFinite(dMap[p].get(d))));
