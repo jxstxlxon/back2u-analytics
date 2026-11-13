@@ -1,4 +1,8 @@
 import {runAudienceAutoSync} from './audience-sync.js';
+import {validateDirectAudience,mergeDirectAudience,chooseEffectiveAudience} from './direct-audience.js';
+import {validateDirectMedia,mergeDirectMedia,overlayDirectMedia} from './direct-media.js';
+import {validateDirectVideoInsights,mergeDirectVideoInsights,validateInstagramDaily,mergeInstagramDaily,overlayDirectInsights} from './direct-insights.js';
+import {auditDirectCoverage} from './parity-audit.js';
 /* BACK2U Cloudflare Worker - private creator dashboard.
    Independent of Netlify. Do not publish API keys or creator analytics in static assets.
    The Cloudflare D1 binding DB must contain the back2u_store(key,value,updated_at) table.
@@ -195,7 +199,7 @@ async function audienceAdmin(req,env){
   const saved=await get(env,AUDIENCE_KEY);
   const sync=await get(env,'audience_sync_status');
   return json({configured:!!saved,updatedAt:saved?.updatedAt||null,snapshotDate:saved?.snapshotDate||null,
-   automatic:{configured:!!String(env.WINDSOR_API_KEY||'').trim(),
+   automatic:{configured:!!String(env.WINDSOR_API_KEY||'').trim(),tiktokOnlyMode:env.BACK2U_WINDSOR_TIKTOK_ONLY==='true',
     status:sync?.status||'not_started',lastAttemptAt:sync?.lastAttemptAt||null,
     lastSuccessAt:sync?.lastSuccessAt||null,snapshotDate:sync?.snapshotDate||null,
     error:sync?.error||null,groups:sync?.groups||null}});
@@ -229,21 +233,109 @@ async function audienceAdmin(req,env){
 async function audienceSyncAdmin(req,env){
  if(req.method!=='POST')return json({error:'POST only'},405);
  if(!requireSameSiteJson(req))return json({error:'Unzulässige Anfrage'},403);
- const result=await runAudienceAutoSync(env,{get,put,force:true});
+ const result=await runAudienceAutoSync(env,{get,put,force:true,tiktokOnly:env.BACK2U_WINDSOR_TIKTOK_ONLY==='true'});
  const code=result.status==='ok'?200:result.status==='not_configured'?503:502;
  return json(result,code);
+}
+
+/* Google Apps Script -> Cloudflare, private bearer feed, no browser request. */
+async function ingestDirectAudience(req,env){
+ if(req.method!=='POST')return json({error:'POST only'},405);
+ const secret=env.BACK2U_GOOGLE_FEED_SECRET;
+ if(!secret||secret.length<24)return json({error:'Feed secret missing'},503);
+ const supplied=(req.headers.get('authorization')||'').replace(/^Bearer\s+/i,'');
+ if(!supplied||!(await equal(secret,supplied)))return json({error:'Forbidden'},403);
+ const raw=await req.text();
+ if(raw.length>35000)return json({error:'Payload too large'},413);
+ let data;try{data=JSON.parse(raw)}catch{return json({error:'Bad JSON'},400)}
+ let valid;try{valid=validateDirectAudience(data)}catch(e){return json({error:clamp(e?.message)},422)}
+ const previous=await get(env,'direct_audience_v1');
+ const old=previous?.platforms?.[valid.platform];
+ if(old?.snapshotDate&&old.snapshotDate>valid.snapshotDate)
+  return json({error:'An older report cannot replace a newer direct report'},409);
+ const merged=mergeDirectAudience(previous,valid);
+ await put(env,'direct_audience_v1',merged);
+ return json({ok:true,platform:valid.platform,groups:3,snapshotDate:valid.snapshotDate,
+  source:valid.platform==='yt'?'YouTube Analytics API':'Meta Graph API'});
+}
+async function ingestDirectMedia(req,env){
+ if(req.method!=='POST')return json({error:'POST only'},405);
+ const secret=env.BACK2U_GOOGLE_FEED_SECRET;
+ if(!secret||secret.length<24)return json({error:'Feed secret missing'},503);
+ const token=(req.headers.get('authorization')||'').replace(/^Bearer\s+/i,'');
+ if(!token||!(await equal(secret,token)))return json({error:'Forbidden'},403);
+ const raw=await req.text();
+ if(raw.length>1740000)return json({error:'Direct media payload too large'},413);
+ let data;try{data=JSON.parse(raw)}catch{return json({error:'Bad JSON'},400)}
+ let valid;try{valid=validateDirectMedia(data)}catch(e){return json({error:clamp(e?.message)},422)}
+ const old=await get(env,'direct_media_v1');
+ const prior=old?.platforms?.[valid.platform];
+ if(prior?.snapshotDate&&prior.snapshotDate>valid.snapshotDate)
+  return json({error:'Older catalog cannot replace newer direct catalog'},409);
+ const merged=mergeDirectMedia(old,valid);
+ await put(env,'direct_media_v1',merged);
+ return json({ok:true,platform:valid.platform,rows:valid.videos.length,snapshotDate:valid.snapshotDate});
+}
+
+
+async function ingestDirectInsights(req,env,kind){
+ if(req.method!=='POST')return json({error:'POST only'},405);
+ const secret=env.BACK2U_GOOGLE_FEED_SECRET;
+ if(!secret||secret.length<24)return json({error:'Feed secret missing'},503);
+ const auth=(req.headers.get('authorization')||'').replace(/^Bearer\s+/i,'');
+ if(!auth||!(await equal(auth,secret)))return json({error:'Forbidden'},403);
+ const raw=await req.text();
+ if(raw.length>270000)return json({error:'Payload too large'},413);
+ let body;try{body=JSON.parse(raw)}catch{return json({error:'Invalid JSON'},400)}
+ let value;try{value=kind==='daily'?validateInstagramDaily(body):validateDirectVideoInsights(body)}
+ catch(e){return json({error:clamp(e?.message)},422)}
+ const key=kind==='daily'?'direct_ig_daily_v1':'direct_video_insights_v1';
+ const last=await get(env,key);
+ if(kind==='daily'){
+  await put(env,key,mergeInstagramDaily(last,value));
+  return json({ok:true,source:value.source,rows:value.daily.length,snapshotDate:value.snapshotDate});
+ }
+ const previous=last?.platforms?.[value.platform];
+ if(previous?.snapshotDate>value.snapshotDate)return json({error:'Older video insights report'},409);
+ if(value.platform==='yt'){
+  const window=String(value.period?.days||28)+'d';
+  const oldCount=(previous?.videos||[]).filter(v=>
+   Object.keys(v.metrics||{}).some(k=>k.endsWith(window))).length;
+  // A suddenly truncated API report must not erase the saved, complete report.
+  if(oldCount>=20&&value.videos.length<Math.ceil(oldCount*.55))
+   return json({error:'Suspiciously incomplete YouTube '+window+' report; previous data kept'},422);
+ }
+ await put(env,key,mergeDirectVideoInsights(last,value));
+ return json({ok:true,platform:value.platform,source:value.source,videos:value.videos.length,
+  period:value.period||'lifetime',snapshotDate:value.snapshotDate});
+}
+
+async function directAudienceStatus(req,env){
+ if(req.method!=='GET')return json({error:'GET only'},405);
+ const direct=await get(env,'direct_audience_v1');
+ return json({sources:Object.fromEntries(['yt','ig'].map(p=>[p,{
+  configured:!!direct?.platforms?.[p],lastSuccessAt:direct?.platforms?.[p]?.updatedAt||null,
+  snapshotDate:direct?.platforms?.[p]?.snapshotDate||null,
+  groups:Object.keys(direct?.platforms?.[p]?.audience||{}).length
+ }]))});
 }
 
 async function hydratedSnapshot(env){
  const s=await get(env,'snapshot');
  if(!s?.platforms?.yt)return s;
- const imported=await get(env,AUDIENCE_KEY);
- if(imported?.schema===1)s.audienceImport=imported;
+ const [imported,direct]=await Promise.all([get(env,AUDIENCE_KEY),get(env,'direct_audience_v1')]);
+ if(imported?.schema===1||direct?.schema===1)s.audienceImport=chooseEffectiveAudience(imported,direct);
  const instagramProfile=await get(env,'ig_profile');
  if(instagramProfile?.username==='lxon_jxmpstyle'&&Number.isSafeInteger(instagramProfile.followers)&&instagramProfile.followers>=0){
   s.platforms.ig.profile={...s.platforms.ig.profile,followers:instagramProfile.followers,username:instagramProfile.username,
    asOf:instagramProfile.updatedAt,source:'Instagram Graph API',history:instagramProfile.history||[]};
  }
+ const [catalog,videoInsights,igDaily]=await Promise.all([
+  get(env,'direct_media_v1'),get(env,'direct_video_insights_v1'),get(env,'direct_ig_daily_v1')
+ ]);
+ if(catalog?.schema===1)overlayDirectMedia(s,catalog);
+ if(videoInsights?.schema===1||igDaily?.schema===1)
+  overlayDirectInsights(s,{video:videoInsights,daily:igDaily});
  const tiktokProfile=await get(env,'tt_profile');
  const tiktokAuth=tiktokProfile?await get(env,'tt_oauth'):null;
  if(s.platforms.tt&&tiktokProfile?.openId&&tiktokProfile.openId===tiktokAuth?.openId&&
@@ -304,14 +396,23 @@ async function ingestYoutubeDaily(req,env){
    if(value===null||value<0||!Number.isSafeInteger(value))return json({error:'Invalid '+field},422);
    numeric[field]=value;
   }
+  const more={};
+  for(const field of ['shares','engagedViews','watchMinutes','averageViewSeconds']){
+   if(row[field]===undefined||row[field]===null)continue;
+   const value=Number(row[field]);
+   if(!Number.isFinite(value)||value<0||
+      (field!=='averageViewSeconds'&&field!=='watchMinutes'&&!Number.isSafeInteger(value)))
+    return json({error:'Invalid YouTube '+field},422);
+   more[field]=value;
+  }
   byDate.set(d,{d,views:numeric.views,likes:numeric.likes,comments:numeric.comments,
    follows:numeric.subscribersGained-numeric.subscribersLost,
    subscribersGained:numeric.subscribersGained,subscribersLost:numeric.subscribersLost,
-   source:'YouTube Analytics API'});
+   ...more,source:'YouTube Analytics API'});
  }
  const old=await get(env,'yt_analytics_daily');
  const merged=new Map((old?.daily||[]).map(row=>[row.d,row]));
- for(const [k,v] of byDate)merged.set(k,v);
+ for(const [k,v] of byDate)merged.set(k,{...(merged.get(k)||{}),...v});
  const daily=[...merged.values()].sort((a,b)=>a.d.localeCompare(b.d)).slice(-125);
  const subscriberCount=num(data.subscriberCount);
  const snapshot={daily,updatedAt:new Date().toISOString(),
@@ -592,6 +693,10 @@ async function route(req,env){
  if(path==='/api/login')return req.method==='POST'?issueToken(req,env):json({error:'POST only'},405);
  if(path==='/api/guest/redeem')return redeemGuest(req,env);
  if(path==='/api/youtube-daily/ingest')return ingestYoutubeDaily(req,env);
+ if(path==='/api/direct-audience/ingest')return ingestDirectAudience(req,env);
+ if(path==='/api/direct-media/ingest')return ingestDirectMedia(req,env);
+ if(path==='/api/direct-video-insights/ingest')return ingestDirectInsights(req,env,'video');
+ if(path==='/api/direct-instagram-daily/ingest')return ingestDirectInsights(req,env,'daily');
  if(path==='/api/instagram-profile/ingest')return ingestInstagramProfile(req,env);
  if(path==='/api/ingest'){
   if(req.method!=='POST')return json({error:'POST only'},405);
@@ -630,6 +735,41 @@ async function route(req,env){
  if(access.role!=='admin')return json({error:'Nur Administrator'},403);
  if(path==='/api/audience')return audienceAdmin(req,env);
  if(path==='/api/audience/sync')return audienceSyncAdmin(req,env);
+ if(path==='/api/direct-audience/status')return directAudienceStatus(req,env);
+ if(path==='/api/direct-parity') {
+  if(req.method!=='GET')return json({error:'GET only'},405);
+  const [audience,media,video,instagramDaily,youtubeDaily]=await Promise.all([
+   get(env,'direct_audience_v1'),get(env,'direct_media_v1'),
+   get(env,'direct_video_insights_v1'),get(env,'direct_ig_daily_v1'),
+   get(env,'yt_analytics_daily')
+  ]);
+  return json(auditDirectCoverage({audience,media,video,instagramDaily,youtubeDaily}));
+ }
+ if(path==='/api/direct-insights/status'){
+  if(req.method!=='GET')return json({error:'GET only'},405);
+  const [insights,daily]=await Promise.all([
+   get(env,'direct_video_insights_v1'),get(env,'direct_ig_daily_v1')
+  ]);
+  const yt=insights?.platforms?.yt;
+  const ranges=Object.fromEntries([7,28,90].map(days=>[String(days),{
+   period:yt?.periods?.[String(days)]||null,
+   videos:(yt?.videos||[]).filter(v=>Object.keys(v?.metrics||{}).some(k=>k.endsWith(days+'d'))).length
+  }]));
+  return json({youtubeVideoInsights:{
+   updatedAt:yt?.updatedAt||null,
+   videoCount:yt?.videos?.length||0,
+   periods:Object.keys(yt?.periods||{}).map(Number).sort((a,b)=>a-b),
+   ranges,
+   period:yt?.period||null
+  },instagramVideoInsights:{
+   updatedAt:insights?.platforms?.ig?.updatedAt||null,
+   videoCount:insights?.platforms?.ig?.videos?.length||0
+  },instagramDaily:{
+   updatedAt:daily?.updatedAt||null,
+   days:daily?.daily?.length||0,
+   dataThrough:daily?.daily?.at(-1)?.date||null
+  }});
+ }
  if(path==='/api/guest-links')return guestLinks(req,env);
  if(path.startsWith('/api/guest-links/'))return revokeGuest(req,env,path.slice('/api/guest-links/'.length));
 
@@ -701,7 +841,7 @@ export default {
  },
  async scheduled(controller,env,ctx){
   ctx.waitUntil(ttSync(env).catch(e=>console.error('TikTok scheduled sync:',clamp(e?.message))));
-  ctx.waitUntil(runAudienceAutoSync(env,{get,put})
+  ctx.waitUntil(runAudienceAutoSync(env,{get,put,tiktokOnly:env.BACK2U_WINDSOR_TIKTOK_ONLY==='true'})
    .then(r=>{if(r.status==='error')console.warn('Audience scheduled sync failed:',r.error)})
    .catch(e=>console.error('Audience scheduled sync could not complete:',clamp(e?.message))));
  }

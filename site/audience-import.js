@@ -21,6 +21,16 @@
  }
  let initialized=false;
  const formatTime=iso=>iso?new Date(iso).toLocaleString('de-DE'):'noch nie';
+ function showDirect(sources){
+  const target=$('directAudienceStatus');if(!target)return;
+  const details=['yt','ig'].map(p=>{
+   const x=sources?.[p],name=p==='yt'?'YouTube':'Instagram';
+   if(!x?.configured)return name+': Noch kein erfolgreicher direkter Abruf';
+   const day=String(x.snapshotDate||'unbekannt').split('-').reverse().join('.');
+   return name+': '+(x.groups===3?'3/3 Aufteilungen':'unvollständig')+' · Stand '+day;
+  });
+  target.textContent=details.join('  |  ');
+ }
  function showAutomatic(data){
   const node=$('audienceAutoSyncStatus'),button=$('audienceSyncNow');
   if(!node||!button)return;
@@ -42,6 +52,41 @@
   try{const state=await api('/api/audience');
    existing=Boolean(state.configured);
    showAutomatic(state);
+   try{const direct=await api('/api/direct-audience/status');showDirect(direct.sources)}
+   catch{const node=$('directAudienceStatus');if(node)node.textContent='Direktstatus kann gerade nicht geladen werden.'}
+   try{
+    const report=await api('/api/direct-insights/status');
+    const node=$('directInsightsStatus');
+    if(node){
+     const y=report.youtubeVideoInsights||{},i=report.instagramVideoInsights||{},d=report.instagramDaily||{};
+     const ranges=[7,28,90].map(days=>{
+      const r=y.ranges?.[String(days)];
+      return days+' Tage: '+(r?.period?String(r.videos||0)+' Videos':'noch kein Bericht');
+     });
+     node.textContent='YouTube Videoanalysen: '+ranges.join(' · ')+
+      ' · Instagram Reel-Insights: '+(i.videoCount||0)+' Videos'+
+      ' · Meta-Tageswerte: '+(d.days||0)+' Tage'+
+      (d.dataThrough?' (bis '+d.dataThrough.split('-').reverse().join('.')+')':'')+
+      '. Fehlende Kennzahlen bleiben offen.';
+    }
+   }catch{
+    const node=$('directInsightsStatus');
+    if(node)node.textContent='Zusatzstatistiken: Noch kein Direktbericht verfügbar.';
+   }
+   try{
+    const audit=await api('/api/direct-parity');
+    const node=$('directParityStatus');
+    if(node){
+     const missing=(audit.checks||[]).filter(x=>!x.pass);
+     node.textContent='Direktquellen-Datenprüfung: '+audit.summary.passed+'/'+audit.summary.total+' erfüllt. '+
+      (missing.length?'Offen: '+missing.map(x=>x.label+' ('+x.details+')').join(' · '):
+       'Datenabdeckung vollständig; echter 7-Tage-Parallelvergleich und D1-Backup bleiben Pflicht.')+
+      ' Keine automatische Windsor-Abschaltung.';
+    }
+   }catch{
+    const node=$('directParityStatus');
+    if(node)node.textContent='Datenqualitätsprüfung nicht erreichbar; Windsor bleibt aktiv.';
+   }
    status(existing?'Private Zielgruppendaten vorhanden · Stand '+String(state.snapshotDate||'unbekannt')+'.':'Noch keine privaten Zielgruppendaten importiert.');
   }catch(e){status('Importstatus konnte nicht geladen werden: '+e.message)}
   $('audienceSyncNow').addEventListener('click',async()=>{

@@ -61,6 +61,35 @@ function back2uYouTubeDailyRepair() {
     subscribersLost: Number(row[5])
   }));
 
+  // Optional official day-level totals. If a particular Analytics metric is
+  // unsupported, do not fail the proven base daily report or invent a zero.
+  // First try a single grouped request to keep the API quota low.
+  const extraNames=['estimatedMinutesWatched','shares','averageViewDuration','engagedViews'];
+  const extraKeys=['watchMinutes','shares','averageViewSeconds','engagedViews'];
+  const addMetrics=(response,requested)=>{
+    for(const row of response?.rows||[]){
+      const item=daily.find(x=>x.date===String(row[0]));
+      if(!item)continue;
+      requested.forEach((name,index)=>{
+        const value=Number(row[index+1]);
+        if(row[index+1]===null||row[index+1]===undefined||!Number.isFinite(value)||value<0)return;
+        const key=extraKeys[extraNames.indexOf(name)];
+        item[key]=name==='estimatedMinutesWatched'||name==='averageViewDuration'?
+          Math.round(value*100)/100:Math.round(value);
+      });
+    }
+  };
+  const extraQuery=metrics=>YouTubeAnalytics.Reports.query({
+    ids:'channel=='+mine.id,startDate:from,endDate:to,
+    metrics:metrics.join(','),dimensions:'day',sort:'day'
+  });
+  try{addMetrics(extraQuery(extraNames),extraNames)}
+  catch(_){
+    for(const metric of extraNames){
+      try{addMetrics(extraQuery([metric]),[metric])}catch(_){} // unknown is not zero
+    }
+  }
+
   const payload = {
     schema: 1,
     daily: daily,

@@ -1,0 +1,32 @@
+name: BACK2U V7.7 Production Safety
+on:
+  push:
+    branches: 
+      - feature/back2u-v77-direct-yt-ig-tiktok-audit-20261112
+  pull_request:
+    paths:
+      - cloudflare/**
+      - site/**
+      - tests/**
+      - scripts/**
+      - package.json
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate Worker syntax
+        run: node --check cloudflare/worker.js
+      - name: Validate dashboard JavaScript
+        run: |
+          for file in site/*.js; do node --check "$file"; done
+      - name: Run the regression tests
+        run: npm test
+      - name: Verify Worker compilation, no deployment
+        run: npx --yes wrangler@4 deploy --dry-run --config wrangler.cloudflare.jsonc --outdir .wrangler-dry-run

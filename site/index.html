@@ -122,6 +122,13 @@ body.story-open{overflow:hidden}
   <section id="lifetimeViewsCard" class="lifetime-views-card glass" aria-label="All-Time Videoaufrufe"><div class="eyebrow">ALL TIME / VIDEO-AUFRUFE</div><div class="lifetime-views-heading">Alle bisher erfassten Videoaufrufe</div><div class="lifetime-views-total" id="lifetimeViewsTotal">–</div><div class="lifetime-views-subtitle" id="lifetimeViewsSubtitle">Lade offizielle Video-Gesamtwerte …</div><div class="lifetime-views-breakdown" id="lifetimeViewsBreakdown"></div><div class="lifetime-views-note" id="lifetimeViewsNote">Gesamtaufrufe der verfügbaren Videos, nicht die vollständige Historie des Kontos.</div></section>
   <div id="followerCards" class="follower-cards" aria-label="Follower und Abonnenten"></div>
   <div id="dailyFreshness" class="daily-freshness" role="status"></div>
+  <section id="extendedDailyCard" class="v77-extended-daily" aria-label="Zusätzliche bestätigte Plattform-Analytics">
+   <div class="section-heading"><div><div class="eyebrow">DIREKTE API / ZUSATZWERTE</div>
+    <h2>Mehr als nur Aufrufe</h2>
+    <p>Neue, offiziell abgerufene Kennzahlen mit echter Datenabdeckung. Unbekannte Werte bleiben offen.</p></div></div>
+   <div id="extendedDailyMetrics" class="metric-grid" role="status" aria-live="polite"></div>
+   <div id="extendedDailyNote" class="smallprint"></div>
+  </section>
   <div class="section-heading"><div><div class="eyebrow">02 / SIGNAL</div><h2>Deine Entwicklung</h2><p>Die Aufrufe im Zeitverlauf – unterschiedliche Messgrößen werden gekennzeichnet.</p></div><div id="trendLegend" class="legend"></div></div>
   <div class="chart-card glass"><div class="chart-head"><div><strong id="chartTitle">Tägliche Aufrufe</strong><span id="chartSubtitle">Auf Basis der vorhandenen Tageswerte</span></div><div class="tooltip-n" id="chartHoverLabel">Zum Vergleichen über das Diagramm fahren</div></div><div id="chartDataStatus" class="v7-data-status" role="status"></div><div id="chartKpis" class="chart-kpis" aria-label="Auswertung vorhandener Tageswerte"></div><div id="chartDayBreakdown" class="chart-day-breakdown" aria-live="polite" aria-atomic="true"></div><div id="chartModes" class="chart-mode-group" role="group" aria-label="Diagrammart"><button type="button" data-chart-mode="line" aria-pressed="true">Linie</button><button type="button" data-chart-mode="area" aria-pressed="false">Fläche</button><button type="button" data-chart-mode="bar" aria-pressed="false">Balken</button></div><div class="line-chart-wrap" id="trendChart"></div><div id="chartSummaryNote" class="chart-summary-note"></div><div class="chart-foot" id="chartFoot"></div></div><section class="glass v7-chart-pie-card" aria-label="Tageswerte nach Plattform"><div class="v7-chart-pie-head"><h3>Woher kamen die Aufrufe?</h3><p>Prozentanteile der verfügbaren Tageswerte – absolute Zahlen stehen darüber.</p></div><div id="chartPlatformPie" class="v7-pie-content" aria-live="polite"></div></section>
   <div class="section-heading"><div><div class="eyebrow">03 / STANDOUTS</div><h2>Videos, die herausstechen</h2><p>Nach bisherigen Aufrufen der im Zeitraum veröffentlichten Videos.</p></div><button class="subtle-link" data-go="videos">Alle Videos ansehen <span>↗</span></button></div>
@@ -185,7 +192,12 @@ body.story-open{overflow:hidden}
   <div class="pane-header"><h3>🔄 Zielgruppen-Synchronisierung</h3><span class="pill">Nur Admin</span></div>
   <p>BACK2U V7.6 aktualisiert alle neun Zielgruppenaufteilungen automatisch aus deinen verbundenen Plattformkonten. Die Werte werden ausschließlich in Cloudflare D1 gespeichert. Gäste dürfen sie nur lesen.</p>
   <div class="audience-auto-panel">
-   <h4>Automatische Zielgruppen-Aktualisierung</h4>
+   <h4>Direkte Plattform-APIs (V7.7)</h4>
+   <div id="directAudienceStatus" role="status" aria-live="polite">Verbindung zu YouTube und Instagram wird geprüft …</div>
+   <div id="directInsightsStatus" role="status" aria-live="polite">Erweiterte Video- und Instagram-Tagesdaten werden geprüft …</div>
+   <div id="directParityStatus" role="status" aria-live="polite">Datenqualität und Lücken werden geprüft …</div>
+   <p id="directAudienceHint">Die direkten APIs werden über das bestehende Google Apps Script übertragen, nachdem die zwei neuen Zusatzdateien einmalig aktiviert wurden. Bei fehlenden Berechtigungen bleibt der letzte gespeicherte Wert sichtbar.</p>
+   <h4>Windsor.ai (Bestand / TikTok-Fallback)</h4>
    <div id="audienceAutoSyncStatus" role="status" aria-live="polite">Verbindung wird geprüft …</div>
    <button type="button" id="audienceSyncNow">Jetzt aktualisieren</button>
    <p id="audienceAutoSyncHint">Für automatische Updates muss einmalig WINDSOR_API_KEY als Cloudflare-Secret gespeichert werden. Der bestehende Cloudflare-Cron führt dann höchstens einmal täglich einen vollständigen Abgleich durch.</p>
@@ -450,7 +462,45 @@ function renderDailyFreshness(){
  el.textContent='Datenabdeckung · '+messages.join('  |  ')+' · 7/28/90-Tage-Gesamtsummen können unvollständig sein.';
 }
 
-function renderOverview(){const x=allMetric();const historic=state.days===28&&!platforms().some(p=>state.live?.platforms?.[p]?.daily?.length);let heroLabel='Gesamtaufrufe',heroVal=x.views,delta='';const ps=platforms();
+/* V7.7 – only verified direct API day metrics; do not combine lifetime data.
+   Instagram daily reach is a sum of each day's unique reach, NOT unique
+   accounts over the full 7/28/90-day reporting period. */
+function renderExtendedDaily(){
+ const panel=$('#extendedDailyMetrics'),foot=$('#extendedDailyNote');
+ if(!panel||!foot)return;
+ const ps=platforms(),{start,end}=targetRange(),totalDays=state.days;
+ const specs=[
+  {p:'yt',key:'engagedViews',name:'Interessierte Aufrufe',unit:'count'},
+  {p:'yt',key:'watchMinutes',name:'Wiedergabezeit',unit:'minutes'},
+  {p:'yt',key:'shares',name:'Geteilte Videos',unit:'count'},
+  {p:'yt',key:'averageViewSeconds',name:'Ø Dauer · letzter verfügbarer Tag',unit:'seconds',latest:true},
+  {p:'ig',key:'shares',name:'Geteilte Beiträge',unit:'count'},
+  {p:'ig',key:'saves',name:'Gespeicherte Beiträge',unit:'count'},
+  {p:'ig',key:'interactions',name:'Interaktionen',unit:'count'},
+  {p:'ig',key:'reach',name:'Tagesreichweite (Summe)',unit:'count'}
+ ];
+ const cards=[];
+ for(const spec of specs.filter(o=>ps.includes(o.p))){
+  const all=mergedDaily(spec.p).filter(r=>r.d>=start&&r.d<=end);
+  const rows=all.filter(r=>typeof r[spec.key]==='number'&&Number.isFinite(r[spec.key])&&r[spec.key]>=0&&
+   (spec.p==='yt'?r.source==='YouTube Analytics API':
+    r.sourceFields?.[spec.key]==='Meta Graph API (direct daily)'));
+  const latest=rows.length?rows[rows.length-1]:null;
+  const value=spec.latest?(latest?.[spec.key]??null):
+   (rows.length?rows.reduce((sum,r)=>sum+r[spec.key],0):null);
+  const formatted=value===null?'–':spec.unit==='minutes'?dec(value)+' Min.':
+   spec.unit==='seconds'?dec(value)+' s':fmt(value);
+  const note=spec.latest?(latest?'Messdatum '+latest.d:'Noch kein bestätigter Tageswert'):
+    (rows.length+' von '+totalDays+' Tagen · '+(rows.length===totalDays?'vollständig':'unvollständig'));
+  cards.push('<div class="glass metric-box"><small>'+esc(NAMES[spec.p])+' · '+esc(spec.name)+
+   '</small><strong>'+esc(formatted)+'</strong><p>'+esc(note)+'</p></div>');
+ }
+ panel.innerHTML=cards.length?cards.join(''):
+  '<div class="glass metric-box"><small>Verfügbare Direktdaten</small><strong>–</strong><p>Für TikTok liegen diese zusätzlichen offiziellen Tagesberichte nicht vor.</p></div>';
+ foot.textContent='7/28/90 Tage zeigen ausschließlich wirklich erfasste Direktwerte. Bei unvollständiger Abdeckung ist die angezeigte Summe nur eine Teilsumme. Instagram-Tagesreichweite ist die Summe einzelner Tagesreichweiten, keine eindeutige Reichweite des Gesamtzeitraums. TikTok wird nicht geschätzt.';
+}
+
+function renderOverview(){renderExtendedDaily();const x=allMetric();const historic=state.days===28&&!platforms().some(p=>state.live?.platforms?.[p]?.daily?.length);let heroLabel='Gesamtaufrufe',heroVal=x.views,delta='';const ps=platforms();
  if(!x.complete){heroLabel=x.views===null?'Interessierte Aufrufe / Datenstand':'Erfasste Aufrufe';}
  if(ps.length===1&&ps[0]==='yt'&&heroVal===null){heroVal=x.vals[0].engaged;heroLabel='Interessierte YouTube-Aufrufe';}
  if(ps.length===3&&!x.complete){const vals=x.vals.filter(v=>v.views!==null);delta=vals.length<3?`Aufrufe von ${vals.length} von 3 Plattformen`:'Für einige Tage fehlen noch Zahlen';}
@@ -576,13 +626,49 @@ function crossPlatformVideoGroups(){
 function groupPlatformLabel(g,metric){
  return g.members.map(v=>'<span class="platform-chip" data-platform="'+esc(v.platform)+'">'+tagPlatform(v.platform)+' <b>'+fmt(videoMetricValue(v,metric))+'</b></span>').join('');
 }
+
+/* Official API video metrics are separate from lifetime video counters. */
+function officialVideoInsightHtml(v){
+ const a=v?.analytics;
+ if(!a||!a.source)return '';
+ const days=[7,28,90].includes(state.days)?state.days:28;
+ const entries=v.platform==='yt'?[
+  ['Videoaufrufe · '+days+' Tage','views'+days+'d','number'],
+  ['Interessierte Aufrufe · '+days+' Tage','engagedViews'+days+'d','number'],
+  ['Wiedergabezeit · '+days+' Tage','watchMinutes'+days+'d','minutes'],
+  ['Ø Wiedergabedauer · '+days+' Tage','averageViewSeconds'+days+'d','seconds'],
+  ['Ø Wiedergabeanteil · '+days+' Tage','averageViewPercentage'+days+'d','percent'],
+  ['Shares · '+days+' Tage','shares'+days+'d','number']
+ ]:[
+  ['Geteilt · Gesamt','shares','number'],
+  ['Gespeichert · Gesamt','saves','number'],
+  ['Interaktionen · Gesamt','interactions','number'],
+  ['Ø Wiedergabezeit','averageWatchMs','millis'],
+  ['Wiedergabezeit · Gesamt','totalWatchMs','totalMillis']
+ ];
+ const tiles=entries.filter(x=>typeof a[x[1]]==='number'&&Number.isFinite(a[x[1]]))
+  .map(([label,key,unit])=>{
+   const n=a[key];
+   const output=unit==='seconds'?dec(n)+' s':unit==='percent'?dec(n)+' %':
+    unit==='minutes'?dec(n)+' Min.':unit==='millis'?dec(n/1000)+' s':
+    unit==='totalMillis'?dec(n/60000)+' Min.':fmt(n);
+   return '<div class="detail-metric"><b>'+esc(output)+'</b><small>'+esc(label)+'</small></div>';
+  }).join('');
+ if(!tiles)return '';
+ const p=v.platform==='yt'?a.periods?.[String(days)]:null;
+ const period=p?.start&&p?.end?' · '+esc(p.start)+' bis '+esc(p.end):'';
+ return '<div class="detail-note">Offizielle zusätzliche Videokennzahlen · '+esc(a.source)+period+
+  '. „–“ = nicht von der API geliefert. Zeitraumwerte dürfen nicht mit Lifetime-Aufrufen verwechselt werden.</div>'+
+  '<div class="detail-metrics">'+tiles+'</div>';
+}
+
 function renderGroupedVideoDetail(g){
  if(!g){$('#detailPanel').innerHTML='<div class="empty">Wähle ein Video aus.</div>';return;}
  const stats=[['Aufrufe',g.views],['Likes',g.likes],['Kommentare',g.comments],['Follows',g.follows],['Shares',g.shares]];
  const metrics=stats.map(pair=>'<div class="detail-metric"><b>'+fmt(pair[1])+'</b><small>'+pair[0]+(g.members.length>1?' · erfasste Summe':'')+'</small></div>').join('');
  const platformRows=g.members.map(v=>{
   const videoUrl=cleanUrl(v.url);
-  return '<div class="group-detail-platform"><div><strong>'+tagPlatform(v.platform)+'</strong><small>Aufrufe '+fmt(v.views)+' · Likes '+fmt(v.likes)+' · Kommentare '+fmt(v.comments)+' · Follows '+fmt(v.follows)+'</small></div>'+(videoUrl?'<a href="'+esc(videoUrl)+'" rel="noopener" target="_blank">Video öffnen ↗</a>':'')+'</div>';
+  return '<div class="group-detail-platform"><div><strong>'+tagPlatform(v.platform)+'</strong><small>Aufrufe '+fmt(v.views)+' · Likes '+fmt(v.likes)+' · Kommentare '+fmt(v.comments)+' · Follows '+fmt(v.follows)+'</small></div>'+(videoUrl?'<a href="'+esc(videoUrl)+'" rel="noopener" target="_blank">Video öffnen ↗</a>':'')+'</div>'+officialVideoInsightHtml(v);
  }).join('');
  $('#detailPanel').innerHTML='<div class="detail-art">'+image(g.first)+'</div><div class="detail-pill">'+(g.members.length>1?g.members.length+' Plattformen':'1 Plattform')+'</div><h3 class="detail-heading">'+esc(g.title)+'</h3><div class="detail-metrics">'+metrics+'</div><div class="detail-note">'+(g.members.length>1?'Summierte Kontoaufrufe, keine eindeutig verschiedenen Zuschauer.':'Einzelvideo-Gesamtwerte.')+' Follows pro Video werden nur addiert, soweit sie übermittelt wurden. „–“ bedeutet fehlende Daten. Automatische Video-Zuordnung erfolgt anhand von Titel und Datum; sie ist nicht durch identische Videodateien verifiziert.</div><div class="group-detail-header">AUFSCHLÜSSELUNG NACH PLATTFORM</div>'+platformRows;
 }
@@ -637,7 +723,7 @@ function renderVideos(){if(state.platform==='all'){const hasApi=Boolean(state.li
 }
 function renderDetail(){const v=state.selected;if(!v){$('#detailPanel').innerHTML='<div class="empty">Wähle links ein Video aus.</div>';return}const mm=matches(v),kpi=[['Aufrufe',videoMetricValue(v,'views')],['Likes',videoMetricValue(v,'likes')],['Kommentare',videoMetricValue(v,'comments')],['Follows',videoMetricValue(v,'follows')],['Shares',v.shares]];
  let platformsHtml=['yt','ig','tt'].map(p=>{const found=p===v.platform?{v,s:1}:mm[p];return `<div class="compare-row"><span>${tagPlatform(p)}</span><small>${found?'Titelzuordnung '+(found.s===1?'Original':Math.round(found.s*100)+' %'):'Nicht zugeordnet'}</small><b>${found?fmt(found.v.views):'–'}</b></div>`}).join('');
- const url=cleanUrl(v.url);$('#detailPanel').innerHTML=`<div class="detail-art">${image(v)}</div><div class="detail-pill">${tagPlatform(v.platform)}</div><div class="detail-pill">${esc(v.format||'Video')}</div><h3 class="detail-heading">${esc(v.title)}</h3><div class="detail-metrics">${kpi.map(x=>`<div class="detail-metric"><b>${fmt(x[1])}</b><small>${x[0]}</small></div>`).join('')}</div><div class="detail-note">${esc(metricDesc(v.platform))}. ${v.platform==='yt'?(videoReportDays(v)?'Berichtszeitraum: '+videoReportDays(v)+' Tage.':'Einzelvideo-Kennzahlen: bisherige Gesamtwerte.'):''} Veröffentlicht am ${esc(v.date)}. Werte sind Momentaufnahmen. Für Video-Zuordnungen werden Titel und Datum verglichen, nicht die Videodateien.</div><div class="compare-title">DASSELBE ODER ÄHNLICHE VIDEO AUF ANDEREN PLATTFORMEN</div>${platformsHtml}<div class="detail-note">Automatische Zuordnung = ungeprüfter Titelkandidat. Insbesondere ähnliche Serienfolgen können falsch zusammenpassen.</div>${url?`<a class="detail-link" href="${esc(url)}" target="_blank" rel="noopener">Originalvideo öffnen ↗</a>`:''}`;
+ const url=cleanUrl(v.url);$('#detailPanel').innerHTML=`<div class="detail-art">${image(v)}</div><div class="detail-pill">${tagPlatform(v.platform)}</div><div class="detail-pill">${esc(v.format||'Video')}</div><h3 class="detail-heading">${esc(v.title)}</h3><div class="detail-metrics">${kpi.map(x=>`<div class="detail-metric"><b>${fmt(x[1])}</b><small>${x[0]}</small></div>`).join('')}</div><div class="detail-note">${esc(metricDesc(v.platform))}. ${v.platform==='yt'?(videoReportDays(v)?'Berichtszeitraum: '+videoReportDays(v)+' Tage.':'Einzelvideo-Kennzahlen: bisherige Gesamtwerte.'):''} Veröffentlicht am ${esc(v.date)}. Werte sind Momentaufnahmen. Für Video-Zuordnungen werden Titel und Datum verglichen, nicht die Videodateien.</div>${officialVideoInsightHtml(v)}<div class="compare-title">DASSELBE ODER ÄHNLICHE VIDEO AUF ANDEREN PLATTFORMEN</div>${platformsHtml}<div class="detail-note">Automatische Zuordnung = ungeprüfter Titelkandidat. Insbesondere ähnliche Serienfolgen können falsch zusammenpassen.</div>${url?`<a class="detail-link" href="${esc(url)}" target="_blank" rel="noopener">Originalvideo öffnen ↗</a>`:''}`;
 }
 function uploadCounts(p){const arr=mergedVideos().filter(x=>x.platform===p),{start,end}=targetRange();let map={};for(let d=start;d<=end;d=shift(d,1))map[d]=0;for(const v of arr)if(v.date>=start&&v.date<=end)map[v.date]=(map[v.date]||0)+1;return map}
 function renderExperiments(){if(window.BACK2U_V7?.experiments){window.BACK2U_V7.experiments();return}const vids=allVideosNoSearch(),range=targetRange(),ps=platforms(),counts={};for(const p of ps)counts[p]=uploadCounts(p);
@@ -925,5 +1011,5 @@ window.BACK2U_REFRESH_CHART=()=>{if(state.section==='overview')renderTrend()};gl
  renderActive();loadLive(false);
 })();
 </script><script src="/reference-theme-art.js?v=4" defer></script><script src="/theme-studio.js?v=4" defer></script><script src="/chart-v3.js?v=6" defer></script><script src="/story-composer-v3.js?v=6" defer></script><script src="/creator-hub-v5.js?v=9" defer></script><script src="/dashboard-v7.js?v=12" defer></script>
-<script src="/guest-access.js?v=1" defer></script><script src="/audience-import.js?v=2" defer></script>
+<script src="/guest-access.js?v=1" defer></script><script src="/audience-import.js?v=3" defer></script>
 </body></html>
