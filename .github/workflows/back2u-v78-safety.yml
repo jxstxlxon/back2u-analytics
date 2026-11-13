@@ -1,0 +1,45 @@
+name: BACK2U V7.8 Safety Checks
+on:
+  push:
+    branches:
+      - feature/back2u-v78-tiktok-daily-20261113
+  pull_request:
+    paths:
+      - cloudflare/**
+      - site/**
+      - tests/**
+      - package.json
+permissions:
+  contents: read
+jobs:
+  safe-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate Worker syntax
+        run: node --check cloudflare/worker.js
+      - name: Validate all dashboard modules
+        run: |
+          for file in site/*.js; do node --check "$file"; done
+      - name: Run data integrity and access-control tests
+        run: npm test
+      - name: Verify Cloudflare bundle without deploying
+        run: npx --yes wrangler@4 deploy --dry-run --config wrangler.cloudflare.jsonc --outdir .wrangler-dry-run
+  browser-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install isolated browser test dependencies
+        run: npm install --no-save --no-package-lock playwright
+      - name: Install Chromium headless
+        run: npx playwright install --with-deps chromium
+      - name: Test iPhone, iPad, and desktop panel layouts
+        run: node tests/v78-layout-smoke.mjs

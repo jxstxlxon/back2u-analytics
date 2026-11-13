@@ -25,3 +25,15 @@
 #audienceImportPanel .audience-manual-fallback summary{cursor:pointer;color:var(--t-ink-strong);font:760 12px/1.5 var(--t-font-ui,system-ui)}
 #audienceImportPanel .audience-manual-fallback p{color:var(--t-ink-label);font:610 11px/1.5 var(--t-font-ui,system-ui)}
 @media(max-width:650px){#audienceImportPanel .audience-auto-panel{padding:12px}#audienceSyncNow{width:100%}}
+
+/* V7.8 – verified TikTok day coverage, safe for narrow phone and iPad layouts. */
+#tiktokDailyStatus{color:var(--t-ink-strong);font:650 12px/1.65 var(--t-font-ui,system-ui);
+ overflow-wrap:anywhere;margin:8px 0}
+#tiktokDailyHint{color:var(--t-ink-label);font:600 11px/1.6 var(--t-font-ui,system-ui);margin:8px 0}
+#tiktokDailySyncNow{display:inline-flex;align-items:center;justify-content:center;
+ min-height:44px;margin:8px 0 10px;padding:10px 14px;max-width:100%;
+ border:1px solid rgba(var(--t-accent-rgb),.5);border-radius:12px;
+ background:rgba(var(--t-accent-rgb),.2);color:var(--t-ink-strong);
+ font:760 12px var(--t-font-ui,system-ui);cursor:pointer}
+#tiktokDailySyncNow:disabled{opacity:.55;cursor:wait}
+@media(max-width:650px){#tiktokDailySyncNow{width:100%}}

@@ -3,6 +3,7 @@ import {validateDirectAudience,mergeDirectAudience,chooseEffectiveAudience} from
 import {validateDirectMedia,mergeDirectMedia,overlayDirectMedia} from './direct-media.js';
 import {validateDirectVideoInsights,mergeDirectVideoInsights,validateInstagramDaily,mergeInstagramDaily,overlayDirectInsights} from './direct-insights.js';
 import {auditDirectCoverage} from './parity-audit.js';
+import {runTikTokDailySync,overlayTikTokDaily,tiktokDailyCoverage} from './tiktok-daily.js';
 /* BACK2U Cloudflare Worker - private creator dashboard.
    Independent of Netlify. Do not publish API keys or creator analytics in static assets.
    The Cloudflare D1 binding DB must contain the back2u_store(key,value,updated_at) table.
@@ -336,6 +337,9 @@ async function hydratedSnapshot(env){
  if(catalog?.schema===1)overlayDirectMedia(s,catalog);
  if(videoInsights?.schema===1||igDaily?.schema===1)
   overlayDirectInsights(s,{video:videoInsights,daily:igDaily});
+ // Independent TikTok verified daily reports: preserve all saved clip/ OAuth data.
+ const tiktokDaily=await get(env,'tt_daily_v1');
+ if(tiktokDaily?.schema===1)overlayTikTokDaily(s,tiktokDaily);
  const tiktokProfile=await get(env,'tt_profile');
  const tiktokAuth=tiktokProfile?await get(env,'tt_oauth'):null;
  if(s.platforms.tt&&tiktokProfile?.openId&&tiktokProfile.openId===tiktokAuth?.openId&&
@@ -736,6 +740,20 @@ async function route(req,env){
  if(path==='/api/audience')return audienceAdmin(req,env);
  if(path==='/api/audience/sync')return audienceSyncAdmin(req,env);
  if(path==='/api/direct-audience/status')return directAudienceStatus(req,env);
+ // V7.8: owner-only TikTok account-day diagnostics and manual smoke test.
+ // No automatic TikTok Windsor request until explicitly enabled in Cloudflare.
+ if(path==='/api/tiktok-daily/status'){
+  if(req.method!=='GET')return json({error:'GET only'},405);
+  const [stored,sync]=await Promise.all([get(env,'tt_daily_v1'),get(env,'tt_daily_sync_status')]);
+  return json({enabled:env.BACK2U_TIKTOK_DAILY_ENABLE==='true',
+   sync:sync||{status:'not_started'},coverage:tiktokDailyCoverage(stored)});
+ }
+ if(path==='/api/tiktok-daily/sync'){
+  if(req.method!=='POST')return json({error:'POST only'},405);
+  if(!requireSameSiteJson(req))return json({error:'Unzulässige Anfrage'},403);
+  const result=await runTikTokDailySync(env,{get,put,force:true});
+  return json(result,result.status==='ok'?200:result.status==='not_configured'?503:502);
+ }
  if(path==='/api/direct-parity') {
   if(req.method!=='GET')return json({error:'GET only'},405);
   const [audience,media,video,instagramDaily,youtubeDaily]=await Promise.all([
@@ -841,6 +859,11 @@ export default {
  },
  async scheduled(controller,env,ctx){
   ctx.waitUntil(ttSync(env).catch(e=>console.error('TikTok scheduled sync:',clamp(e?.message))));
+  if(env.BACK2U_TIKTOK_DAILY_ENABLE==='true'){
+   ctx.waitUntil(runTikTokDailySync(env,{get,put})
+    .then(r=>{if(r.status==='error')console.warn('TikTok daily sync failed; see admin status')})
+    .catch(()=>console.error('TikTok daily sync unexpected failure')));
+  }
   ctx.waitUntil(runAudienceAutoSync(env,{get,put,tiktokOnly:env.BACK2U_WINDSOR_TIKTOK_ONLY==='true'})
    .then(r=>{if(r.status==='error')console.warn('Audience scheduled sync failed:',r.error)})
    .catch(e=>console.error('Audience scheduled sync could not complete:',clamp(e?.message))));

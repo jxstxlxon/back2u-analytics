@@ -5,3 +5,8 @@
 __pycache__/
 *.pyc
 .DS_Store
+
+# PRIVATE BACK2U D1 SQL EXPORTS (may contain TikTok OAuth tokens, private stats, guest sessions)
+/private-backups/
+/back2u-d1-*.sql
+/BACK2U_D1_*.sql
