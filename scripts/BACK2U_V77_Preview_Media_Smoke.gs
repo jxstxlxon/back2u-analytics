@@ -22,7 +22,7 @@ function b2uV77PreviewConfig_() {
   const base=String(props.getProperty('BACK2U_V77_PREVIEW_URL')||'').trim().replace(/\/+$/,'');
   const secret=String(props.getProperty('BACK2U_V77_PREVIEW_FEED_SECRET')||'');
   // Deliberately reject the production hostname and any unrelated domain.
-  if(!/^https:\/\/feature-back2u-v77-[a-z0-9-]+\.workers\.dev$/i.test(base))
+  if(!/^https:\/\/feature-back2u-v77-[a-z0-9-]+-back2u-cloud\.[a-z0-9-]+\.workers\.dev$/i.test(base))
     throw new Error('Nur die V7.7-Cloudflare-Preview-URL ist zulaessig; keine Live-URL.');
   if(secret.length<24)throw new Error('Separates BACK2U_V77_PREVIEW_FEED_SECRET fehlt oder ist zu kurz.');
   if(typeof BACK2U_SPREADSHEET_ID==='undefined'||!BACK2U_SPREADSHEET_ID)
