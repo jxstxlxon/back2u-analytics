@@ -125,3 +125,27 @@
   color:inherit;
   font:650 12px system-ui,sans-serif;
 }
+
+/* V7.7.20: a valid D1 snapshot with one incomplete optional source is a
+ * compact notice, never the full-width failed-connection alert. */
+#notice.live-partial {
+  display:flex;
+  align-items:center;
+  flex-wrap:wrap;
+  gap:8px;
+  margin:8px 0 13px;
+  padding:9px 12px;
+  border:1px solid rgba(var(--t-accent-rgb,111,200,162),.26);
+  border-radius:13px;
+  background:rgba(var(--t-card,23,48,48),.42);
+  color:var(--t-ink-strong,#effff9);
+  font:500 12px/1.48 system-ui,sans-serif;
+  overflow-wrap:anywhere;
+}
+#notice.live-partial .live-reconnect-button {
+  min-height:30px;
+  margin:0;
+  padding:4px 10px;
+  font-size:11px;
+}
+.signal-dot.is-partial { background:#d8b97c; }

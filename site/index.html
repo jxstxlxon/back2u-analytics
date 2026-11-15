@@ -241,7 +241,8 @@ const SEED = window.SEED;
 if(!SEED){document.body.textContent='Datensatz fehlt: seed.js wurde nicht geladen.';return;}
 const COLORS={yt:'#ff849b',ig:'#b29bff',tt:'#63e7db'};
 const NAMES={yt:'YouTube',ig:'Instagram',tt:'TikTok'};
-const state={platform:'all',days:28,section:'overview',glass:48,sort:'views',fmt:'all',query:'',page:1,listExpanded:false,selected:null,live:null,loading:false,lastError:null,includeTiktokArchive:false,storyMode:false};
+const state={platform:'all',days:28,section:'overview',glass:48,sort:'views',fmt:'all',query:'',page:1,listExpanded:false,selected:null,live:null,loading:false,lastError:null,partialWarningCount:0,includeTiktokArchive:false,storyMode:false};
+function syncWarningCount(data){const n=Array.isArray(data?.errors)?data.errors.length:0;return Math.max(n,data?.snapshotFallback==='original-d1'?1:0)}
 try{const saved=Number(localStorage.getItem('back2u_glass'));if(Number.isFinite(saved)&&saved>=0&&saved<=100)state.glass=saved}catch{}
 try{
  const remembered=JSON.parse(localStorage.getItem('back2u_view_preferences_v5')||'null');
@@ -364,7 +365,7 @@ function setPeriod(d){state.days=d;$$('[data-days]').forEach(x=>x.classList.togg
 function setPlatform(p){state.platform=p;$$('[data-platform]').forEach(x=>x.classList.toggle('selected',x.dataset.platform===p));state.page=1;state.selected=null;try{localStorage.setItem('back2u_view_preferences_v5',JSON.stringify({platform:state.platform,days:state.days}))}catch{}renderActive()}
 function fmtGrowth(a,b){if(!b)return null;return 100*(a/b-1)}
 function percentString(p){if(p===null)return null;return (p>=0?'+':'')+dec(p)+' %'}
-function setSyncStatus(){const has=!!state.live, x=$('#syncDot');x.classList.toggle('is-live',has);x.classList.toggle('is-error',!!state.lastError);$('#syncShort').textContent=has?(state.lastError?'Letzter Stand · Live-Abgleich fehlgeschlagen':`Datenabgleich: ${new Date(state.live.generatedAt||Date.now()).toLocaleString('de-DE',{dateStyle:'short',timeStyle:'short'})}`):state.loading?'Verbinde mit Live-Daten …':state.lastError?'Live-Verbindung unterbrochen':'Live-Daten noch nicht geladen';const live=['yt','ig','tt'].filter(p=>(state.live?.platforms?.[p]?.daily?.length||0)>0||(state.live?.platforms?.[p]?.videos?.length||0)>0).map(p=>NAMES[p]);const stamp=live.length?live.join(' + ')+' live':'Noch keine Plattform live';$('#sourceStamp').textContent=has?stamp+' · YouTube-Daten bis '+(state.live.dataThrough||'–'):'Historische Exporte bis 10.11.2026';$('#footVersion').textContent=has?stamp+' · privates Google Sheet · letzter Sync '+new Date(state.live.generatedAt).toLocaleString('de-DE'):'Stand: Archivexport 10.11.2026';}
+function setSyncStatus(){const has=!!state.live, x=$('#syncDot');x.classList.toggle('is-live',has&&!state.lastError);x.classList.toggle('is-error',!!state.lastError);x.classList.toggle('is-partial',has&&!state.lastError&&state.partialWarningCount>0);$('#syncShort').textContent=has?(state.lastError?'Letzter Stand · Live-Abgleich fehlgeschlagen':state.partialWarningCount?`Daten geladen · ${state.partialWarningCount} ${state.partialWarningCount===1?'Einschränkung':'Einschränkungen'}`:`Datenabgleich: ${new Date(state.live.generatedAt||Date.now()).toLocaleString('de-DE',{dateStyle:'short',timeStyle:'short'})}`):state.loading?'Verbinde mit Live-Daten …':state.lastError?'Live-Verbindung unterbrochen':'Live-Daten noch nicht geladen';const live=['yt','ig','tt'].filter(p=>(state.live?.platforms?.[p]?.daily?.length||0)>0||(state.live?.platforms?.[p]?.videos?.length||0)>0).map(p=>NAMES[p]);const stamp=live.length?live.join(' + ')+' live':'Noch keine Plattform live';$('#sourceStamp').textContent=has?stamp+' · YouTube-Daten bis '+(state.live.dataThrough||'–'):'Historische Exporte bis 10.11.2026';$('#footVersion').textContent=has?stamp+' · privates Google Sheet · letzter Sync '+new Date(state.live.generatedAt).toLocaleString('de-DE'):'Stand: Archivexport 10.11.2026';}
 function sparkSvg(items,color='#64afff'){const a=items.map(x=>typeof x==='number'?x:0);if(a.length<2)return '';const max=Math.max(...a,1),w=440,h=80;const pts=a.map((v,i)=>[i*w/(a.length-1),h-(v/max)*(h-8)]);const line=pts.map((p,i)=>`${i?'L':'M'}${p[0].toFixed(1)} ${p[1].toFixed(1)}`).join(' ');return `<svg viewBox="0 0 440 80" preserveAspectRatio="none"><defs><linearGradient id="spgrad" x1="0" y1="0" x2="0" y2="1"><stop stop-color="${color}" stop-opacity=".35"/><stop offset="1" stop-color="${color}" stop-opacity="0"/></linearGradient></defs><path d="${line} L${w} ${h} L0 ${h} Z" fill="url(#spgrad)"/><path d="${line}" fill="none" stroke="${color}" stroke-width="2.3"/></svg>`}
 
 function getFollowerStand(p){
@@ -940,6 +941,7 @@ async function saveStoryPng(){
 function renderActive(){document.body.dataset.activeSection=state.section;setSyncStatus();
  const notice=$('#notice');
  if(!state.live){
+  notice.classList.remove('live-partial');
   notice.classList.add('live-unavailable');
   const reason=state.loading?'Verbinde mit Cloudflare …':
    state.lastError?(state.lastError==='Bitte anmelden'?
@@ -955,8 +957,11 @@ function renderActive(){document.body.dataset.activeSection=state.section;setSyn
    notice.append(button);
   }
  }else{
+  const partial=!state.lastError&&state.partialWarningCount>0;
   notice.classList.toggle('live-unavailable',!!state.lastError);
+  notice.classList.toggle('live-partial',partial);
   if(state.lastError){
+   // A failed HTTP request may still leave a previously loaded snapshot visible.
    notice.textContent='Der aktuelle Live-Abgleich ist fehlgeschlagen ('+
     state.lastError+'). Die Werte stammen vom letzten erfolgreich geladenen Stand. ';
    const button=document.createElement('button');button.type='button';
@@ -964,6 +969,15 @@ function renderActive(){document.body.dataset.activeSection=state.section;setSyn
    button.textContent=state.lastError==='Bitte anmelden'?'Anmelden':'Erneut verbinden';
    button.addEventListener('click',()=>state.lastError==='Bitte anmelden'?showLogin():loadLive(true));
    notice.append(button);
+  }else if(partial){
+   // Successful /api/snapshot with source warnings is NOT a failed connection.
+   // Do not obscure genuine missing supplemental statistics either.
+   notice.textContent=state.live.snapshotFallback==='original-d1'?
+    'Gespeicherte Basisdaten geladen. Zusatzwerte sind derzeit eingeschränkt. ':
+    `Daten aus Cloudflare geladen · ${state.partialWarningCount} ${state.partialWarningCount===1?'Einschränkung':'Einschränkungen'}. Einzelne Zusatzwerte können fehlen. `;
+   const button=document.createElement('button');button.type='button';
+   button.className='live-reconnect-button';button.textContent='Erneut prüfen';
+   button.addEventListener('click',()=>loadLive(true));notice.append(button);
   }else notice.textContent=state.days===90?
    '90 Tage: Es werden nur tatsächlich verfügbare Zeiträume angezeigt. Fehlende Werte werden nicht hochgerechnet.':'';
  }
@@ -1026,7 +1040,7 @@ document.querySelector('#back2uLoginForm').addEventListener('submit',async(e)=>{
  }catch(x){err.textContent=x.message||'Anmeldung fehlgeschlagen'}
  finally{b.disabled=false}
 });
-async function loadLive(force=false){if(state.loading)return;state.loading=true;$('#refreshBtn').classList.add('spinning');state.lastError=null;renderActive();
+async function loadLive(force=false){if(state.loading)return;state.loading=true;$('#refreshBtn').classList.add('spinning');renderActive();
  const url=location.protocol==='file:'?null:`/api/snapshot${force?'?refresh=1':''}`;
  if(!url){state.lastError='Lokale Datei – keine Serververbindung.';state.loading=false;$('#refreshBtn').classList.remove('spinning');renderActive();if(force)toast('Offline-Datei: Für Live-Daten den Cloudflare-Worker veröffentlichen.');return}
  try{let response=await fetch(url,{credentials:'same-origin',cache:'no-store',signal:AbortSignal.timeout(45000)});if(response.status===401){showLogin();throw Error('Bitte anmelden')}if(!response.ok)throw Error('API-Status '+response.status);let data=await response.json();if(!data.platforms||!data.generatedAt)throw Error('Ungültige Serverantwort');state.live=data;state.sourceDiagnostics=null;
@@ -1038,7 +1052,11 @@ async function loadLive(force=false){if(state.loading)return;state.loading=true;
    if(state.live===data){state.sourceDiagnostics=info;
     if(state.section==='system')renderSystem();}}})
   .catch(()=>{});
- state.lastError=data.errors?.length?`${data.errors.length} Teildatenfehler`:null;toast(`Datenabgleich ${data.errors?.length?'mit Einschränkungen':'erfolgreich'}`)}catch(e){state.lastError=String(e.message||e);if(force)toast('Live-Abruf nicht möglich. Archivdaten bleiben erhalten.');else if(!state.live&&state.lastError!=='Bitte anmelden')setTimeout(()=>{if(!state.live&&!state.loading)loadLive(true)},3500)}finally{state.loading=false;$('#refreshBtn').classList.remove('spinning');renderActive();if(state.storyMode)renderStory()}
+ // Source incompleteness is not an HTTP/authentication failure.
+ state.partialWarningCount=syncWarningCount(data);
+ state.lastError=null;
+ toast(state.partialWarningCount?'Daten geladen – einzelne Werte eingeschränkt':'Datenabgleich erfolgreich')
+ }catch(e){state.lastError=String(e.message||e);if(force)toast('Live-Abruf nicht möglich. Archivdaten bleiben erhalten.');else if(!state.live&&state.lastError!=='Bitte anmelden')setTimeout(()=>{if(!state.live&&!state.loading)loadLive(true)},3500)}finally{state.loading=false;$('#refreshBtn').classList.remove('spinning');renderActive();if(state.storyMode)renderStory()}
 }
 async function syncTiktokNow(){
  const btn=$('#tiktokSyncNow'), hint=$('#tiktokSyncHint');
