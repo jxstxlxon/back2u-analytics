@@ -29,6 +29,12 @@ test('wrong channel / future report date rejected',()=>{
  assert.throws(()=>validateYouTubeWindsorExtras(fixture.map(x=>({...x,account_id:'another'})),NOW),/account/);
  assert.throws(()=>validateYouTubeWindsorExtras([...fixture,{...fixture[0],date:'2026-11-15'}],NOW),/date/);
 });
+test('Windsor account selection and returned channel identity are different',()=>{
+ const validated=validateYouTubeWindsorExtras(fixture,NOW);
+ assert.equal(validated.length,3);
+ assert.throws(()=>validateYouTubeWindsorExtras(
+  fixture.map(r=>({...r,account_id:'83736'})),NOW),/account mismatch/);
+});
 test('missing metrics are unknown, never zero',()=>{
  const rows=validateYouTubeWindsorExtras(fixture.map(x=>({...x,shares:null,engaged_views:null})),NOW);
  assert.ok(rows.every(x=>!Object.hasOwn(x,'shares')&&!Object.hasOwn(x,'engagedViews')));
@@ -75,7 +81,9 @@ await testAsync('Cron fetch stores separately without updating snapshot or exist
  assert.equal(urls[0].pathname,'/youtube');
  assert.equal(urls[0].searchParams.get('date_to'),'2026-11-14');
  assert.equal(urls[0].searchParams.get('date_from'),'2026-10-18');
- assert.equal(urls[0].searchParams.get('select_accounts'),CHANNEL);
+ assert.equal(urls[0].searchParams.get('select_accounts'),'83736');
+ assert.notEqual(urls[0].searchParams.get('select_accounts'),CHANNEL,
+  'Public YouTube channel ID is not a Windsor connected-account selector');
  assert.ok(!JSON.stringify(res).includes(secret));
 });
 await testAsync('API error does not clear previous verified data',async()=>{
