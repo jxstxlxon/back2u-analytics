@@ -38,7 +38,7 @@ assert.ok(!html.includes("state.lastError=data.errors?.length"),
 assert.ok(html.includes("}else if(partial){"),
  'When optional source data is incomplete, show a compact partial warning');
 assert.ok(html.includes("notice.classList.toggle('live-partial',partial)"));
-assert.ok(html.includes("button.textContent='Erneut prüfen'"));
+assert.ok(html.includes("button.textContent=unfinishedTikTok?'TikTok weiter synchronisieren':'Erneut prüfen'"));
 assert.ok(css.includes("#notice.live-partial"));
 assert.ok(css.includes(".signal-dot.is-partial"));
 assert.ok(html.includes("}catch(e){state.lastError=String(e.message||e);"),
