@@ -26,6 +26,7 @@ jobs:
                 node -e 'const h=JSON.parse(process.env.HEALTH);for(const k of ["snapshotStored","snapshotHasVideoCatalog","snapshotHasDailySeries"]){if(typeof h[k]==="boolean")console.log("PROD_"+k.toUpperCase()+"="+h[k])}'
                 node -e 'const x=JSON.parse(process.env.HEALTH).tiktokSync;for(const k of ["state","reason","hasSavedDays","savedNewerThanSnapshot","originalHasDays","lastAttemptRecent","lastSuccessRecent"]){let v=x[k];if(typeof v==="boolean"||typeof v==="string")console.log("TIKTOK_"+k.toUpperCase()+"="+v)}'
                 node -e 'const h=JSON.parse(process.env.HEALTH);for(const [name,x] of Object.entries(h.extraSync||{})){if(!x||typeof x!=="object")continue;for(const [k,v] of Object.entries(x)){if(typeof v==="boolean"||typeof v==="string")console.log("EXTRAS_"+name.toUpperCase()+"_"+k.toUpperCase()+"="+v)}}'
+                node -e 'const s=JSON.parse(process.env.HEALTH).scheduler;if(!s){console.log("SCHEDULER=NOT_DEPLOYED");process.exit(0)}for(const [name,value] of Object.entries({CADENCE:s.cadence,PHASE:s.lastPhase,RECENT:s.recent})){if(typeof value==="string"||typeof value==="boolean")console.log("SCHEDULER_"+name+"="+value)}'
                 exit 0
               elif [ "$flag" = "missing" ]; then
                 echo "WINDSOR_CONNECTION=MISSING_IN_PRODUCTION"
