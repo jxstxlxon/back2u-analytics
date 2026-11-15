@@ -194,8 +194,6 @@ export async function runTikTokOrganicSync(env,{
    u.searchParams.set('_renderer','json');
    return u.href;
   };
-  const opts=()=>({method:'GET',headers:{accept:'application/json'},
-   signal:AbortSignal.timeout(25000)});
   // A daily report must never wait for the separate media inventory.
   // Cloudflare waitUntil may be terminated before a slow second request
   // finishes, leaving the status at "running" and *no* day values in D1.
@@ -209,7 +207,7 @@ export async function runTikTokOrganicSync(env,{
   const verified={days:verifiedDays,media:[]};
   const previous=await get(env,DAY_STORE);
   const combined=combineTikTokOrganicState(previous,verified,now);
-  // Both batches must validate before a single new store is written.
+  // Day rows validate before this independent D1 write; media never blocks it.
   await put(env,DAY_STORE,combined);
   const result={pipelineVersion,status:'ok',lastAttemptAt:time,lastSuccessAt:time,
    dayThrough:combined.daily.at(-1)?.d||null,dailyDays:combined.daily.length,
