@@ -818,7 +818,8 @@ async function route(req,env){
     const stored=await get(env,'tt_windsor_daily_v1');
     const last=stored?.daily?.at(-1)?.d||'';
     const staleBefore=new Date(Date.now()-3*86400000).toISOString().slice(0,10);
-    if(last<staleBefore)await runTikTokOrganicSync(env,{get,put});
+    if(last<staleBefore)ctx.waitUntil(runTikTokOrganicSync(env,{get,put})
+     .catch(e=>console.warn('Owner-open TikTok day recovery failed:',clamp(e?.message))));
    }catch(e){console.warn('Owner-open TikTok day recovery failed:',clamp(e?.message))}
   }
   const s=await hydratedSnapshot(env);
