@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#0b1120"><title>BACK2U Clip Radar</title>
+<style>
+:root{color-scheme:dark;font:15px system-ui,-apple-system,sans-serif;background:#0b1120;color:#f4f6ff}*{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at top right,#1f3156,transparent 60%),#0b1120;min-height:100vh}.wrap{max-width:950px;margin:auto;padding:28px 16px 80px}.eyebrow{font-size:12px;font-weight:800;letter-spacing:2px;color:#aabafa}h1{font-size:clamp(28px,6vw,42px);margin:8px 0}h2{font-size:19px;margin:0 0 12px}p{color:#c9d2ec;line-height:1.5}.box{border:1px solid #3b4b6c;background:#151f33;border-radius:24px;padding:20px;margin:18px 0}label{display:block;font-weight:600;margin:12px 0 7px}input,select{width:100%;padding:12px;background:#0d1830;color:white;border:1px solid #46577c;border-radius:12px;font:inherit}button,.btn{background:linear-gradient(110deg,#708cf7,#9563f4);color:white;border:0;border-radius:12px;padding:12px 15px;font:inherit;font-weight:700;cursor:pointer;display:inline-block;text-decoration:none}.secondary{background:#2b395b}.actions{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0}.small{font-size:13px;color:#aebcd8}a{color:#9fb6ff}.cols{display:grid;grid-template-columns:1fr 1fr;gap:12px}.result{padding:14px 0;display:flex;gap:14px;border-top:1px solid #384866}.thumb{width:130px;aspect-ratio:16/9;object-fit:cover;border-radius:11px}.result h3{margin:0 0 8px;font-size:16px}.result p{margin:6px 0;font-size:13px}.result button{font-size:12px;padding:8px 10px}.inline{display:flex;gap:6px;flex-wrap:wrap}.code{font-size:24px;letter-spacing:4px;font-weight:800}.hidden{display:none}@media(max-width:600px){.cols{grid-template-columns:1fr}.result{flex-direction:column}.thumb{width:100%}button{min-height:42px}}
+</style></head><body><main class="wrap">
+<div class="eyebrow">BACK2U / GAMING / FREE CLOUD</div><h1>GTA VI Clip Radar</h1>
+<p>Finde Twitch-Clips, dokumentiere Nutzungsrechte und exportiere deine Recherche. Keine Kreditkarte, keine automatischen Downloads und keine automatischen Veröffentlichungen.</p>
+<section class="box"><h2>1 · Twitch verbinden</h2>
+<label for="cid">Client-ID deiner Twitch-App (kein Secret)</label><input id="cid" autocomplete="off" spellcheck="false" placeholder="Öffentliche Twitch Client-ID">
+<div class="actions"><button id="start">Mit Twitch verbinden</button><button class="secondary" id="complete">Code bestätigt – weiter</button><button class="secondary" id="logout">Trennen</button></div>
+<div class="hidden" id="activate"><p>Code für die offizielle Twitch-Aktivierung:</p><span class="code" id="code"></span><p><a id="authurl" target="_blank" rel="noopener noreferrer">Twitch-Aktivierung öffnen</a></p></div>
+<p class="small" id="authstatus">Nicht verbunden. Du brauchst eine als „Public“ registrierte Twitch-App.</p>
+<p class="small">Dein OAuth-Token liegt nur im Arbeitsspeicher dieses Browsertabs. Keine Passwörter, Secrets oder Tokens in diesem Chat teilen.</p>
+</section>
+<section class="box"><h2>2 · Twitch Clips finden</h2>
+<div class="cols"><div><label for="game">Spielname auf Twitch</label><input id="game" value="Grand Theft Auto VI"></div><div><label for="hours">Suchzeitraum</label><select id="hours"><option value="24">24 Stunden</option><option value="72" selected>72 Stunden</option><option value="168">7 Tage</option></select></div></div>
+<label for="bid">Broadcaster-ID (optional statt Spielsuche)</label><input id="bid" inputmode="numeric" placeholder="Nur bei gezielter Streamer-Suche">
+<div class="actions"><button id="search">Clips recherchieren</button><button id="export" class="secondary">Markierungen als JSON herunterladen</button></div>
+<p id="searchstatus" class="small">Keine Suche gestartet.</p><div id="results"></div>
+</section>
+<section class="box"><h2>3 · Video schneiden</h2><p>Videoschnitt und MP4-Export erfolgen weiterhin in deinem funktionierenden Colab-Notebook. Nur eigene oder ausdrücklich zur Weiterverwendung freigegebene Aufnahmen hochladen.</p>
+<a class="btn" href="https://colab.research.google.com/" target="_blank" rel="noopener noreferrer">Google Colab öffnen</a>
+<p class="small">Die Suche ist nur eine Recherche, keine Nutzungserlaubnis. Twitch-Downloadrechte und Rechte am Spielmaterial müssen getrennt geprüft werden.</p></section>
+<p class="small">BACK2U v0.6 · Cloudflare Free Radar · kein 24/7-Render-Service · keine KI-Szenenerkennung</p></main>
+<script>
+(function(){
+"use strict";
+const el=id=>document.getElementById(id), KEY='back2u_radar_v06';
+let token='',device='',clips=[],marks={};try{marks=JSON.parse(localStorage.getItem(KEY)||'{}')||{}}catch(e){}
+const msg=(id,s)=>el(id).textContent=s;
+function save(){localStorage.setItem(KEY,JSON.stringify(marks))}
+async function req(endpoint,more){const r=await fetch('/api/'+endpoint,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(Object.assign({clientId:el('cid').value.trim()},more||{}))});let d;try{d=await r.json()}catch(e){throw Error('Unerwartete Antwort')}if(!r.ok)throw Error(d.message||d.error||'HTTP '+r.status);return d}
+el('start').onclick=async()=>{msg('authstatus','Twitch-Gerätecode wird angefordert …');try{const d=await req('device',{});device=d.device_code;el('code').textContent=d.user_code;el('authurl').href=d.verification_uri;el('activate').classList.remove('hidden');msg('authstatus','Code bei Twitch bestätigen, anschließend hier fortfahren.')}catch(e){msg('authstatus',e.message)}};
+el('complete').onclick=async()=>{if(!device)return msg('authstatus','Bitte zuerst die Anmeldung starten.');try{const d=await req('token',{deviceCode:device});token=d.access_token;device='';el('activate').classList.add('hidden');msg('authstatus','Twitch verbunden. Jetzt Clips suchen.')}catch(e){msg('authstatus',e.message==='authorization_pending'?'Noch nicht bei Twitch bestätigt. Bitte danach erneut drücken.':e.message)}};
+el('logout').onclick=()=>{token='';device='';el('activate').classList.add('hidden');msg('authstatus','Twitch-Verbindung getrennt.')};
+function makeButton(label,fn){const b=document.createElement('button');b.textContent=label;b.className='secondary';b.onclick=fn;return b}
+function show(){
+const host=el('results');host.replaceChildren();
+for(const c of clips){
+const row=document.createElement('article');row.className='result';
+const pic=document.createElement('img');pic.className='thumb';pic.loading='lazy';pic.alt='Twitch Clip';pic.referrerPolicy='no-referrer';pic.src=c.thumbnail_url||'';
+const body=document.createElement('div'), h=document.createElement('h3');h.textContent=c.title||'(ohne Titel)';
+const meta=document.createElement('p');meta.textContent=(c.broadcaster_name||'Streamer')+' · '+(c.view_count||0)+' Views';
+const a=document.createElement('a');a.textContent='Original auf Twitch ansehen';a.href=c.url;a.target='_blank';a.rel='noopener noreferrer';
+const state=document.createElement('p');state.textContent='Rechte: '+(marks[c.id]?.status||'ungeprüft');
+const acts=document.createElement('div');acts.className='inline';
+const mark=(status)=>{marks[c.id]={status,title:c.title,url:c.url,creator:c.broadcaster_name,broadcasterId:c.broadcaster_id,views:c.view_count,updatedAt:new Date().toISOString()};save();show()};
+acts.append(makeButton('Recherche',()=>mark('Recherche')),makeButton('Nicht verwenden',()=>mark('Ausgeschlossen')),
+makeButton('Rechtenachweis',()=>{const proof=prompt('Dokumentierte Freigabe / Referenz (keine Zugangsdaten):');if(!proof?.trim())return;mark('Freigabe dokumentiert');marks[c.id].rightsReference=proof.trim().slice(0,300);save()}));
+body.append(h,meta,a,state,acts);row.append(pic,body);host.append(row);
+}}
+el('search').onclick=async()=>{if(!token)return msg('searchstatus','Bitte erst Twitch verbinden.');msg('searchstatus','Suche läuft …');try{
+const broadcasterId=el('bid').value.trim();let gameId='';
+if(!broadcasterId){const g=await req('games',{accessToken:token,game:el('game').value.trim()});if(!g.data?.length)throw Error('Die Spielkategorie wurde nicht gefunden. Probiere einen anderen Namen oder eine Broadcaster-ID.');gameId=g.data[0].id}
+const d=await req('clips',{accessToken:token,gameId,broadcasterId,hours:Number(el('hours').value)});clips=d.data||[];msg('searchstatus',clips.length+' Clip-Kandidaten gefunden (noch keine Nutzungsrechte geprüft).');show()
+}catch(e){msg('searchstatus','Fehler: '+e.message)}};
+el('export').onclick=()=>{const b=new Blob([JSON.stringify({app:'BACK2U Clip Radar v0.6',generatedAt:new Date().toISOString(),rightsDisclaimer:'Clip-Metadaten ersetzen keine Nutzungserlaubnis.',marked:Object.values(marks)},null,2)],{type:'application/json'});const u=URL.createObjectURL(b);const a=document.createElement('a');a.href=u;a.download='BACK2U_Clip_Recherche.json';a.click();setTimeout(()=>URL.revokeObjectURL(u),2000)};
+})();
+</script></body></html>
