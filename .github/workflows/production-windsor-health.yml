@@ -4,6 +4,8 @@ on:
     branches: [cloudflare-migration]
     paths:
       - cloudflare/worker.js
+      - cloudflare/instagram-daily-repair.js
+      - cloudflare/youtube-windsor-extras.js
       - .github/workflows/production-windsor-health.yml
   workflow_dispatch:
 permissions:
