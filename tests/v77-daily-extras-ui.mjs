@@ -52,7 +52,7 @@ function show(selected){
  return {html:panels.main.innerHTML,foot:panels.foot.textContent};
 }
 const tt=show(['tt']);
-for(const label of ['Erreichte Zuschauer','Profilaufrufe','Likes','Kommentare','Geteilte Videos','Neue Follows']){
+for(const label of ['Erreichte Zuschauer','Profilaufrufe','Likes','Kommentare','Geteilte Videos','Gemeldete Followeränderung']){
  assert.ok(tt.html.includes(label),'Missing TikTok extra '+label);
 }
 assert.ok(tt.html.includes('11.116'),'Unique viewer totals must use only two verified days');
