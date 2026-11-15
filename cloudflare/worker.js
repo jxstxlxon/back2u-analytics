@@ -5,6 +5,7 @@ import {validateDirectVideoInsights,mergeDirectVideoInsights,validateInstagramDa
 import {auditDirectCoverage} from './parity-audit.js';
 import {runInstagramWindsorDailySync,overlayInstagramWindsorDaily,instagramWindsorDailyStatus} from './instagram-daily-repair.js';
 import {runInstagramWindsorMediaSync,overlayInstagramWindsorMedia,instagramWindsorMediaStatus} from './instagram-media-repair.js';
+import {runInstagramWindsorFollowersSync,overlayInstagramWindsorFollowers,instagramWindsorFollowersStatus} from './instagram-followers-sync.js';
 /* BACK2U Cloudflare Worker - private creator dashboard.
    Independent of Netlify. Do not publish API keys or creator analytics in static assets.
    The Cloudflare D1 binding DB must contain the back2u_store(key,value,updated_at) table.
@@ -327,11 +328,15 @@ async function hydratedSnapshot(env){
  if(!s?.platforms?.yt)return s;
  const [imported,direct]=await Promise.all([get(env,AUDIENCE_KEY),get(env,'direct_audience_v1')]);
  if(imported?.schema===1||direct?.schema===1)s.audienceImport=chooseEffectiveAudience(imported,direct);
- const instagramProfile=await get(env,'ig_profile');
+ const [instagramProfile,windsorIGFollowers]=await Promise.all([
+  get(env,'ig_profile'),get(env,'ig_windsor_followers_v1')
+ ]);
  if(instagramProfile?.username==='lxon_jxmpstyle'&&Number.isSafeInteger(instagramProfile.followers)&&instagramProfile.followers>=0){
   s.platforms.ig.profile={...s.platforms.ig.profile,followers:instagramProfile.followers,username:instagramProfile.username,
    asOf:instagramProfile.updatedAt,source:'Instagram Graph API',history:instagramProfile.history||[]};
  }
+ if(windsorIGFollowers?.schema===1)
+  overlayInstagramWindsorFollowers(s,windsorIGFollowers,instagramProfile);
  const [catalog,videoInsights,igDaily,windsorIGDaily,windsorIGMedia]=await Promise.all([
   get(env,'direct_media_v1'),get(env,'direct_video_insights_v1'),
   get(env,'direct_ig_daily_v1'),get(env,'ig_windsor_daily_v1'),
@@ -747,6 +752,8 @@ async function route(req,env){
   ?json(await instagramWindsorDailyStatus(env,{get})):json({error:'GET only'},405);
  if(path==='/api/instagram-media/status')return req.method==='GET'
   ?json(await instagramWindsorMediaStatus(env,{get})):json({error:'GET only'},405);
+ if(path==='/api/instagram-followers/status')return req.method==='GET'
+  ?json(await instagramWindsorFollowersStatus(env,{get})):json({error:'GET only'},405);
  if(path==='/api/direct-parity') {
   if(req.method!=='GET')return json({error:'GET only'},405);
   const [audience,media,video,instagramDaily,youtubeDaily]=await Promise.all([
@@ -852,6 +859,9 @@ export default {
  },
  async scheduled(controller,env,ctx){
   ctx.waitUntil(ttSync(env).catch(e=>console.error('TikTok scheduled sync:',clamp(e?.message))));
+  ctx.waitUntil(runInstagramWindsorFollowersSync(env,{get,put})
+   .then(r=>{if(r.status==='error')console.warn('Instagram follower sync failed:',r.error)})
+   .catch(e=>console.error('Instagram follower sync unavailable:',clamp(e?.message))));
   ctx.waitUntil(runInstagramWindsorMediaSync(env,{get,put})
    .then(r=>{if(r.status==='error')console.warn('Instagram media sync failed:',r.error)})
    .catch(e=>console.error('Instagram media sync unavailable:',clamp(e?.message))));
