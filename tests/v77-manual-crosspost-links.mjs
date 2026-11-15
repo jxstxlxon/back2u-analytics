@@ -31,8 +31,6 @@ const expanded=mutateManualLinks(first,'link',{members:[yt,tt]},()=>uuid2);
 assert.equal(expanded.groups.length,1);
 assert.deepEqual(Array.from(expanded.groups[0].members,x=>x.platform),['yt','ig','tt']);
 assert.equal(expanded.groups[0].id,uuid,'Expansion retains original undo ID');
-assert.throws(()=>mutateManualLinks(first,'link',{members:[yt2,tt]},()=>uuid2).groups.filter(
- x=>x.members.some(m=>m.platform==='yt')).length===2,()=>false);
 const other=mutateManualLinks(first,'link',{members:[yt2,tt]},()=>uuid2);
 assert.equal(other.groups.length,2);
 assert.throws(()=>mutateManualLinks(other,'link',{members:[yt,tt]}),/zwei unterschiedliche Videos derselben Plattform/);
