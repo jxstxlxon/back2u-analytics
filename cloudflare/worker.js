@@ -708,9 +708,44 @@ async function ttAuditVideos(env){
 }
 async function route(req,env){
  const path=new URL(req.url).pathname;
- if(path==='/api/health')return json({service:'BACK2U Cloud',configured:!!(env.DB&&env.DASHBOARD_PASSWORD&&env.SESSION_SECRET),dbReady:!!env.DB,
-  loginReady:!!env.DASHBOARD_PASSWORD,sourceReady:!!env.BACK2U_GOOGLE_FEED_SECRET,
-  windsorReady:typeof env.WINDSOR_API_KEY==='string'&&env.WINDSOR_API_KEY.trim().length>=16});
+ if(path==='/api/health'){
+  // Temporary deployment diagnostic: expose only generic health categories,
+  // never authentication, content counts, private dates or raw error messages.
+  const health={service:'BACK2U Cloud',
+   configured:!!(env.DB&&env.DASHBOARD_PASSWORD&&env.SESSION_SECRET),
+   dbReady:!!env.DB,loginReady:!!env.DASHBOARD_PASSWORD,
+   sourceReady:!!env.BACK2U_GOOGLE_FEED_SECRET,
+   windsorReady:typeof env.WINDSOR_API_KEY==='string'&&env.WINDSOR_API_KEY.trim().length>=16};
+  try{
+   if(env.DB){
+    const [sync,stored,snapshot]=await Promise.all([
+     get(env,'tt_windsor_sync_v1'),get(env,'tt_windsor_daily_v1'),get(env,'snapshot')
+    ]);
+    const allowed=['ok','partial','error','running','skipped','not_configured'];
+    const state=allowed.includes(sync?.status)?sync.status:'never_run';
+    const failure=String(sync?.error||'').toLowerCase();
+    let reason=state==='error'?
+     (/tiktok day http|http \d|connection|unavailable|timeout/.test(failure)?'network':
+      /konto|account|username/.test(failure)?'account':
+      /zu wenig bestätigte tage|no verified days/.test(failure)?'few-days':
+      /ungültig|date|datum|dupli|mehrfach/.test(failure)?'validation':
+      /tagesbericht|unvollständig|report/.test(failure)?'report-shape':
+      /d1|database|sqlite/.test(failure)?'storage':'other-error'):'none';
+    const originalDay=snapshot?.platforms?.tt?.daily?.at(-1)?.d||'';
+    const verifiedDay=stored?.daily?.at(-1)?.d||'';
+    const since=timestamp=>Number.isFinite(Date.parse(timestamp||''))&&
+     Date.now()-Date.parse(timestamp)<48*3600000;
+    health.tiktokSync={
+     state,reason,hasSavedDays:!!verifiedDay,
+     savedNewerThanSnapshot:!!(verifiedDay&&verifiedDay>originalDay),
+     originalHasDays:!!originalDay,
+     lastAttemptRecent:since(sync?.lastAttemptAt),
+     lastSuccessRecent:since(sync?.lastSuccessAt)
+    };
+   }
+  }catch(_){health.tiktokSync={state:'read-failed',reason:'storage'};}
+  return json(health);
+ }
  if(path==='/api/login')return req.method==='POST'?issueToken(req,env):json({error:'POST only'},405);
  if(path==='/api/guest/redeem')return redeemGuest(req,env);
  if(path==='/api/youtube-daily/ingest')return ingestYoutubeDaily(req,env);
