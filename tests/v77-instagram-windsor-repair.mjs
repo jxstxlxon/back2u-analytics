@@ -36,6 +36,15 @@ check('invalid/missing metrics cannot masquerade as zeros',()=>{
  assert.throws(()=>validateInstagramWindsorDaily(fixture.map(x=>({...x,reach:null})),now),/fehlen/);
  assert.throws(()=>validateInstagramWindsorDaily(fixture.map(x=>({...x,views:'broken'})),now),/Messwert/);
 });
+check('real Instagram Saves, Shares, Interactions and Accounts Engaged pass through unchanged',()=>{
+ const fixtureExtended=fixture.map(x=>({...x,saves:55,shares:60,total_interactions:1060,accounts_engaged:700}));
+ const verified=validateInstagramWindsorDaily(fixtureExtended,now);
+ assert.ok(verified.every(x=>x.saves===55&&x.shares===60&&x.interactions===1060&&x.engagedAccounts===700));
+ const snapshot={platforms:{ig:{daily:[]}}};
+ overlayInstagramWindsorDaily(snapshot,mergeInstagramWindsorDaily(null,verified,now));
+ assert.equal(snapshot.platforms.ig.daily[0].shares,60);
+ assert.equal(snapshot.platforms.ig.daily[0].sourceFields.interactions,'Windsor.ai Instagram Insights (account-day)');
+});
 check('saved historical days remain preserved when new days are added',()=>{
  const old={schema:1,daily:[{d:'2026-11-01',views:99,reach:90}]};
  const next=mergeInstagramWindsorDaily(old,validateInstagramWindsorDaily(fixture,now),now);
@@ -69,7 +78,7 @@ await checkAsync('one existing Cloudflare cron run imports real days without cha
  assert.equal(calls[0].pathname,'/instagram');
  assert.equal(calls[0].searchParams.get('select_accounts'),'17841476673616735');
  assert.equal(calls[0].searchParams.get('date_preset'),'last_14d');
- assert.equal(calls[0].searchParams.get('fields'),'date,views,reach,likes,comments,follower_count_1d,account_id');
+ assert.equal(calls[0].searchParams.get('fields'),'date,views,reach,likes,comments,follower_count_1d,saves,shares,total_interactions,accounts_engaged,account_id');
  const duplicate=await runInstagramWindsorDailySync(env,{...db,fetcher,now:now+30*60000});
  assert.equal(duplicate.status,'skipped');
  assert.equal(calls.length,1);

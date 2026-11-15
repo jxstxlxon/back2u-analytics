@@ -12,7 +12,8 @@ const WINDSOR_IG_CONNECTOR='17841476673616735';
 const WINDSOR_IG_ACCOUNT='27282542318110290';
 const IG_DAILY_STORE='ig_windsor_daily_v1';
 const IG_DAILY_STATUS='ig_windsor_daily_sync_v1';
-const IG_DAILY_FIELDS=['date','views','reach','likes','comments','follower_count_1d','account_id'];
+const IG_DAILY_FIELDS=['date','views','reach','likes','comments','follower_count_1d',
+ 'saves','shares','total_interactions','accounts_engaged','account_id'];
 const DAY_MS=86400000;
 const checkedDay=s=>typeof s==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(s)&&
   Number.isFinite(Date.parse(s+'T00:00:00Z'))&&
@@ -41,7 +42,8 @@ export function validateInstagramWindsorDaily(records,now=Date.now()){
   const values={};
   const fields={
    views:'views',reach:'reach',likes:'likes',comments:'comments',
-   follower_count_1d:'follows'
+   follower_count_1d:'follows',saves:'saves',shares:'shares',
+   total_interactions:'interactions',accounts_engaged:'engagedAccounts'
   };
   for(const [from,to] of Object.entries(fields)){
    const val=metric(raw[from]);
@@ -81,7 +83,8 @@ export function overlayInstagramWindsorDaily(snapshot,record){
   if(!checkedDay(day.d))continue;
   const before=existing.get(day.d)||{d:day.d};
   const merged={...before,sourceFields:{...(before.sourceFields||{})}};
-  for(const key of ['views','reach','likes','comments','follows']){
+  for(const key of ['views','reach','likes','comments','follows',
+   'saves','shares','interactions','engagedAccounts']){
    if(metric(day[key])===null)continue;
    // An independently stored, verified per-day count is preferable to a stale
    // Google Sheets snapshot; direct Meta API values get overlaid AFTER this.

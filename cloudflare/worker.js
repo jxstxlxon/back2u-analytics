@@ -7,6 +7,7 @@ import {runInstagramWindsorDailySync,overlayInstagramWindsorDaily,instagramWinds
 import {runInstagramWindsorMediaSync,overlayInstagramWindsorMedia,instagramWindsorMediaStatus} from './instagram-media-repair.js';
 import {runInstagramWindsorFollowersSync,overlayInstagramWindsorFollowers,instagramWindsorFollowersStatus} from './instagram-followers-sync.js';
 import {runTikTokOrganicSync,overlayTikTokOrganicState,tiktokOrganicStatus} from './tiktok-windsor-repair.js';
+import {runYouTubeWindsorExtrasSync,overlayYouTubeWindsorExtras,youtubeWindsorExtrasStatus} from './youtube-windsor-extras.js';
 /* BACK2U Cloudflare Worker - private creator dashboard.
    Independent of Netlify. Do not publish API keys or creator analytics in static assets.
    The Cloudflare D1 binding DB must contain the back2u_store(key,value,updated_at) table.
@@ -359,15 +360,19 @@ async function hydratedSnapshot(env){
  }
  const tiktokWindsor=await get(env,'tt_windsor_daily_v1');
  if(tiktokWindsor?.schema===1)overlayTikTokOrganicState(s,tiktokWindsor,tiktokProfile);
- const verified=await get(env,'yt_analytics_daily');
- if(!verified?.daily?.length)return s;
- const byDate=new Map((s.platforms.yt.daily||[]).map(r=>[r.d,r]));
- for(const item of verified.daily)byDate.set(item.d,item);
- s.platforms.yt.daily=[...byDate.values()].sort((a,b)=>a.d.localeCompare(b.d));
- if(typeof verified.subscriberCount==='number')s.platforms.yt.profile={...s.platforms.yt.profile,subscribers:verified.subscriberCount,asOf:verified.updatedAt,source:'YouTube Data API'};
- s.platforms.yt.dailySource='YouTube Analytics API (day-level) plus retained Sheets history';
- s.verifiedYouTubeDaily={updatedAt:verified.updatedAt,dataThrough:verified.daily.at(-1)?.d||null,count:verified.daily.length};
- s.dataThrough=s.platforms.yt.daily.at(-1)?.d||s.dataThrough;
+ const [verified,windsorYT]=await Promise.all([
+  get(env,'yt_analytics_daily'),get(env,'yt_windsor_extras_v1')
+ ]);
+ if(verified?.daily?.length){
+  const byDate=new Map((s.platforms.yt.daily||[]).map(r=>[r.d,r]));
+  for(const item of verified.daily)byDate.set(item.d,item);
+  s.platforms.yt.daily=[...byDate.values()].sort((a,b)=>a.d.localeCompare(b.d));
+  if(typeof verified.subscriberCount==='number')s.platforms.yt.profile={...s.platforms.yt.profile,subscribers:verified.subscriberCount,asOf:verified.updatedAt,source:'YouTube Data API'};
+  s.platforms.yt.dailySource='YouTube Analytics API (day-level) plus retained Sheets history';
+  s.verifiedYouTubeDaily={updatedAt:verified.updatedAt,dataThrough:verified.daily.at(-1)?.d||null,count:verified.daily.length};
+  s.dataThrough=s.platforms.yt.daily.at(-1)?.d||s.dataThrough;
+ }
+ if(windsorYT?.schema===1)overlayYouTubeWindsorExtras(s,windsorYT);
  return s;
 }
 
@@ -743,6 +748,17 @@ async function route(req,env){
  }
  if(path==='/api/snapshot'){
   if(req.method!=='GET')return json({error:'GET only'},405);
+  // Owner opens the dashboard: repair a stale TikTok account-day series
+  // immediately instead of depending only on Cron. Respect the existing
+  // per-source throttle to avoid accidental API storms from page reloads.
+  if(access.role==='admin'&&env.WINDSOR_API_KEY){
+   try{
+    const stored=await get(env,'tt_windsor_daily_v1');
+    const last=stored?.daily?.at(-1)?.d||'';
+    const staleBefore=new Date(Date.now()-3*86400000).toISOString().slice(0,10);
+    if(last<staleBefore)await runTikTokOrganicSync(env,{get,put});
+   }catch(e){console.warn('Owner-open TikTok day recovery failed:',clamp(e?.message))}
+  }
   const s=await hydratedSnapshot(env);
   return s?json(s):json({error:'Noch kein Google Sheets Export eingegangen'},503);
  }
@@ -761,13 +777,14 @@ async function route(req,env){
   ?json(await tiktokOrganicStatus(env,{get})):json({error:'GET only'},405);
  if(path==='/api/sync-sources/status'){
   if(req.method!=='GET')return json({error:'GET only'},405);
-  const [instagramFollowers,instagramDays,instagramMedia,tiktok]=await Promise.all([
+  const [instagramFollowers,instagramDays,instagramMedia,tiktok,youtubeExtras]=await Promise.all([
    instagramWindsorFollowersStatus(env,{get}),
    instagramWindsorDailyStatus(env,{get}),
-   instagramWindsorMediaStatus(env,{get}),tiktokOrganicStatus(env,{get})
+   instagramWindsorMediaStatus(env,{get}),tiktokOrganicStatus(env,{get}),
+   youtubeWindsorExtrasStatus(env,{get})
   ]);
   return json({schema:1,windsorConfigured:instagramFollowers.configured,
-   instagramFollowers,instagramDays,instagramMedia,tiktok});
+   instagramFollowers,instagramDays,instagramMedia,tiktok,youtubeExtras});
  }
  if(path==='/api/direct-parity') {
   if(req.method!=='GET')return json({error:'GET only'},405);
@@ -874,6 +891,9 @@ export default {
  },
  async scheduled(controller,env,ctx){
   ctx.waitUntil(ttSync(env).catch(e=>console.error('TikTok scheduled sync:',clamp(e?.message))));
+  ctx.waitUntil(runYouTubeWindsorExtrasSync(env,{get,put})
+   .then(r=>{if(r.status==='error')console.warn('YouTube extras sync failed:',r.error)})
+   .catch(e=>console.error('YouTube extras unavailable:',clamp(e?.message))));
   ctx.waitUntil(runTikTokOrganicSync(env,{get,put})
    .then(r=>{if(r.status==='error')console.warn('TikTok Organic day sync failed:',r.error)})
    .catch(e=>console.error('TikTok Organic sync unavailable:',clamp(e?.message))));

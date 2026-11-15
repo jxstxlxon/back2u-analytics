@@ -49,8 +49,24 @@ test('fake account or username rejected',()=>{
  assert.throws(()=>validateTikTokOrganicDays(rows.map(x=>({...x,account_id:'other'})),NOW),/Konto/);
  assert.throws(()=>validateTikTokOrganicMedia(videos.map(x=>({...x,username:'other'})),NOW),/verifiziert/);
 });
-test('duplicate days rejected, never used for totals',()=>{
- assert.throws(()=>validateTikTokOrganicDays([...rows,rows[0]],NOW),/mehrfach/);
+test('identical duplicated completed dates never abort the full report',()=>{
+ const result=validateTikTokOrganicDays([...rows,rows[0]],NOW);
+ assert.equal(result.daily.length,5);
+ assert.equal(result.daily[0].d,'2026-11-09');
+});
+test('conflicting duplicate date does not fabricate a daily count',()=>{
+ const contradictory={...rows[0],video_views:123456};
+ const result=validateTikTokOrganicDays([...rows,contradictory],NOW);
+ assert.ok(!result.daily.some(x=>x.d==='2026-11-09'));
+ assert.equal(result.daily.at(-1).d,'2026-11-13');
+});
+test('duplicate NULL-filled today records are ignored rather than aborting all days',()=>{
+ const duplicate={...rows.at(-1),video_views:null,likes:null,comments:null,
+  shares:null,followers_count:null,total_followers_count:4837};
+ const result=validateTikTokOrganicDays([...rows,duplicate,duplicate],NOW);
+ assert.equal(result.daily.length,5);
+ assert.equal(result.daily.at(-1).d,'2026-11-13');
+ assert.equal(result.profile.followers,4837);
 });
 test('missing view counts cannot be replaced with null or invented zero',()=>{
  assert.throws(()=>validateTikTokOrganicDays(rows.map(x=>({...x,video_views:null})),NOW),/fehlen/);
@@ -106,6 +122,10 @@ await testAsync('cron creates a separate D1 store and does not replace original 
  assert.equal(d.m.get('tt_windsor_daily_v1').videos.length,7);
  assert.equal(calls.length,2);
  assert.ok(calls.every(x=>x.pathname==='/tiktok_organic'&&x.searchParams.get('select_accounts')===ACCOUNT));
+ const dailyQuery=calls.find(x=>x.searchParams.get('fields').includes('unique_video_views'));
+ assert.equal(dailyQuery.searchParams.get('date_to'),'2026-11-14');
+ assert.ok(dailyQuery.searchParams.get('fields').includes('engaged_audience'));
+ assert.ok(dailyQuery.searchParams.get('fields').includes('daily_lost_followers'));
  const skip=await runTikTokOrganicSync(env,{...d,now:NOW+20*60000,fetcher});
  assert.equal(skip.status,'skipped');
  assert.equal(calls.length,2);
@@ -146,6 +166,15 @@ test('today NULL values cannot break yesterday and older day imports',()=>{
  assert.equal(outcome.daily.length,5);
  assert.equal(outcome.profile.date,'2026-11-15');
  assert.equal(outcome.profile.followers,4837);
+});
+test('TikTok extra source fields remain grounded in exact account-day values',()=>{
+ const extra=rows.map(x=>({...x,
+  engaged_audience:x.video_views?500:null,daily_lost_followers:x.video_views?4:null,
+  daily_total_followers:x.video_views?12:null,bio_link_clicks:x.video_views?2:null}));
+ const result=validateTikTokOrganicDays(extra,NOW);
+ assert.equal(result.daily.length,5);
+ assert.ok(result.daily.every(x=>x.engagedAudience===500&&x.lostFollowers===4&&
+  x.netFollows===12&&x.bioLinkClicks===2));
 });
 test('daily reach and profile visits come only from verified actual account days',()=>{
  const extended=rows.map(x=>({...x,
