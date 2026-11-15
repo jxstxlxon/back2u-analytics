@@ -1,4 +1,5 @@
 import {runAudienceAutoSync} from './audience-sync.js';
+import {manualCrosspostRoute} from './manual-crosspost-links.js';
 import {validateDirectAudience,mergeDirectAudience,chooseEffectiveAudience} from './direct-audience.js';
 import {validateDirectMedia,mergeDirectMedia,overlayDirectMedia} from './direct-media.js';
 import {validateDirectVideoInsights,mergeDirectVideoInsights,validateInstagramDaily,mergeInstagramDaily,overlayDirectInsights} from './direct-insights.js';
@@ -844,6 +845,8 @@ async function route(req,env,ctx){
   headers.append('set-cookie',guestSessionClear);
   return new Response(JSON.stringify({ok:true}),{headers});
  }
+ if(path==='/api/manual-video-links'&&req.method==='GET')
+  return manualCrosspostRoute(req,env,access.role,{json,requireSameSiteJson});
  if(path==='/api/snapshot'){
   if(req.method!=='GET')return json({error:'GET only'},405);
   // Owner opens the dashboard: repair a stale TikTok account-day series
@@ -878,6 +881,8 @@ async function route(req,env,ctx){
  }
  // Guest rights end here: no diagnostics, imports, OAuth, sync, audit or access management.
  if(access.role!=='admin')return json({error:'Nur Administrator'},403);
+ if(path==='/api/manual-video-links'||path.startsWith('/api/manual-video-links/'))
+  return manualCrosspostRoute(req,env,access.role,{json,requireSameSiteJson});
  if(path==='/api/audience')return audienceAdmin(req,env);
  if(path==='/api/audience/sync')return audienceSyncAdmin(req,env);
  if(path==='/api/direct-audience/status')return directAudienceStatus(req,env);
