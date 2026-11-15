@@ -780,7 +780,7 @@ async function route(req,env){
       hasEngagedAccounts:!!igData?.daily?.some(d=>Number.isFinite(d.engagedAccounts)),
       hasFullWindow:(igData?.daily?.length||0)>=27},
      youtube:{state:status(ytJob),reason:reason(ytJob),
-      backfillAttempted:ytJob?.pipelineVersion==='v77.10-full-28day-youtube-extras',
+      backfillAttempted:ytJob?.pipelineVersion==='v77.13-youtube-connector-account',
       hasDays:!!ytData?.daily?.length,
       hasEngagedViews:!!ytData?.daily?.some(d=>Number.isFinite(d.engagedViews)),
       hasWatchMinutes:!!ytData?.daily?.some(d=>Number.isFinite(d.watchMinutes)),
@@ -839,6 +839,13 @@ async function route(req,env){
     if(last<staleBefore)ctx.waitUntil(runTikTokOrganicSync(env,{get,put})
      .catch(e=>console.warn('Owner-open TikTok day recovery failed:',clamp(e?.message))));
    }catch(e){console.warn('Owner-open TikTok day recovery failed:',clamp(e?.message))}
+   // Missing Instagram/YouTube extras are repaired independently after the
+   // HTTP response. Each importer enforces its own per-source throttle and
+   // version gate; the page must never wait for an external Windsor request.
+   ctx.waitUntil(runInstagramWindsorDailySync(env,{get,put})
+    .catch(e=>console.warn('Owner-open Instagram extras recovery failed:',clamp(e?.message))));
+   ctx.waitUntil(runYouTubeWindsorExtrasSync(env,{get,put})
+    .catch(e=>console.warn('Owner-open YouTube extras recovery failed:',clamp(e?.message))));
   }
   const s=await hydratedSnapshot(env);
   return s?json(s):json({error:'Noch kein Google Sheets Export eingegangen'},503);

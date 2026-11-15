@@ -4,6 +4,8 @@
  * private Apps Script changes. Does not overwrite verified official metrics.
  */
 const CHANNEL='UCBnnaMohI_VfKihekEwaQEw';
+// Windsor connector's linked account ID differs from the public channel ID.
+const WINDSOR_ACCOUNT='83736';
 const STORE='yt_windsor_extras_v1',STATUS='yt_windsor_extras_sync_v1';
 const DAY=86400000;
 const iso=ms=>new Date(ms).toISOString().slice(0,10);
@@ -92,7 +94,7 @@ export async function runYouTubeWindsorExtrasSync(env,{
  if(key.length<16)return {status:'not_configured'};
  const old=await get(env,STATUS)||{};
  const last=Date.parse(old.lastAttemptAt||'');
- const pipelineVersion='v77.10-full-28day-youtube-extras';
+ const pipelineVersion='v77.13-youtube-connector-account';
  const throttle=old.status==='ok'?6*3600000:
   old.status==='running'?45*60000:60*60000;
  if(!force&&old.pipelineVersion===pipelineVersion&&Number.isFinite(last)&&now-last>=0&&now-last<throttle)
@@ -105,7 +107,7 @@ export async function runYouTubeWindsorExtrasSync(env,{
   url.searchParams.set('fields',FIELDS.join(','));
   url.searchParams.set('date_from',iso(now-28*DAY));
   url.searchParams.set('date_to',iso(now-DAY));
-  url.searchParams.set('select_accounts',CHANNEL);
+  url.searchParams.set('select_accounts',WINDSOR_ACCOUNT);
   url.searchParams.set('_renderer','json');
   const response=await fetcher(url.href,{
    method:'GET',headers:{accept:'application/json'},
