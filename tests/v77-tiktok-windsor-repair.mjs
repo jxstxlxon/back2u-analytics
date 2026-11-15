@@ -136,4 +136,46 @@ await testAsync('diagnostic reports missing credentials without revealing secret
  assert.equal(x.configured,true);
  assert.ok(!JSON.stringify(x).includes('PRIVATE_PRIVATE_123456'));
 });
+
+test('today NULL values cannot break yesterday and older day imports',()=>{
+ const mixed=rows.map(x=>x.date==='2026-11-15'?{...x,
+  video_views:null,likes:null,comments:null,shares:null,followers_count:null,
+  total_followers_count:4837}:x);
+ const outcome=validateTikTokOrganicDays(mixed,NOW);
+ assert.equal(outcome.daily.at(-1).d,'2026-11-13');
+ assert.equal(outcome.daily.length,5);
+ assert.equal(outcome.profile.date,'2026-11-15');
+ assert.equal(outcome.profile.followers,4837);
+});
+test('daily reach and profile visits come only from verified actual account days',()=>{
+ const extended=rows.map(x=>({...x,
+  unique_video_views:x.video_views?Math.round(x.video_views*.71):null,
+  profile_views:x.video_views?100:null}));
+ const outcome=validateTikTokOrganicDays(extended,NOW);
+ assert.ok(outcome.daily.every(x=>x.uniqueViews>0&&x.profileViews===100));
+ assert.equal(outcome.daily.length,5);
+});
+test('yesterday NULL values are omitted without aborting older history',()=>{
+ const patch=rows.map(x=>x.date==='2026-11-14'?{...x,video_views:null}:x);
+ const output=validateTikTokOrganicDays(patch,NOW);
+ assert.equal(output.daily.length,5);
+ assert.equal(output.daily.at(-1).d,'2026-11-13');
+});
+await testAsync('media API outage still commits verified TikTok daily reports',async()=>{
+ const store=db(),calls=[];
+ const env={WINDSOR_API_KEY:'private_mock_windsor_key_ABCDEFGHIJKLMNOPQ'};
+ const t=await runTikTokOrganicSync(env,{...store,now:NOW,fetcher:async url=>{
+  const isMedia=new URL(url).searchParams.get('fields').includes('video_id');
+  calls.push(isMedia?'media':'day');
+  if(isMedia)throw Error('Simulated media API timeout');
+  return{ok:true,json:async()=>rows};
+ }});
+ assert.equal(t.status,'partial');
+ assert.equal(t.dayThrough,'2026-11-13');
+ assert.equal(t.mediaStatus,'unavailable');
+ assert.equal(store.m.get('tt_windsor_daily_v1').daily.length,5);
+ assert.equal(store.m.get('tt_windsor_daily_v1').videos.length,0);
+ assert.deepEqual(calls.sort(),['day','media']);
+});
+
 console.log('BACK2U TikTok Windsor recovery '+passed+'/'+passed+' tests passed');
