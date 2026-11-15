@@ -116,7 +116,7 @@ await testAsync('connection outage leaves previous successful TikTok data intact
   ok:true,json:async()=>url.includes('video_id')?videos:rows
  })});
  const prior=JSON.stringify(d.m.get('tt_windsor_daily_v1'));
- const fail=await runTikTokOrganicSync(env,{...d,now:NOW+DAY,fetcher:async()=>({
+ const fail=await runTikTokOrganicSync(env,{...d,now:NOW+86400000,fetcher:async()=>({
   ok:false,status:503
  })});
  assert.equal(fail.status,'error');
