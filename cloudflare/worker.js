@@ -6,6 +6,7 @@ import {auditDirectCoverage} from './parity-audit.js';
 import {runInstagramWindsorDailySync,overlayInstagramWindsorDaily,instagramWindsorDailyStatus} from './instagram-daily-repair.js';
 import {runInstagramWindsorMediaSync,overlayInstagramWindsorMedia,instagramWindsorMediaStatus} from './instagram-media-repair.js';
 import {runInstagramWindsorFollowersSync,overlayInstagramWindsorFollowers,instagramWindsorFollowersStatus} from './instagram-followers-sync.js';
+import {runTikTokOrganicSync,overlayTikTokOrganicState,tiktokOrganicStatus} from './tiktok-windsor-repair.js';
 /* BACK2U Cloudflare Worker - private creator dashboard.
    Independent of Netlify. Do not publish API keys or creator analytics in static assets.
    The Cloudflare D1 binding DB must contain the back2u_store(key,value,updated_at) table.
@@ -356,6 +357,8 @@ async function hydratedSnapshot(env){
      videoCount:tiktokProfile.videoCount,asOf:tiktokProfile.updatedAt,
      source:'TikTok Display API',history:tiktokProfile.history||[]};
  }
+ const tiktokWindsor=await get(env,'tt_windsor_daily_v1');
+ if(tiktokWindsor?.schema===1)overlayTikTokOrganicState(s,tiktokWindsor,tiktokProfile);
  const verified=await get(env,'yt_analytics_daily');
  if(!verified?.daily?.length)return s;
  const byDate=new Map((s.platforms.yt.daily||[]).map(r=>[r.d,r]));
@@ -754,6 +757,18 @@ async function route(req,env){
   ?json(await instagramWindsorMediaStatus(env,{get})):json({error:'GET only'},405);
  if(path==='/api/instagram-followers/status')return req.method==='GET'
   ?json(await instagramWindsorFollowersStatus(env,{get})):json({error:'GET only'},405);
+ if(path==='/api/tiktok-organic/status')return req.method==='GET'
+  ?json(await tiktokOrganicStatus(env,{get})):json({error:'GET only'},405);
+ if(path==='/api/sync-sources/status'){
+  if(req.method!=='GET')return json({error:'GET only'},405);
+  const [instagramFollowers,instagramDays,instagramMedia,tiktok]=await Promise.all([
+   instagramWindsorFollowersStatus(env,{get}),
+   instagramWindsorDailyStatus(env,{get}),
+   instagramWindsorMediaStatus(env,{get}),tiktokOrganicStatus(env,{get})
+  ]);
+  return json({schema:1,windsorConfigured:instagramFollowers.configured,
+   instagramFollowers,instagramDays,instagramMedia,tiktok});
+ }
  if(path==='/api/direct-parity') {
   if(req.method!=='GET')return json({error:'GET only'},405);
   const [audience,media,video,instagramDaily,youtubeDaily]=await Promise.all([
@@ -859,6 +874,9 @@ export default {
  },
  async scheduled(controller,env,ctx){
   ctx.waitUntil(ttSync(env).catch(e=>console.error('TikTok scheduled sync:',clamp(e?.message))));
+  ctx.waitUntil(runTikTokOrganicSync(env,{get,put})
+   .then(r=>{if(r.status==='error')console.warn('TikTok Organic day sync failed:',r.error)})
+   .catch(e=>console.error('TikTok Organic sync unavailable:',clamp(e?.message))));
   ctx.waitUntil(runInstagramWindsorFollowersSync(env,{get,put})
    .then(r=>{if(r.status==='error')console.warn('Instagram follower sync failed:',r.error)})
    .catch(e=>console.error('Instagram follower sync unavailable:',clamp(e?.message))));
