@@ -102,7 +102,7 @@ body.story-open{overflow:hidden}
 #back2uLoginOverlay input{display:block;width:100%;padding:15px 16px;border-radius:12px;background:#061326cc;border:1px solid #adcafa5a;color:white;font:inherit;font-size:16px;margin-bottom:12px}
 #back2uLoginOverlay button{border:0;border-radius:12px;background:#449dfb;color:white;font:600 15px system-ui;padding:13px 16px;width:100%;cursor:pointer}
 #back2uLoginOverlay #back2uLoginError{min-height:20px;color:#ffc5c5;font-size:12px;margin-top:14px}
-</style><link rel="stylesheet" href="/theme-studio.css?v=1"><link rel="stylesheet" href="/theme-reference.css?v=2"><link rel="stylesheet" href="/ui-v3.css?v=3"><link rel="stylesheet" href="/ui-v4.css?v=4"><link rel="stylesheet" href="/creator-hub-v5.css?v=6"><link rel="stylesheet" href="/mobile-theme-polish-v6.css?v=6"><link rel="stylesheet" href="/dashboard-v7.css?v=13"><link rel="stylesheet" href="/audience-import.css?v=2"><link rel="stylesheet" href="/guest-access.css?v=1"><link rel="stylesheet" href="/mobile-performance-v77.css?v=2"></head>
+</style><link rel="stylesheet" href="/theme-studio.css?v=1"><link rel="stylesheet" href="/theme-reference.css?v=2"><link rel="stylesheet" href="/ui-v3.css?v=3"><link rel="stylesheet" href="/ui-v4.css?v=4"><link rel="stylesheet" href="/creator-hub-v5.css?v=6"><link rel="stylesheet" href="/mobile-theme-polish-v6.css?v=6"><link rel="stylesheet" href="/dashboard-v7.css?v=14"><link rel="stylesheet" href="/audience-import.css?v=2"><link rel="stylesheet" href="/guest-access.css?v=1"><link rel="stylesheet" href="/mobile-performance-v77.css?v=2"></head>
 <body>
 <div class="ambient ambient-a"></div><div class="ambient ambient-b"></div><div class="ambient ambient-c"></div><div class="grain"></div>
 <div class="shell">
@@ -137,8 +137,8 @@ body.story-open{overflow:hidden}
 </section>
 <section id="videos" class="view">
   <div class="section-heading"><div><div class="eyebrow">01 / VIDEO INTELLIGENCE</div><h2>Jedes Video im Blick</h2><p>Rankings, Suche und Plattformvergleich. Werte stammen aus unterschiedlichen Berichtsarten.</p></div><span class="pill" id="videoCount"></span></div>
-  <section class="glass top-seven-card" id="topSevenCard" aria-label="Top-Videos der letzten sieben Tage">
-   <div class="top-seven-heading"><div><span class="eyebrow">7 TAGE / VIDEO RANKING</span><h3>Deine besten Videos der letzten 7 Tage</h3><p>Neu veröffentlichte Clips nach ihren bisherigen Aufrufen – oder echte 7-Tage-Aufrufe, wenn offiziell je Video verfügbar.</p></div><span class="top-seven-time" id="topSevenRange">7 Tage</span></div>
+  <section class="glass top-seven-card" id="topSevenCard" aria-label="Plattformübergreifende Top-Videos der letzten sieben Tage">
+   <div class="top-seven-heading"><div><span class="eyebrow">7 TAGE / VIDEO RANKING</span><h3>Deine besten Videos der letzten 7 Tage</h3><p>Ein Video, eine Ranglistenposition: YouTube, Instagram und TikTok werden bei sicherer Zuordnung gemeinsam angezeigt. Immer alle Plattformen, unabhängig vom oberen Filter.</p></div><span class="top-seven-time" id="topSevenRange">7 Tage</span></div>
    <div class="top-seven-controls"><label for="topSevenMode">Rangliste<select id="topSevenMode" aria-label="Art des 7-Tage-Video-Rankings"><option value="uploads">Letzte 7 Tage veröffentlicht</option><option value="period">Aufrufe im 7-Tage-Zeitraum (nur geprüft)</option></select></label><button type="button" id="topSevenRefresh" class="small-button">↻ Top-Videos abrufen</button></div>
    <p class="top-seven-status" id="topSevenStatus" role="status"></p>
    <div id="topSevenList" class="top-seven-list" aria-live="polite"></div>
@@ -752,72 +752,118 @@ function renderGroupedVideos(){
 // A publication-window ranking cannot be called a seven-day view delta.
 // Report-only mode accepts documented, matching per-video YouTube Analytics
 // windows; do not invent 7-day values from account-day totals or lifetime.
-function topSevenRanking(videos,mode,today,selectedPlatforms){
+function topSevenRanking(groups,mode,today,selectedPlatforms=['yt','ig','tt']){
  const periodStart=shift(today,-6);
- const matching=videos.filter(v=>selectedPlatforms.includes(v.platform));
- const hasCount=n=>typeof n==='number'&&Number.isFinite(n)&&n>=0;
- let rows=[],unknown=0,reportStart=null,reportEnd=null;
+ const selected=new Set(selectedPlatforms);
+ const hasCount=n=>typeof n==='number'&&Number.isSafeInteger(n)&&n>=0;
+ const validDate=d=>typeof d==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(d)&&
+  Number.isFinite(Date.parse(d+'T12:00:00Z'))&&ymd(Date.parse(d+'T12:00:00Z'))===d;
+ const visible=groups.map(group=>({
+  group,members:(group.members||[]).filter(v=>selected.has(v.platform))
+ })).filter(x=>x.members.length>0);
+ let rows=[],unknown=0,reportEnd=null,reportStart=null;
  if(mode==='period'){
-  const candidates=matching.filter(v=>{
-   const range=v.analytics?.periods?.['7'],value=v.analytics?.views7d;
-   const end=range?.end;
+  // Only an official per-video YouTube Analytics seven-day reporting window
+  // may contribute; account-day totals or Instagram/TikTok lifetime counts
+  // must not be mixed into this ranking.
+  const measured=[];
+  for(const entry of visible)for(const v of entry.members){
+   const range=v.analytics?.periods?.['7'],end=range?.end,views=v.analytics?.views7d;
    if(v.platform!=='yt'||v.analytics?.source!=='YouTube Analytics API (video range)'||
-      !hasCount(value)||typeof end!=='string'||
-      !/^\d{4}-\d{2}-\d{2}$/.test(end)||
-      !Number.isFinite(Date.parse(end+'T12:00:00Z'))||
-      ymd(Date.parse(end+'T12:00:00Z'))!==end)return false;
-   return range.start===shift(end,-6)&&end<=today&&end>=shift(today,-3);
-  });
-  reportEnd=candidates.map(v=>v.analytics.periods['7'].end).sort().at(-1)||null;
+      !hasCount(views)||!validDate(end)||range.start!==shift(end,-6)||
+      end>today||end<shift(today,-3))continue;
+   measured.push({entry,video:v,views,end});
+  }
+  reportEnd=measured.map(x=>x.end).sort().at(-1)||null;
   reportStart=reportEnd?shift(reportEnd,-6):null;
-  rows=candidates.filter(v=>v.analytics.periods['7'].end===reportEnd)
-   .map(v=>({video:v,views:v.analytics.views7d}));
+  const candidates=new Map();
+  for(const entry of measured.filter(x=>x.end===reportEnd)){
+   const key=entry.entry.group;
+   if(!candidates.has(key))candidates.set(key,{group:key,members:entry.entry.members,values:[],views:0});
+   const row=candidates.get(key);row.values.push({video:entry.video,views:entry.views});row.views+=entry.views;
+  }
+  rows=[...candidates.values()];
  }else{
-  const recent=matching.filter(v=>typeof v.date==='string'&&
-   /^\d{4}-\d{2}-\d{2}$/.test(v.date)&&v.date>=periodStart&&v.date<=today);
-  unknown=recent.filter(v=>v.reportType!=='lifetime'||!hasCount(v.views)).length;
-  rows=recent.filter(v=>v.reportType==='lifetime'&&hasCount(v.views))
-   .map(v=>({video:v,views:v.views}));
+  for(const {group,members} of visible){
+   // The video was posted during the week on at least one account. Same
+   // video on another platform may have been uploaded one day earlier/later;
+   // the confirmed crosspost is kept, but its value is still lifetime.
+   if(!members.some(v=>validDate(v.date)&&v.date>=periodStart&&v.date<=today))continue;
+   const known=members.filter(v=>v.reportType==='lifetime'&&hasCount(v.views));
+   unknown+=members.length-known.length;
+   if(!known.length)continue;
+   rows.push({group,members,values:known.map(v=>({video:v,views:v.views})),
+    views:known.reduce((a,b)=>a+b.views,0)});
+  }
  }
- rows.sort((a,b)=>b.views-a.views||String(b.video.date||'').localeCompare(String(a.video.date||''))||
-  String(a.video.platform).localeCompare(String(b.video.platform)));
+ rows.sort((a,b)=>b.views-a.views||
+  String(b.group.date||'').localeCompare(String(a.group.date||''))||
+  String(a.group.groupKey||'').localeCompare(String(b.group.groupKey||'')));
  return {items:rows.slice(0,10),totalRanked:rows.length,unknown,
   start:mode==='period'?reportStart:periodStart,end:mode==='period'?reportEnd:today,mode};
+}
+function topSevenVideoUrl(v){
+ const link=cleanUrl(v?.url);
+ if(!link||!['yt','ig','tt'].includes(v.platform))return null;
+ try{
+  const host=new URL(link).hostname.toLowerCase();
+  const allowed={yt:['youtube.com','www.youtube.com','m.youtube.com','youtu.be'],
+   ig:['instagram.com','www.instagram.com'],
+   tt:['tiktok.com','www.tiktok.com','m.tiktok.com']};
+  return allowed[v.platform].includes(host)?link:null;
+ }catch{return null}
 }
 function renderTopSeven(){
  const root=$('#topSevenList'),info=$('#topSevenStatus'),rangeLabel=$('#topSevenRange');
  const button=$('#topSevenRefresh');button.disabled=!!state.loading;
  const today=new Date().toLocaleDateString('sv-SE',{timeZone:'Europe/Berlin'});
- const result=topSevenRanking(mergedVideos(),state.topSevenMode,today,platforms());
+ // This leaderboard is always about the VIDEO on all connected platforms,
+ // not a single-platform upload. The general toolbar filter does not split it.
+ const result=topSevenRanking(crossPlatformVideoGroups(),state.topSevenMode,today,
+  ['yt','ig','tt']);
  const period=result.mode==='period',time=result.start?
   result.start.split('-').reverse().join('.')+' – '+result.end.split('-').reverse().join('.'):'Noch kein bestätigter Zeitraum';
  rangeLabel.textContent=time;
  if(!result.items.length){
   root.innerHTML='<div class="top-seven-empty">'+(period?
-   'Für die ausgewählten Plattformen liegen noch keine hinreichend aktuellen, bestätigten 7-Tage-Aufrufe je Video vor. Das ist kein Null-Ergebnis.':
-   'Für diesen Veröffentlichungszeitraum sind keine Videos mit bestätigten bisherigen Gesamtaufrufen erfasst.')+'</div>';
+   'Keine aktuellen, bestätigten 7-Tage-Aufrufe je Video verfügbar. Diese Messgröße liegt nicht für alle Plattformen vor.':
+   'Für diese Woche sind noch keine Videogruppen mit bestätigten bisherigen Gesamtaufrufen erfasst.')+'</div>';
  }else{
-  root.innerHTML=result.items.map(({video:v,views},i)=>{
-   const link=cleanUrl(v.url),platform=tagPlatform(v.platform);
-   // Only allow navigation to the intended video platforms.
-   let safeLink=null;
-   if(link)try{const host=new URL(link).hostname.toLowerCase();
-    if((v.platform==='yt'&&['youtube.com','www.youtube.com','m.youtube.com','youtu.be'].includes(host))||
-       (v.platform==='ig'&&['instagram.com','www.instagram.com'].includes(host))||
-       (v.platform==='tt'&&['tiktok.com','www.tiktok.com','m.tiktok.com'].includes(host)))safeLink=link;
-   }catch{}
+  root.innerHTML=result.items.map(({group,members,values,views},i)=>{
+   const used=new Map(values.map(x=>[x.video.platform,x.views]));
+   const knownPlats=[...used.keys()];
+   const imageVideo=members.find(v=>v.platform==='yt'&&v.thumb)||
+    members.find(v=>v.thumb)||group.first||members[0];
+   const title=group.title||imageVideo?.title||'Video';
+   const dates=members.map(v=>v.date).filter(Boolean).sort();
+   const firstDate=dates[0]||'Datum unbekannt';
+   // Three stable platform columns: a dash means not identified/not measured;
+   // never invent a zero or imply that an Instagram 7d number exists.
+   const chips=['yt','ig','tt'].map(p=>'<span class="top-seven-platform" data-platform="'+p+'">'+
+    '<i class="platform-dot '+p+'dot"></i><span>'+esc(NAMES[p])+'</span><b>'+
+    (used.has(p)?fmt(used.get(p)):'–')+'</b></span>').join('');
+   const links=members.filter(v=>topSevenVideoUrl(v)).map(v=>
+    '<a href="'+esc(topSevenVideoUrl(v))+'" target="_blank" rel="noopener noreferrer" aria-label="Video auf '+
+    esc(NAMES[v.platform])+' öffnen">'+esc(NAMES[v.platform])+' ↗</a>').join('');
    return '<article class="top-seven-item"><span class="top-seven-rank">'+(i+1)+'</span>'+
-    '<div class="top-seven-thumb">'+image(v)+'</div><div class="top-seven-body"><strong>'+esc(v.title||'Video')+'</strong>'+
-    '<small>'+platform+' · '+esc(v.date||'Datum unbekannt')+'</small></div>'+
-    '<div class="top-seven-score"><b>'+fmt(views)+'</b><small>'+(period?'7-Tage-Aufrufe':'Bisherige Aufrufe')+'</small></div>'+
-    (safeLink?'<a href="'+esc(safeLink)+'" target="_blank" rel="noopener noreferrer" aria-label="Video auf '+esc(NAMES[v.platform])+' öffnen">Öffnen ↗</a>':'')+'</article>';
+    '<div class="top-seven-thumb">'+image(imageVideo)+'</div><div class="top-seven-body">'+
+    '<strong>'+esc(title)+'</strong><small>'+esc(firstDate)+' · '+members.length+
+    (members.length===1?' Plattform-Eintrag':' Plattform-Einträge')+'</small></div>'+
+    '<div class="top-seven-score"><b>'+fmt(views)+'</b><small>'+
+    (period?'7-Tage-Aufrufe':'Gesamte Aufrufe')+'</small></div>'+
+    '<div class="top-seven-platforms" aria-label="Aufrufe nach Plattform">'+chips+'</div>'+
+    (links?'<div class="top-seven-links" aria-label="Originalvideos öffnen">'+links+'</div>':'')+
+    '</article>';
   }).join('');
  }
- const source=state.live?'Aus dem aktuell geladenen Cloudflare-Datensatz.':'Nur gespeicherte Archivwerte; keine aktuelle Serververbindung.';
- const caveat=period?'Gemessener YouTube-Berichtszeitraum – für Instagram/TikTok sind nicht automatisch vergleichbare 7-Tage-Videoaufrufe vorhanden.':
-  'Nur Videos, die innerhalb der genannten 7 Kalendertage veröffentlicht wurden. Angezeigt werden bisherige Gesamtaufrufe, NICHT nur Aufrufe innerhalb der Woche.';
- info.textContent=result.totalRanked+' Videos mit verwendbaren Zahlen'+
-  (result.unknown?' · '+result.unknown+' ohne vergleichbare Gesamtwerte':'')+'. '+caveat+' '+source;
+ const source=state.live?'Aktueller geladener Cloudflare-Datensatz.':'Gespeicherte Archivdaten; kein bestätigter Live-Abruf.';
+ const caveat=period?
+  'Nur bestätigte 7-Tage-Videoaufrufe (derzeit YouTube); Instagram und TikTok werden ohne solche Einzelvideo-Messwerte mit „–“ angezeigt.':
+  'Die Aufrufe sind bisherige Plattform-Gesamtwerte, NICHT nur die neuen Aufrufe dieser Woche.';
+ info.textContent=result.totalRanked+' Videogruppen im Ranking'+
+  (result.unknown?' · '+result.unknown+' zugeordnete Einträge ohne vergleichbare Gesamtzahl':'')+
+  '. Crossposts werden nur bei ausreichend sicherer Titel- und Datumsübereinstimmung zusammengefasst. „–“ bedeutet nicht zugeordnet oder kein verfügbarer Messwert. '+
+  caveat+' '+source;
 }
 function renderVideos(){renderTopSeven();if(state.platform==='all'){const hasApi=Boolean(state.live?.platforms?.tt?.videos?.length);$('#tiktokArchiveRow').style.display=hasApi?'flex':'none';$('#showArchivedTikTok').checked=state.includeTiktokArchive;renderGroupedVideos();return;}const hasTikTokApi=Boolean(state.live?.platforms?.tt?.videos?.length);$('#tiktokArchiveRow').style.display=hasTikTokApi?'flex':'none';$('#showArchivedTikTok').checked=state.includeTiktokArchive;const vlist=videoFiltered();$('#videoCount').textContent=fmt(vlist.length)+(state.platform==='yt'?' YouTube-Videos':' Clips');$('#listCount').textContent=fmt(vlist.length)+' im Filter';const perPage=state.listExpanded?15:5;let pageN=Math.max(1,Math.ceil(vlist.length/perPage));state.page=Math.min(pageN,Math.max(1,state.page));const start=(state.page-1)*perPage,show=vlist.slice(start,start+perPage);
  const feed=state.live?.platforms?.yt?.videos||[];
