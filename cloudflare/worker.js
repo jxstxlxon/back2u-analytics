@@ -773,7 +773,7 @@ async function route(req,env){
     };
     health.extraSync={
      instagram:{state:status(igJob),reason:reason(igJob),
-      backfillAttempted:igJob?.pipelineVersion==='v77.10-full-28day-instagram-extras',
+      backfillAttempted:igJob?.pipelineVersion==='v77.14-retry-full-instagram-extras',
       hasDays:!!igData?.daily?.length,
       hasSaves:!!igData?.daily?.some(d=>Number.isFinite(d.saves)),
       hasShares:!!igData?.daily?.some(d=>Number.isFinite(d.shares)),
