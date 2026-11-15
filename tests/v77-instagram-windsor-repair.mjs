@@ -58,6 +58,22 @@ check('real Instagram Saves, Shares, Interactions and Accounts Engaged pass thro
  assert.equal(snapshot.platforms.ig.daily[0].shares,60);
  assert.equal(snapshot.platforms.ig.daily[0].sourceFields.interactions,'Windsor.ai Instagram Insights (account-day)');
 });
+check('old 14-day report backfills 28 days and preserves any previously verified extras',()=>{
+ const old={schema:1,daily:[{d:'2026-11-10',views:111,reach:100,saves:17,shares:3}]};
+ const days=Array.from({length:28},(_,i)=>({
+  date:new Date(Date.parse('2026-10-18T00:00:00Z')+i*86400000).toISOString().slice(0,10),
+  account_id:'27282542318110290',views:4735+i,reach:3250+i,
+  likes:337+i,comments:6,saves:i===23?undefined:26+i,shares:24+i,
+  total_interactions:451+i,accounts_engaged:321+i
+ }));
+ const verified=validateInstagramWindsorDaily(days,now);
+ const combined=mergeInstagramWindsorDaily(old,verified,now);
+ assert.equal(combined.daily.length,28);
+ assert.equal(combined.daily[0].d,'2026-10-18');
+ assert.equal(combined.daily.at(-1).d,'2026-11-14');
+ assert.equal(combined.daily.find(r=>r.d==='2026-11-10').saves,17);
+ assert.equal(combined.daily.find(r=>r.d==='2026-11-14').engagedAccounts,348);
+});
 check('saved historical days remain preserved when new days are added',()=>{
  const old={schema:1,daily:[{d:'2026-11-01',views:99,reach:90}]};
  const next=mergeInstagramWindsorDaily(old,validateInstagramWindsorDaily(fixture,now),now);
