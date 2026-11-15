@@ -36,6 +36,19 @@ check('invalid/missing metrics cannot masquerade as zeros',()=>{
  assert.throws(()=>validateInstagramWindsorDaily(fixture.map(x=>({...x,reach:null})),now),/fehlen/);
  assert.throws(()=>validateInstagramWindsorDaily(fixture.map(x=>({...x,views:'broken'})),now),/Messwert/);
 });
+check('28 verified completed Instagram days are accepted without inventing dates',()=>{
+ const days=Array.from({length:28},(_,i)=>{
+  const d=new Date(Date.parse('2026-10-18T00:00:00Z')+i*86400000).toISOString().slice(0,10);
+  return{date:d,account_id:'27282542318110290',views:4735+i,
+   reach:3250+i,likes:337+i,comments:6,saves:26,shares:24,
+   total_interactions:451+i,accounts_engaged:321+i};
+ });
+ const result=validateInstagramWindsorDaily(days,now);
+ assert.equal(result.length,28);
+ assert.equal(result[0].d,'2026-10-18');
+ assert.equal(result.at(-1).d,'2026-11-14');
+ assert.equal(result[0].saves,26);
+});
 check('real Instagram Saves, Shares, Interactions and Accounts Engaged pass through unchanged',()=>{
  const fixtureExtended=fixture.map(x=>({...x,saves:55,shares:60,total_interactions:1060,accounts_engaged:700}));
  const verified=validateInstagramWindsorDaily(fixtureExtended,now);
@@ -77,7 +90,8 @@ await checkAsync('one existing Cloudflare cron run imports real days without cha
  assert.equal(calls.length,1);
  assert.equal(calls[0].pathname,'/instagram');
  assert.equal(calls[0].searchParams.get('select_accounts'),'17841476673616735');
- assert.equal(calls[0].searchParams.get('date_preset'),'last_14d');
+ assert.equal(calls[0].searchParams.get('date_from'),'2026-10-18');
+ assert.equal(calls[0].searchParams.get('date_to'),'2026-11-14');
  assert.equal(calls[0].searchParams.get('fields'),'date,views,reach,likes,comments,follower_count_1d,saves,shares,total_interactions,accounts_engaged,account_id');
  const duplicate=await runInstagramWindsorDailySync(env,{...db,fetcher,now:now+30*60000});
  assert.equal(duplicate.status,'skipped');
