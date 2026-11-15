@@ -66,7 +66,7 @@ export function mergeInstagramWindsorDaily(previous,validated,now=Date.now()){
  const existing=(previous?.schema===1&&Array.isArray(previous.daily))
    ?previous.daily:[];
  const all=new Map(existing.filter(d=>checkedDay(d.d)&&d.d<=today).map(d=>[d.d,d]));
- for(const day of validated)all.set(day.d,day);
+ for(const day of validated)all.set(day.d,{...(all.get(day.d)||{}),...day});
  return {schema:1,source:'Windsor.ai Instagram Insights (account-day)',
   accountId:WINDSOR_IG_ACCOUNT,updatedAt:new Date(now).toISOString(),
   dataThrough:[...all.keys()].sort().at(-1)||null,
@@ -107,8 +107,8 @@ export async function runInstagramWindsorDailySync(env,{
  if(secret.length<16)return {status:'not_configured',reason:'WINDSOR_API_KEY fehlt'};
  const prior=await get(env,IG_DAILY_STATUS)||{};
  const lastAttempt=Date.parse(prior.lastAttemptAt||'');
- const pipelineVersion='v77.10-full-28day-instagram-extras';
- const throttle=prior.status==='ok'?6*3600000:prior.status==='running'?45*60000:60*60000;
+ const pipelineVersion='v77.14-retry-full-instagram-extras';
+ const throttle=prior.status==='ok'?6*3600000:prior.status==='running'?2*60000:5*60000;
  if(!force&&prior.pipelineVersion===pipelineVersion&&Number.isFinite(lastAttempt)&&now-lastAttempt>=0&&now-lastAttempt<throttle)
   return {status:'skipped',lastSuccessAt:prior.lastSuccessAt||null};
  const startedAt=new Date(now).toISOString();
