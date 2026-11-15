@@ -32,19 +32,22 @@ export function validateTikTokOrganicDays(rows,now=Date.now()){
   throw Error('TikTok-Tagesbericht fehlt oder ist unvollständig');
  const today=iso(now),cutoff=iso(now-21*DAY);
  const byDate=new Map(),candidates=[];
+ const conflicted=new Set();
  for(const row of rows){
   if(!accountOK(row))throw Error('TikTok-Konto nicht verifiziert');
   const d=String(row.date||'');
-  if(!dateOK(d)||d<cutoff||d>today||byDate.has(d))
-   throw Error('Ungültiger oder mehrfacher TikTok-Berichtstag');
+  if(!dateOK(d)||d<cutoff||d>today)
+   throw Error('Ungültiger TikTok-Berichtstag');
   const fields={views:'video_views',likes:'likes',comments:'comments',
-   shares:'shares',follows:'followers_count',
-   uniqueViews:'unique_video_views',profileViews:'profile_views'};
+   shares:'shares',follows:'followers_count',netFollows:'daily_total_followers',
+   lostFollowers:'daily_lost_followers',engagedAudience:'engaged_audience',
+   bioLinkClicks:'bio_link_clicks',uniqueViews:'unique_video_views',
+   profileViews:'profile_views'};
   // Current-day account rows can have NULL metrics while followers_count
   // is already published. They must not veto all completed historical days.
   const followerTotal=numeric(row.total_followers_count);
   if(followerTotal!==null&&followerTotal>0)candidates.push({date:d,followers:followerTotal});
-  if(d===today){byDate.set(d,null);continue}
+  if(d===today)continue; // current-day NULL/duplicate rows are not completed days
   const entry={d};
   for(const [to,from] of Object.entries(fields)){
    const value=numeric(row[from]);
@@ -53,8 +56,7 @@ export function validateTikTokOrganicDays(rows,now=Date.now()){
     throw Error('TikTok-Tagesmetrik ungültig: '+from);
   }
   if(entry.views===undefined){
-   // Yesterday's partial response must not block older, verified dates.
-   if(d>=iso(now-3*DAY)){byDate.set(d,null);continue}
+   if(d>=iso(now-3*DAY))continue;
    throw Error('TikTok-Tagesaufrufe fehlen');
   }
   // A completely zero-filled recent report may be a not-yet-published batch.
@@ -62,8 +64,18 @@ export function validateTikTokOrganicDays(rows,now=Date.now()){
   const incompleteZero=entry.views===0&&
    ['likes','comments','shares','follows'].every(k=>entry[k]===0||entry[k]===undefined)&&
    d>=iso(now-3*DAY);
-  if(d<today&&!incompleteZero)byDate.set(d,entry);
-  else byDate.set(d,null); // preserves duplicate guard, but never writes it
+  if(incompleteZero)continue;
+  // Repeated, identical rows must not block ALL valid days. Conflicting rows
+  // for one date are discarded rather than guessed or silently summed.
+  if(conflicted.has(d))continue;
+  const existing=byDate.get(d);
+  if(existing){
+   const keys=new Set([...Object.keys(existing),...Object.keys(entry)]);
+   const contradiction=[...keys].some(k=>k!=='d'&&existing[k]!==undefined&&
+      entry[k]!==undefined&&existing[k]!==entry[k]);
+   if(contradiction){conflicted.add(d);byDate.delete(d);continue}
+   byDate.set(d,{...existing,...entry});
+  }else byDate.set(d,entry);
  }
  const daily=[...byDate.values()].filter(Boolean).sort((a,b)=>a.d.localeCompare(b.d));
  if(daily.length<3)throw Error('TikTok-Tagesstatistik enthält zu wenig bestätigte Tage');
@@ -171,14 +183,19 @@ export async function runTikTokOrganicSync(env,{
    const u=new URL('https://connectors.windsor.ai/tiktok_organic');
    u.searchParams.set('api_key',secret);
    u.searchParams.set('fields',fields);
-   u.searchParams.set('date_preset',preset);
+   // Use explicit completed-day UTC range: preset-only reports sometimes
+   // include a repeated, NULL-filled current day and block whole batches.
+   if(preset==='last_14d'){
+    u.searchParams.set('date_from',iso(now-15*DAY));
+    u.searchParams.set('date_to',iso(now-DAY));
+   }else u.searchParams.set('date_preset',preset);
    u.searchParams.set('select_accounts',ACCOUNT);
    u.searchParams.set('_renderer','json');
    return u.href;
   };
   const opts=()=>({method:'GET',headers:{accept:'application/json'},
    signal:AbortSignal.timeout(25000)});
-  const dailyUrl=query('date,account_id,username,video_views,likes,comments,shares,followers_count,total_followers_count,unique_video_views,profile_views','last_14dT');
+  const dailyUrl=query('date,account_id,username,video_views,likes,comments,shares,followers_count,daily_total_followers,daily_lost_followers,engaged_audience,bio_link_clicks,total_followers_count,unique_video_views,profile_views','last_14d');
   const mediaUrl=query('date,account_id,username,video_id,video_create_datetime,video_views_count,video_likes,video_comments,video_caption','last_21d');
   const [dFetch,mFetch]=await Promise.allSettled([fetcher(dailyUrl,opts()),fetcher(mediaUrl,opts())]);
   if(dFetch.status!=='fulfilled'||!dFetch.value.ok)
