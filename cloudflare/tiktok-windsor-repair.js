@@ -169,9 +169,9 @@ export async function runTikTokOrganicSync(env,{
  if(secret.length<16)return{status:'not_configured',reason:'WINDSOR_API_KEY fehlt'};
  const old=await get(env,STATUS_STORE)||{};
  const last=Date.parse(old.lastAttemptAt||'');
- const pipelineVersion='v77.9-prioritize-verified-days';
+ const pipelineVersion='v77.11-phase-isolated-daily';
  const throttle=(old.status==='ok'||old.status==='partial')?6*3600000:
-  old.status==='running'?45*60000:10*60000;
+  old.status==='running'?2*60000:5*60000;
  // A newly deployed validation fix must not be blocked by a stale
  // failed attempt from the previous importer. Retry once per version.
  if(!force&&old.pipelineVersion===pipelineVersion&&
