@@ -4,7 +4,7 @@ import vm from 'node:vm';
 
 const html=readFileSync(new URL('../site/index.html',import.meta.url),'utf8');
 const css=readFileSync(new URL('../site/mobile-performance-v77.css',import.meta.url),'utf8');
-assert.ok(html.includes('mobile-performance-v77.css?v=1'),
+assert.ok(html.includes('mobile-performance-v77.css?v=2'),
  'The iPhone optimization CSS must actually be loaded from the live site');
 assert.match(css,/@media screen and \(max-width: 860px\) and \(pointer: coarse\)/,
  'Only touch mobile devices should automatically use low-cost glass');
