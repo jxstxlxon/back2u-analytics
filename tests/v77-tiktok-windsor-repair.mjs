@@ -251,12 +251,25 @@ await testAsync('new importer version retries once despite a recent failed old p
   return{ok:true,json:async()=>url.includes('video_id')?videos:rows};
  }});
  assert.equal(result.status,'ok');
- assert.equal(result.pipelineVersion,'v77.9-prioritize-verified-days');
+ assert.equal(result.pipelineVersion,'v77.11-phase-isolated-daily');
  assert.equal(result.dayThrough,'2026-11-13');
  assert.equal(fetchCalls.length,1);
  const skip=await runTikTokOrganicSync(env,{...d,now:NOW+120000,
   fetcher:()=>{throw Error('must throttle same deployment')}});
  assert.equal(skip.status,'skipped');
+});
+
+await testAsync('stale running status after two minutes retries instead of staying stuck for 45 minutes',async()=>{
+ const d=db(),env={WINDSOR_API_KEY:'private_mock_windsor_key_ABCDEFGHIJKLMNOPQ'};
+ const first=NOW-3*60000;
+ d.m.set('tt_windsor_sync_v1',{pipelineVersion:'v77.11-phase-isolated-daily',
+  status:'running',lastAttemptAt:new Date(first).toISOString()});
+ const res=await runTikTokOrganicSync(env,{...d,now:NOW,fetcher:async()=>({
+  ok:true,json:async()=>rows
+ })});
+ assert.equal(res.status,'ok');
+ assert.equal(res.dayThrough,'2026-11-13');
+ assert.equal(d.m.get('tt_windsor_daily_v1').daily.length,5);
 });
 
 console.log('BACK2U TikTok Windsor recovery '+passed+'/'+passed+' tests passed');
