@@ -748,6 +748,17 @@ async function route(req,env){
  }
  if(path==='/api/snapshot'){
   if(req.method!=='GET')return json({error:'GET only'},405);
+  // Owner opens the dashboard: repair a stale TikTok account-day series
+  // immediately instead of depending only on Cron. Respect the existing
+  // per-source throttle to avoid accidental API storms from page reloads.
+  if(access.role==='admin'&&env.WINDSOR_API_KEY){
+   try{
+    const stored=await get(env,'tt_windsor_daily_v1');
+    const last=stored?.daily?.at(-1)?.d||'';
+    const staleBefore=new Date(Date.now()-3*86400000).toISOString().slice(0,10);
+    if(last<staleBefore)await runTikTokOrganicSync(env,{get,put});
+   }catch(e){console.warn('Owner-open TikTok day recovery failed:',clamp(e?.message))}
+  }
   const s=await hydratedSnapshot(env);
   return s?json(s):json({error:'Noch kein Google Sheets Export eingegangen'},503);
  }
