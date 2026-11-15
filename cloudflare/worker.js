@@ -8,6 +8,7 @@ import {runInstagramWindsorMediaSync,overlayInstagramWindsorMedia,instagramWinds
 import {runInstagramWindsorFollowersSync,overlayInstagramWindsorFollowers,instagramWindsorFollowersStatus} from './instagram-followers-sync.js';
 import {runTikTokOrganicSync,overlayTikTokOrganicState,tiktokOrganicStatus} from './tiktok-windsor-repair.js';
 import {syncPhaseForUtcMinute} from './sync-schedule.js';
+import {snapshotWithRawFallback} from './snapshot-recovery.js';
 import {runYouTubeWindsorExtrasSync,overlayYouTubeWindsorExtras,youtubeWindsorExtrasStatus} from './youtube-windsor-extras.js';
 /* BACK2U Cloudflare Worker - private creator dashboard.
    Independent of Netlify. Do not publish API keys or creator analytics in static assets.
@@ -851,8 +852,16 @@ async function route(req,env){
    ctx.waitUntil(runYouTubeWindsorExtrasSync(env,{get,put})
     .catch(e=>console.warn('Owner-open YouTube extras recovery failed:',clamp(e?.message))));
   }
-  const s=await hydratedSnapshot(env);
-  return s?json(s):json({error:'Noch kein Google Sheets Export eingegangen'},503);
+  // Optional overlays must never turn an otherwise healthy video and
+  // daily history into a blank app if one D1 key is temporarily unavailable.
+  // Authentication was already checked above; raw fallback is still private.
+  const result=await snapshotWithRawFallback({
+   hydrate:()=>hydratedSnapshot(env),
+   raw:()=>get(env,'snapshot'),
+   report:msg=>console.warn('BACK2U snapshot:',msg)
+  });
+  return result.snapshot?json(result.snapshot):
+   json({error:'Gespeicherter Dashboard-Datensatz derzeit nicht erreichbar'},503);
  }
  // Guest rights end here: no diagnostics, imports, OAuth, sync, audit or access management.
  if(access.role!=='admin')return json({error:'Nur Administrator'},403);
