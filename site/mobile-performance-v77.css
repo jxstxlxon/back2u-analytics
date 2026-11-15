@@ -1,0 +1,84 @@
+/*
+ * BACK2U V7.7.12 - iPhone/Safari performance.
+ *
+ * Replacing dozens of simultaneous live backdrop blurs with a static,
+ * theme-colored translucent glass finish avoids a large number of dynamic
+ * GPU compositing surfaces while retaining the user's selected palette,
+ * gradients, borders, and rounded corners.
+ *
+ * Desktop and mouse/trackpad layouts retain the original Liquid Glass.
+ */
+@media screen and (max-width: 860px) and (pointer: coarse) {
+  html { scroll-behavior: auto !important; }
+  .ambient, .grain { display: none !important; }
+  .view.active { animation: none !important; }
+
+  html body .glass,
+  html body[data-theme-tone] .glass,
+  html body[data-theme-artwork] .glass,
+  html body .v7-chart-pie-card,
+  html body .v7-day-nav,
+  html body .rank-badge {
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+    -webkit-filter: none;
+    transition: none !important;
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,.27),
+      0 5px 16px rgba(0,0,0,.13) !important;
+  }
+  html body .glass,
+  html body[data-theme-tone] .glass,
+  html body[data-theme-artwork] .glass {
+    /* Paint stable opaque-enough glass, not expensive live translucency. */
+    background-color: rgba(var(--t-card, 24,44,61), .91) !important;
+  }
+  html body[data-theme-tone="light"] .glass {
+    background-color: rgba(var(--t-card, 235,247,248), .95) !important;
+  }
+  html body .glass::before { opacity: .42; }
+  html body .glass:hover { transform: none !important; }
+  html body .video-card:hover { transform: none !important; }
+  html body #extendedDailyMetrics .metric-box {
+    min-height: 132px;
+    border-radius: var(--radius, 28px);
+  }
+}
+
+/* Show valid extra stats immediately. Keep unavailable values inspectable
+ * without allocating 15+ huge blurred placeholder cards in the viewport. */
+#extendedDailyMetrics .v77-missing-details {
+  grid-column: 1 / -1;
+  min-width: 0;
+  border-radius: 18px;
+  border: 1px solid rgba(var(--t-accent-rgb, 105,199,166),.35);
+  background: rgba(var(--t-card, 25,48,62), .18);
+  padding: 13px 16px;
+  color: var(--t-ink-strong, var(--ink));
+  line-height: 1.5;
+}
+#extendedDailyMetrics .v77-missing-details summary {
+  cursor: pointer;
+  font: 650 12px/1.5 system-ui, sans-serif;
+}
+#extendedDailyMetrics .v77-missing-details summary span {
+  display:block;
+  margin-top:4px;
+  font-weight:400;
+  color:var(--t-ink-muted, var(--muted));
+}
+#extendedDailyMetrics .v77-missing-details ul {
+  margin: 12px 0 0;
+  padding-left: 20px;
+  columns: 2;
+  column-gap:24px;
+  color:var(--t-ink-muted, var(--muted));
+  font-size: 12px;
+}
+#extendedDailyMetrics .v77-missing-details li {
+  break-inside: avoid;
+  margin-bottom: 6px;
+}
+@media (max-width: 760px) {
+  #extendedDailyMetrics .v77-missing-details ul { columns: 1; }
+}

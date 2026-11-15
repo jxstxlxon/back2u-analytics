@@ -30,7 +30,7 @@ function accountOK(row){
 export function validateTikTokOrganicDays(rows,now=Date.now()){
  if(!Array.isArray(rows)||rows.length<3||rows.length>150)
   throw Error('TikTok-Tagesbericht fehlt oder ist unvollständig');
- const today=iso(now),cutoff=iso(now-21*DAY);
+ const today=iso(now),cutoff=iso(now-32*DAY);
  const byDate=new Map(),conflicted=new Set(),candidates=[];
  const fields={views:'video_views',likes:'likes',comments:'comments',
   shares:'shares',follows:'followers_count',
@@ -169,7 +169,7 @@ export async function runTikTokOrganicSync(env,{
  if(secret.length<16)return{status:'not_configured',reason:'WINDSOR_API_KEY fehlt'};
  const old=await get(env,STATUS_STORE)||{};
  const last=Date.parse(old.lastAttemptAt||'');
- const pipelineVersion='v77.11-phase-isolated-daily';
+ const pipelineVersion='v77.12-28day-and-mobile';
  const throttle=(old.status==='ok'||old.status==='partial')?6*3600000:
   old.status==='running'?2*60000:5*60000;
  // A newly deployed validation fix must not be blocked by a stale
@@ -186,8 +186,8 @@ export async function runTikTokOrganicSync(env,{
    u.searchParams.set('fields',fields);
    // Use explicit completed-day UTC range: preset-only reports sometimes
    // include a repeated, NULL-filled current day and block whole batches.
-   if(preset==='last_14d'){
-    u.searchParams.set('date_from',iso(now-15*DAY));
+   if(preset==='last_28d'){
+    u.searchParams.set('date_from',iso(now-28*DAY));
     u.searchParams.set('date_to',iso(now-DAY));
    }else u.searchParams.set('date_preset',preset);
    u.searchParams.set('select_accounts',ACCOUNT);
@@ -198,7 +198,7 @@ export async function runTikTokOrganicSync(env,{
   // Cloudflare waitUntil may be terminated before a slow second request
   // finishes, leaving the status at "running" and *no* day values in D1.
   // TikTok OAuth continues handling the media catalogue separately.
-  const dailyUrl=query('date,account_id,username,video_views,likes,comments,shares,followers_count,daily_total_followers,daily_lost_followers,engaged_audience,bio_link_clicks,total_followers_count,unique_video_views,profile_views','last_14d');
+  const dailyUrl=query('date,account_id,username,video_views,likes,comments,shares,followers_count,daily_total_followers,daily_lost_followers,engaged_audience,bio_link_clicks,total_followers_count,unique_video_views,profile_views','last_28d');
   const dayResponse=await fetcher(dailyUrl,{method:'GET',
    headers:{accept:'application/json'},signal:AbortSignal.timeout(16000)});
   if(!dayResponse.ok)throw Error('TikTok day HTTP '+dayResponse.status);
