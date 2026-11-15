@@ -755,14 +755,32 @@ async function route(req,env){
     ]);
     const status=j=>['ok','partial','error','running'].includes(j?.status)?
      j.status:'never_run';
+    // Categorize failures without leaking raw HTTP URLs, tokens, account
+    // names, request bodies or actual analytics measurements.
+    const reason=j=>{
+     if(j?.status!=='error')return 'none';
+     const v=String(j.error||'').toLowerCase();
+     return /\b401\b|\b403\b|unauthoriz|forbidden/.test(v)?'permission':
+      /\b429\b|rate.limit|quota/.test(v)?'quota':
+      /\b50[0-9]\b|\b52[0-9]\b|upstream/.test(v)?'upstream':
+      /http|connection|fetch|network/.test(v)?'network':
+      /timeout|abort|time.limit/.test(v)?'timeout':
+      /account|channel|konto/.test(v)?'account':
+      /date|datum|bounds/.test(v)?'date':
+      /metric|messwert|invalid|ungültig/.test(v)?'metric':
+      /report|rows|tage|no measured|no verified/.test(v)?'report':
+      /d1|database|storage|sqlite/.test(v)?'storage':'other';
+    };
     health.extraSync={
-     instagram:{state:status(igJob),
+     instagram:{state:status(igJob),reason:reason(igJob),
+      backfillAttempted:igJob?.pipelineVersion==='v77.10-full-28day-instagram-extras',
       hasDays:!!igData?.daily?.length,
       hasSaves:!!igData?.daily?.some(d=>Number.isFinite(d.saves)),
       hasShares:!!igData?.daily?.some(d=>Number.isFinite(d.shares)),
       hasEngagedAccounts:!!igData?.daily?.some(d=>Number.isFinite(d.engagedAccounts)),
       hasFullWindow:(igData?.daily?.length||0)>=27},
-     youtube:{state:status(ytJob),
+     youtube:{state:status(ytJob),reason:reason(ytJob),
+      backfillAttempted:ytJob?.pipelineVersion==='v77.10-full-28day-youtube-extras',
       hasDays:!!ytData?.daily?.length,
       hasEngagedViews:!!ytData?.daily?.some(d=>Number.isFinite(d.engagedViews)),
       hasWatchMinutes:!!ytData?.daily?.some(d=>Number.isFinite(d.watchMinutes)),
