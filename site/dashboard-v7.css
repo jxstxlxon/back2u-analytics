@@ -423,3 +423,81 @@ body[data-theme-tone] .v74-audience-source{margin:8px 0 0;color:var(--t-ink-labe
  .top-seven-score b{font-size:15px}
  .top-seven-item>a{margin-left:auto}
 }
+
+
+/* V7.7.22: one stable grid per cross-platform video group.
+ * Never flex-wrap title/score/action into arbitrarily different rows on iOS. */
+#topSevenList .top-seven-item{
+ display:grid;
+ grid-template-columns:22px 50px minmax(0,1fr) minmax(98px,max-content);
+ grid-template-areas:"rank thumb body score" ". . platforms platforms" ". . links links";
+ grid-auto-rows:auto;
+ column-gap:10px;
+ row-gap:10px;
+ align-items:start;
+ min-width:0;
+ padding:13px 14px;
+}
+#topSevenList .top-seven-rank{grid-area:rank;align-self:center}
+#topSevenList .top-seven-thumb{grid-area:thumb;height:50px;width:50px}
+#topSevenList .top-seven-body{grid-area:body;min-width:0;align-self:start}
+#topSevenList .top-seven-body strong{
+ display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;
+ overflow:hidden;overflow-wrap:anywhere;word-break:normal;
+}
+#topSevenList .top-seven-score{grid-area:score;min-width:0;align-self:start;white-space:nowrap}
+#topSevenList .top-seven-score b{white-space:nowrap;font-variant-numeric:tabular-nums}
+#topSevenList .top-seven-platforms{
+ grid-area:platforms;display:grid;
+ grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;
+ align-items:stretch;width:100%;min-width:0;
+}
+#topSevenList .top-seven-platform{
+ display:flex;align-items:center;gap:5px;min-width:0;
+ padding:7px 8px;border-radius:10px;
+ border:1px solid rgba(var(--t-accent-rgb,111,200,162),.23);
+ background:rgba(var(--t-card,23,48,48),.25);
+ color:var(--t-ink-muted,#bfd0d9);
+ font:550 10px/1.3 var(--t-font-ui,system-ui);
+}
+#topSevenList .top-seven-platform .platform-dot{flex:none;width:7px;height:7px}
+#topSevenList .top-seven-platform span{min-width:0;overflow:hidden;text-overflow:ellipsis}
+#topSevenList .top-seven-platform b{
+ margin-left:auto;white-space:nowrap;font:780 11px/1.3 var(--t-font-ui,system-ui);
+ color:var(--t-ink-strong,#fff);font-variant-numeric:tabular-nums;
+}
+#topSevenList .top-seven-links{
+ grid-area:links;display:flex;justify-content:flex-end;gap:7px;flex-wrap:wrap;min-height:31px;
+}
+#topSevenList .top-seven-links a{
+ border:1px solid rgba(var(--t-accent-rgb,111,200,162),.34);
+ border-radius:9px;padding:7px 10px;
+ background:rgba(var(--t-card,23,48,48),.21);
+ color:var(--t-ink-strong,#fff);font:700 10px/1.4 var(--t-font-ui,system-ui);
+ text-decoration:none;
+}
+#topSevenList .top-seven-links a:focus-visible{outline:2px solid var(--t-accent,#6fdfbc);outline-offset:2px}
+@media(max-width:620px){
+ #topSevenList .top-seven-item{
+  display:grid;flex-wrap:nowrap;
+  grid-template-columns:18px 45px minmax(0,1fr) 88px;
+  grid-template-areas:"rank thumb body score" "platforms platforms platforms platforms" "links links links links";
+  column-gap:7px;row-gap:9px;padding:11px 10px;min-height:146px
+ }
+ #topSevenList .top-seven-thumb{width:45px;height:45px}
+ #topSevenList .top-seven-rank{width:18px}
+ #topSevenList .top-seven-score{width:88px;min-width:0;text-align:right}
+ #topSevenList .top-seven-score b{font-size:15px}
+ #topSevenList .top-seven-score small{font-size:9px;white-space:normal}
+ #topSevenList .top-seven-platforms{grid-template-columns:repeat(3,minmax(0,1fr));gap:4px}
+ #topSevenList .top-seven-platform{gap:4px;padding:7px 5px;font-size:9px}
+ #topSevenList .top-seven-platform b{font-size:10px}
+ #topSevenList .top-seven-links{justify-content:flex-end}
+}
+@media(max-width:370px){
+ #topSevenList .top-seven-item{grid-template-columns:16px 39px minmax(0,1fr) 75px;column-gap:5px}
+ #topSevenList .top-seven-thumb{width:39px;height:39px}
+ #topSevenList .top-seven-score{width:75px}
+ #topSevenList .top-seven-platform{padding:6px 3px}
+ #topSevenList .top-seven-platform b{font-size:9px}
+}
