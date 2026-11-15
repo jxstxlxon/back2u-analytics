@@ -69,7 +69,7 @@ test('duplicate NULL-filled today records are ignored rather than aborting all d
  assert.equal(result.profile.followers,4837);
 });
 test('missing view counts cannot be replaced with null or invented zero',()=>{
- assert.throws(()=>validateTikTokOrganicDays(rows.map(x=>({...x,video_views:null})),NOW),/fehlen/);
+ assert.throws(()=>validateTikTokOrganicDays(rows.map(x=>({...x,video_views:null})),NOW),/fehlen|zu wenig bestätigte Tage/);
 });
 test('recent TikTok video IDs stay literal strings and lifetime views are not daily',()=>{
  const output=validateTikTokOrganicMedia(videos,NOW);
