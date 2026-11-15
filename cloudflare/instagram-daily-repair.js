@@ -30,7 +30,7 @@ export function validateInstagramWindsorDaily(records,now=Date.now()){
  if(!Array.isArray(records)||records.length<3||records.length>40)
   throw Error('Instagram-Tagesbericht unvollständig');
  const today=Date.parse(ymd(now)+'T00:00:00Z');
- const earliest=ymd(today-16*DAY_MS),lastCompleted=ymd(today-DAY_MS);
+ const earliest=ymd(today-30*DAY_MS),lastCompleted=ymd(today-DAY_MS);
  const seen=new Set(),daily=[];
  for(const raw of records){
   if(!raw||String(raw.account_id)!==WINDSOR_IG_ACCOUNT)
@@ -107,20 +107,22 @@ export async function runInstagramWindsorDailySync(env,{
  if(secret.length<16)return {status:'not_configured',reason:'WINDSOR_API_KEY fehlt'};
  const prior=await get(env,IG_DAILY_STATUS)||{};
  const lastAttempt=Date.parse(prior.lastAttemptAt||'');
+ const pipelineVersion='v77.10-full-28day-instagram-extras';
  const throttle=prior.status==='ok'?6*3600000:prior.status==='running'?45*60000:60*60000;
- if(!force&&Number.isFinite(lastAttempt)&&now-lastAttempt>=0&&now-lastAttempt<throttle)
+ if(!force&&prior.pipelineVersion===pipelineVersion&&Number.isFinite(lastAttempt)&&now-lastAttempt>=0&&now-lastAttempt<throttle)
   return {status:'skipped',lastSuccessAt:prior.lastSuccessAt||null};
  const startedAt=new Date(now).toISOString();
- await put(env,IG_DAILY_STATUS,{...prior,status:'running',lastAttemptAt:startedAt});
+ await put(env,IG_DAILY_STATUS,{...prior,pipelineVersion,status:'running',lastAttemptAt:startedAt});
  try{
   const url=new URL('https://connectors.windsor.ai/instagram');
   url.searchParams.set('api_key',secret);
   url.searchParams.set('fields',IG_DAILY_FIELDS.join(','));
-  url.searchParams.set('date_preset','last_14d');
+  url.searchParams.set('date_from',ymd(now-28*DAY_MS));
+  url.searchParams.set('date_to',ymd(now-DAY_MS));
   url.searchParams.set('select_accounts',WINDSOR_IG_CONNECTOR);
   url.searchParams.set('_renderer','json');
   const response=await fetcher(url.href,{
-   method:'GET',headers:{accept:'application/json'},signal:AbortSignal.timeout(25000)
+   method:'GET',headers:{accept:'application/json'},signal:AbortSignal.timeout(16000)
   });
   if(!response.ok)throw Error('Windsor HTTP '+response.status);
   const data=await response.json();
@@ -130,13 +132,13 @@ export async function runInstagramWindsorDailySync(env,{
   const former=await get(env,IG_DAILY_STORE);
   const next=mergeInstagramWindsorDaily(former,verified,now);
   await put(env,IG_DAILY_STORE,next);
-  const status={status:'ok',lastAttemptAt:startedAt,lastSuccessAt:startedAt,
+  const status={pipelineVersion,status:'ok',lastAttemptAt:startedAt,lastSuccessAt:startedAt,
    dataThrough:next.dataThrough,rows:next.daily.length,latestBatchDays:verified.length,
    error:null};
   await put(env,IG_DAILY_STATUS,status);
   return status;
  }catch(e){
-  const failed={...prior,status:'error',lastAttemptAt:startedAt,
+  const failed={...prior,pipelineVersion,status:'error',lastAttemptAt:startedAt,
    error:errorText(e),lastSuccessAt:prior.lastSuccessAt||null};
   await put(env,IG_DAILY_STATUS,failed);
   return failed;
