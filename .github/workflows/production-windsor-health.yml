@@ -1,0 +1,35 @@
+name: Check BACK2U production Windsor connection
+on:
+  push:
+    branches: [cloudflare-migration]
+    paths:
+      - cloudflare/worker.js
+      - .github/workflows/production-windsor-health.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Inspect live public health (boolean only, never expose keys)
+        shell: bash
+        run: |
+          for attempt in $(seq 1 12); do
+            result=$(curl --max-time 12 -fsS 'https://back2u-cloud.leon-mueller0806.workers.dev/api/health' 2>/dev/null || true)
+            if [ -n "$result" ]; then
+              export HEALTH="$result"
+              flag=$(node -e 'try{const h=JSON.parse(process.env.HEALTH);if(typeof h.windsorReady==="boolean")process.stdout.write(h.windsorReady?"ready":"missing");else process.stdout.write("not-deployed")}catch{process.stdout.write("invalid")}')
+              if [ "$flag" = "ready" ]; then
+                echo "WINDSOR_CONNECTION=CONFIGURED"
+                exit 0
+              elif [ "$flag" = "missing" ]; then
+                echo "WINDSOR_CONNECTION=MISSING_IN_PRODUCTION"
+                exit 0
+              fi
+            fi
+            sleep 12
+          done
+          echo "WINDSOR_CONNECTION=UNVERIFIED_ENDPOINT_UNREACHABLE_OR_VERSION_MISSING"
+          exit 1
