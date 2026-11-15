@@ -709,7 +709,8 @@ async function ttAuditVideos(env){
 async function route(req,env){
  const path=new URL(req.url).pathname;
  if(path==='/api/health')return json({service:'BACK2U Cloud',configured:!!(env.DB&&env.DASHBOARD_PASSWORD&&env.SESSION_SECRET),dbReady:!!env.DB,
-  loginReady:!!env.DASHBOARD_PASSWORD,sourceReady:!!env.BACK2U_GOOGLE_FEED_SECRET});
+  loginReady:!!env.DASHBOARD_PASSWORD,sourceReady:!!env.BACK2U_GOOGLE_FEED_SECRET,
+  windsorReady:typeof env.WINDSOR_API_KEY==='string'&&env.WINDSOR_API_KEY.trim().length>=16});
  if(path==='/api/login')return req.method==='POST'?issueToken(req,env):json({error:'POST only'},405);
  if(path==='/api/guest/redeem')return redeemGuest(req,env);
  if(path==='/api/youtube-daily/ingest')return ingestYoutubeDaily(req,env);
