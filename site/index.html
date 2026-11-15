@@ -364,7 +364,7 @@ function setPeriod(d){state.days=d;$$('[data-days]').forEach(x=>x.classList.togg
 function setPlatform(p){state.platform=p;$$('[data-platform]').forEach(x=>x.classList.toggle('selected',x.dataset.platform===p));state.page=1;state.selected=null;try{localStorage.setItem('back2u_view_preferences_v5',JSON.stringify({platform:state.platform,days:state.days}))}catch{}renderActive()}
 function fmtGrowth(a,b){if(!b)return null;return 100*(a/b-1)}
 function percentString(p){if(p===null)return null;return (p>=0?'+':'')+dec(p)+' %'}
-function setSyncStatus(){const has=!!state.live, x=$('#syncDot');x.classList.toggle('is-live',has);x.classList.toggle('is-error',!!state.lastError&&!has);$('#syncShort').textContent=has?`Datenabgleich: ${new Date(state.live.generatedAt||Date.now()).toLocaleString('de-DE',{dateStyle:'short',timeStyle:'short'})}`:state.loading?'Verbinde mit Live-Daten …':state.lastError?'Live-Verbindung unterbrochen':'Live-Daten noch nicht geladen';const live=['yt','ig','tt'].filter(p=>(state.live?.platforms?.[p]?.daily?.length||0)>0||(state.live?.platforms?.[p]?.videos?.length||0)>0).map(p=>NAMES[p]);const stamp=live.length?live.join(' + ')+' live':'Noch keine Plattform live';$('#sourceStamp').textContent=has?stamp+' · YouTube-Daten bis '+(state.live.dataThrough||'–'):'Historische Exporte bis 10.11.2026';$('#footVersion').textContent=has?stamp+' · privates Google Sheet · letzter Sync '+new Date(state.live.generatedAt).toLocaleString('de-DE'):'Stand: Archivexport 10.11.2026';}
+function setSyncStatus(){const has=!!state.live, x=$('#syncDot');x.classList.toggle('is-live',has);x.classList.toggle('is-error',!!state.lastError);$('#syncShort').textContent=has?(state.lastError?'Letzter Stand · Live-Abgleich fehlgeschlagen':`Datenabgleich: ${new Date(state.live.generatedAt||Date.now()).toLocaleString('de-DE',{dateStyle:'short',timeStyle:'short'})}`):state.loading?'Verbinde mit Live-Daten …':state.lastError?'Live-Verbindung unterbrochen':'Live-Daten noch nicht geladen';const live=['yt','ig','tt'].filter(p=>(state.live?.platforms?.[p]?.daily?.length||0)>0||(state.live?.platforms?.[p]?.videos?.length||0)>0).map(p=>NAMES[p]);const stamp=live.length?live.join(' + ')+' live':'Noch keine Plattform live';$('#sourceStamp').textContent=has?stamp+' · YouTube-Daten bis '+(state.live.dataThrough||'–'):'Historische Exporte bis 10.11.2026';$('#footVersion').textContent=has?stamp+' · privates Google Sheet · letzter Sync '+new Date(state.live.generatedAt).toLocaleString('de-DE'):'Stand: Archivexport 10.11.2026';}
 function sparkSvg(items,color='#64afff'){const a=items.map(x=>typeof x==='number'?x:0);if(a.length<2)return '';const max=Math.max(...a,1),w=440,h=80;const pts=a.map((v,i)=>[i*w/(a.length-1),h-(v/max)*(h-8)]);const line=pts.map((p,i)=>`${i?'L':'M'}${p[0].toFixed(1)} ${p[1].toFixed(1)}`).join(' ');return `<svg viewBox="0 0 440 80" preserveAspectRatio="none"><defs><linearGradient id="spgrad" x1="0" y1="0" x2="0" y2="1"><stop stop-color="${color}" stop-opacity=".35"/><stop offset="1" stop-color="${color}" stop-opacity="0"/></linearGradient></defs><path d="${line} L${w} ${h} L0 ${h} Z" fill="url(#spgrad)"/><path d="${line}" fill="none" stroke="${color}" stroke-width="2.3"/></svg>`}
 
 function getFollowerStand(p){
@@ -955,8 +955,16 @@ function renderActive(){document.body.dataset.activeSection=state.section;setSyn
    notice.append(button);
   }
  }else{
-  notice.classList.remove('live-unavailable');
-  notice.textContent=state.days===90?
+  notice.classList.toggle('live-unavailable',!!state.lastError);
+  if(state.lastError){
+   notice.textContent='Der aktuelle Live-Abgleich ist fehlgeschlagen ('+
+    state.lastError+'). Die Werte stammen vom letzten erfolgreich geladenen Stand. ';
+   const button=document.createElement('button');button.type='button';
+   button.className='live-reconnect-button';
+   button.textContent=state.lastError==='Bitte anmelden'?'Anmelden':'Erneut verbinden';
+   button.addEventListener('click',()=>state.lastError==='Bitte anmelden'?showLogin():loadLive(true));
+   notice.append(button);
+  }else notice.textContent=state.days===90?
    '90 Tage: Es werden nur tatsächlich verfügbare Zeiträume angezeigt. Fehlende Werte werden nicht hochgerechnet.':'';
  }
  if(state.section==='overview')renderOverview();else if(state.section==='videos')renderVideos();else if(state.section==='experiments')renderExperiments();else if(state.section==='audience')renderAudience();else if(state.section==='creator'){window.BACK2U_CREATOR_HUB?.render();window.BACK2U_V7?.creator()}else if(state.section==='system')renderSystem();}
