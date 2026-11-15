@@ -102,7 +102,7 @@ body.story-open{overflow:hidden}
 #back2uLoginOverlay input{display:block;width:100%;padding:15px 16px;border-radius:12px;background:#061326cc;border:1px solid #adcafa5a;color:white;font:inherit;font-size:16px;margin-bottom:12px}
 #back2uLoginOverlay button{border:0;border-radius:12px;background:#449dfb;color:white;font:600 15px system-ui;padding:13px 16px;width:100%;cursor:pointer}
 #back2uLoginOverlay #back2uLoginError{min-height:20px;color:#ffc5c5;font-size:12px;margin-top:14px}
-</style><link rel="stylesheet" href="/theme-studio.css?v=1"><link rel="stylesheet" href="/theme-reference.css?v=2"><link rel="stylesheet" href="/ui-v3.css?v=3"><link rel="stylesheet" href="/ui-v4.css?v=4"><link rel="stylesheet" href="/creator-hub-v5.css?v=6"><link rel="stylesheet" href="/mobile-theme-polish-v6.css?v=6"><link rel="stylesheet" href="/dashboard-v7.css?v=12"><link rel="stylesheet" href="/audience-import.css?v=2"><link rel="stylesheet" href="/guest-access.css?v=1"><link rel="stylesheet" href="/mobile-performance-v77.css?v=2"></head>
+</style><link rel="stylesheet" href="/theme-studio.css?v=1"><link rel="stylesheet" href="/theme-reference.css?v=2"><link rel="stylesheet" href="/ui-v3.css?v=3"><link rel="stylesheet" href="/ui-v4.css?v=4"><link rel="stylesheet" href="/creator-hub-v5.css?v=6"><link rel="stylesheet" href="/mobile-theme-polish-v6.css?v=6"><link rel="stylesheet" href="/dashboard-v7.css?v=13"><link rel="stylesheet" href="/audience-import.css?v=2"><link rel="stylesheet" href="/guest-access.css?v=1"><link rel="stylesheet" href="/mobile-performance-v77.css?v=2"></head>
 <body>
 <div class="ambient ambient-a"></div><div class="ambient ambient-b"></div><div class="ambient ambient-c"></div><div class="grain"></div>
 <div class="shell">
@@ -137,6 +137,12 @@ body.story-open{overflow:hidden}
 </section>
 <section id="videos" class="view">
   <div class="section-heading"><div><div class="eyebrow">01 / VIDEO INTELLIGENCE</div><h2>Jedes Video im Blick</h2><p>Rankings, Suche und Plattformvergleich. Werte stammen aus unterschiedlichen Berichtsarten.</p></div><span class="pill" id="videoCount"></span></div>
+  <section class="glass top-seven-card" id="topSevenCard" aria-label="Top-Videos der letzten sieben Tage">
+   <div class="top-seven-heading"><div><span class="eyebrow">7 TAGE / VIDEO RANKING</span><h3>Deine besten Videos der letzten 7 Tage</h3><p>Neu veröffentlichte Clips nach ihren bisherigen Aufrufen – oder echte 7-Tage-Aufrufe, wenn offiziell je Video verfügbar.</p></div><span class="top-seven-time" id="topSevenRange">7 Tage</span></div>
+   <div class="top-seven-controls"><label for="topSevenMode">Rangliste<select id="topSevenMode" aria-label="Art des 7-Tage-Video-Rankings"><option value="uploads">Letzte 7 Tage veröffentlicht</option><option value="period">Aufrufe im 7-Tage-Zeitraum (nur geprüft)</option></select></label><button type="button" id="topSevenRefresh" class="small-button">↻ Top-Videos abrufen</button></div>
+   <p class="top-seven-status" id="topSevenStatus" role="status"></p>
+   <div id="topSevenList" class="top-seven-list" aria-live="polite"></div>
+  </section>
   <div class="video-sync-row"><button type="button" class="small-button" id="tiktokSyncNow">↻ TikTok jetzt synchronisieren</button><button type="button" class="small-button" id="tiktokAuditNow">◎ TikTok-Videos gegenprüfen</button><span role="status" id="tiktokSyncHint">TikTok-Sandbox · offizieller Videoabruf</span><span role="status" id="tiktokAuditHint">Zweiter TikTok-API-Test · schreibgeschützt</span></div>
   <label class="tiktok-archive-control" id="tiktokArchiveRow" hidden><input type="checkbox" id="showArchivedTikTok"/> <span>119 TikTok-Screenshot-Archiveinträge zusätzlich anzeigen (können API-Videos doppeln)</span></label>
   <div class="video-period-info" id="videoPeriodInfo" role="status"></div>
@@ -241,7 +247,7 @@ const SEED = window.SEED;
 if(!SEED){document.body.textContent='Datensatz fehlt: seed.js wurde nicht geladen.';return;}
 const COLORS={yt:'#ff849b',ig:'#b29bff',tt:'#63e7db'};
 const NAMES={yt:'YouTube',ig:'Instagram',tt:'TikTok'};
-const state={platform:'all',days:28,section:'overview',glass:48,sort:'views',fmt:'all',query:'',page:1,listExpanded:false,selected:null,live:null,loading:false,lastError:null,partialWarningCount:0,includeTiktokArchive:false,storyMode:false};
+const state={platform:'all',days:28,section:'overview',glass:48,sort:'views',fmt:'all',query:'',page:1,listExpanded:false,selected:null,live:null,loading:false,lastError:null,partialWarningCount:0,topSevenMode:'uploads',includeTiktokArchive:false,storyMode:false};
 function syncWarningCount(data){const n=Array.isArray(data?.errors)?data.errors.length:0;return Math.max(n,data?.snapshotFallback==='original-d1'?1:0)}
 try{const saved=Number(localStorage.getItem('back2u_glass'));if(Number.isFinite(saved)&&saved>=0&&saved<=100)state.glass=saved}catch{}
 try{
@@ -742,7 +748,74 @@ function renderGroupedVideos(){
  $$('[data-vid-index]').forEach(el=>el.addEventListener('click',()=>{state.selected=groups[Number(el.dataset.vidIndex)];renderGroupedVideoDetail(state.selected);$$('[data-vid-index]').forEach(e=>e.classList.remove('active'));el.classList.add('active')}));
 }
 
-function renderVideos(){if(state.platform==='all'){const hasApi=Boolean(state.live?.platforms?.tt?.videos?.length);$('#tiktokArchiveRow').style.display=hasApi?'flex':'none';$('#showArchivedTikTok').checked=state.includeTiktokArchive;renderGroupedVideos();return;}const hasTikTokApi=Boolean(state.live?.platforms?.tt?.videos?.length);$('#tiktokArchiveRow').style.display=hasTikTokApi?'flex':'none';$('#showArchivedTikTok').checked=state.includeTiktokArchive;const vlist=videoFiltered();$('#videoCount').textContent=fmt(vlist.length)+(state.platform==='yt'?' YouTube-Videos':' Clips');$('#listCount').textContent=fmt(vlist.length)+' im Filter';const perPage=state.listExpanded?15:5;let pageN=Math.max(1,Math.ceil(vlist.length/perPage));state.page=Math.min(pageN,Math.max(1,state.page));const start=(state.page-1)*perPage,show=vlist.slice(start,start+perPage);
+
+// A publication-window ranking cannot be called a seven-day view delta.
+// Report-only mode accepts documented, matching per-video YouTube Analytics
+// windows; do not invent 7-day values from account-day totals or lifetime.
+function topSevenRanking(videos,mode,today,selectedPlatforms){
+ const periodStart=shift(today,-6);
+ const matching=videos.filter(v=>selectedPlatforms.includes(v.platform));
+ const hasCount=n=>typeof n==='number'&&Number.isFinite(n)&&n>=0;
+ let rows=[],unknown=0,reportStart=null,reportEnd=null;
+ if(mode==='period'){
+  const candidates=matching.filter(v=>{
+   const range=v.analytics?.periods?.['7'],value=v.analytics?.views7d;
+   return v.platform==='yt'&&hasCount(value)&&
+    range?.start===shift(range?.end||today,-6)&&
+    typeof range?.end==='string'&&range.end<=today&&range.end>=shift(today,-3);
+  });
+  reportEnd=candidates.map(v=>v.analytics.periods['7'].end).sort().at(-1)||null;
+  reportStart=reportEnd?shift(reportEnd,-6):null;
+  rows=candidates.filter(v=>v.analytics.periods['7'].end===reportEnd)
+   .map(v=>({video:v,views:v.analytics.views7d}));
+ }else{
+  const recent=matching.filter(v=>typeof v.date==='string'&&
+   /^\\d{4}-\\d{2}-\\d{2}$/.test(v.date)&&v.date>=periodStart&&v.date<=today);
+  unknown=recent.filter(v=>v.reportType!=='lifetime'||!hasCount(v.views)).length;
+  rows=recent.filter(v=>v.reportType==='lifetime'&&hasCount(v.views))
+   .map(v=>({video:v,views:v.views}));
+ }
+ rows.sort((a,b)=>b.views-a.views||String(b.video.date||'').localeCompare(String(a.video.date||''))||
+  String(a.video.platform).localeCompare(String(b.video.platform)));
+ return {items:rows.slice(0,10),totalRanked:rows.length,unknown,
+  start:mode==='period'?reportStart:periodStart,end:mode==='period'?reportEnd:today,mode};
+}
+function renderTopSeven(){
+ const root=$('#topSevenList'),info=$('#topSevenStatus'),rangeLabel=$('#topSevenRange');
+ const button=$('#topSevenRefresh');button.disabled=!!state.loading;
+ const today=new Date().toLocaleDateString('sv-SE',{timeZone:'Europe/Berlin'});
+ const result=topSevenRanking(mergedVideos(),state.topSevenMode,today,platforms());
+ const period=result.mode==='period',time=result.start?
+  result.start.split('-').reverse().join('.')+' – '+result.end.split('-').reverse().join('.'):'Noch kein bestätigter Zeitraum';
+ rangeLabel.textContent=time;
+ if(!result.items.length){
+  root.innerHTML='<div class="top-seven-empty">'+(period?
+   'Für die ausgewählten Plattformen liegen noch keine hinreichend aktuellen, bestätigten 7-Tage-Aufrufe je Video vor. Das ist kein Null-Ergebnis.':
+   'Für diesen Veröffentlichungszeitraum sind keine Videos mit bestätigten bisherigen Gesamtaufrufen erfasst.')+'</div>';
+ }else{
+  root.innerHTML=result.items.map(({video:v,views},i)=>{
+   const link=cleanUrl(v.url),platform=tagPlatform(v.platform);
+   // Only allow navigation to the intended video platforms.
+   let safeLink=null;
+   if(link)try{const host=new URL(link).hostname.toLowerCase();
+    if((v.platform==='yt'&&['youtube.com','www.youtube.com','m.youtube.com','youtu.be'].includes(host))||
+       (v.platform==='ig'&&['instagram.com','www.instagram.com'].includes(host))||
+       (v.platform==='tt'&&['tiktok.com','www.tiktok.com','m.tiktok.com'].includes(host)))safeLink=link;
+   }catch{}
+   return '<article class="top-seven-item"><span class="top-seven-rank">'+(i+1)+'</span>'+
+    '<div class="top-seven-thumb">'+image(v)+'</div><div class="top-seven-body"><strong>'+esc(v.title||'Video')+'</strong>'+
+    '<small>'+platform+' · '+esc(v.date||'Datum unbekannt')+'</small></div>'+
+    '<div class="top-seven-score"><b>'+fmt(views)+'</b><small>'+(period?'7-Tage-Aufrufe':'Bisherige Aufrufe')+'</small></div>'+
+    (safeLink?'<a href="'+esc(safeLink)+'" target="_blank" rel="noopener noreferrer" aria-label="Video auf '+esc(NAMES[v.platform])+' öffnen">Öffnen ↗</a>':'')+'</article>';
+  }).join('');
+ }
+ const source=state.live?'Aus dem aktuell geladenen Cloudflare-Datensatz.':'Nur gespeicherte Archivwerte; keine aktuelle Serververbindung.';
+ const caveat=period?'Gemessener YouTube-Berichtszeitraum – für Instagram/TikTok sind nicht automatisch vergleichbare 7-Tage-Videoaufrufe vorhanden.':
+  'Nur Videos, die innerhalb der genannten 7 Kalendertage veröffentlicht wurden. Angezeigt werden bisherige Gesamtaufrufe, NICHT nur Aufrufe innerhalb der Woche.';
+ info.textContent=result.totalRanked+' Videos mit verwendbaren Zahlen'+
+  (result.unknown?' · '+result.unknown+' ohne vergleichbare Gesamtwerte':'')+'. '+caveat+' '+source;
+}
+function renderVideos(){renderTopSeven();if(state.platform==='all'){const hasApi=Boolean(state.live?.platforms?.tt?.videos?.length);$('#tiktokArchiveRow').style.display=hasApi?'flex':'none';$('#showArchivedTikTok').checked=state.includeTiktokArchive;renderGroupedVideos();return;}const hasTikTokApi=Boolean(state.live?.platforms?.tt?.videos?.length);$('#tiktokArchiveRow').style.display=hasTikTokApi?'flex':'none';$('#showArchivedTikTok').checked=state.includeTiktokArchive;const vlist=videoFiltered();$('#videoCount').textContent=fmt(vlist.length)+(state.platform==='yt'?' YouTube-Videos':' Clips');$('#listCount').textContent=fmt(vlist.length)+' im Filter';const perPage=state.listExpanded?15:5;let pageN=Math.max(1,Math.ceil(vlist.length/perPage));state.page=Math.min(pageN,Math.max(1,state.page));const start=(state.page-1)*perPage,show=vlist.slice(start,start+perPage);
  const feed=state.live?.platforms?.yt?.videos||[];
  const selectedHasYouTube=platforms().includes('yt');
  const sourceDays=Number(state.live?.platforms?.yt?.videoMetricDays||28);
@@ -1111,6 +1184,8 @@ function bind(){
  $('#heroChartJump').addEventListener('click',()=>$('#chartTitle').scrollIntoView({behavior:'smooth',block:'center'}));$('#glassSlider').addEventListener('input',e=>glassSet(e.target.value));$$('[data-glass-preset]').forEach(el=>el.addEventListener('click',()=>glassSet(el.dataset.glassPreset)));
  $('#storyModeToggle').addEventListener('click',toggleStoryMode);$('#storyClose').addEventListener('click',()=>setStoryMode(false));$('#storySave').addEventListener('click',saveStoryPng);document.addEventListener('keydown',e=>{if(e.key==='Escape'&&state.storyMode)setStoryMode(false)});$('#refreshBtn').addEventListener('click',()=>loadLive(true));$('#tiktokSyncNow').addEventListener('click',syncTiktokNow);$('#tiktokAuditNow').addEventListener('click',auditTiktokNow);$('#showArchivedTikTok').addEventListener('change',e=>{state.includeTiktokArchive=e.target.checked;state.page=1;state.selected=null;renderActive()});let videoSearchTimer=0;
  $('#videoSearch').addEventListener('input',e=>{state.query=e.target.value;state.page=1;clearTimeout(videoSearchTimer);videoSearchTimer=setTimeout(()=>{if(state.section==='videos')renderVideos()},165)});
+ $('#topSevenMode').addEventListener('change',e=>{state.topSevenMode=e.target.value;renderTopSeven()});
+ $('#topSevenRefresh').addEventListener('click',()=>loadLive(true));
  $('#videoExpand').addEventListener('click',()=>{state.listExpanded=!state.listExpanded;state.page=1;renderVideos()});$('#videoSort').addEventListener('change',e=>{state.sort=e.target.value;state.page=1;renderVideos()});$('#formatFilter').addEventListener('change',e=>{state.fmt=e.target.value;state.page=1;renderVideos()});$('#prevPage').addEventListener('click',()=>{state.page--;renderVideos()});$('#nextPage').addEventListener('click',()=>{state.page++;renderVideos()});$('#exportJson').addEventListener('click',exportData);
 }
 window.BACK2U_REFRESH_CHART=()=>{if(state.section==='overview')renderTrend()};glassSet(state.glass);bind();
