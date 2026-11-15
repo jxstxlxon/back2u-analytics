@@ -211,7 +211,7 @@ test('malformed out-of-period rows cannot block valid November account-days',()=
  const extra=[
   {...rows[0],date:'2026-09-01'},
   {...rows[0],date:'2026-11-99'},
-  {...rows[1],date:'2026-11-09T00:00:00.000Z'}
+  {...rows[0],date:'2026-11-09T00:00:00.000Z'}
  ];
  const result=validateTikTokOrganicDays([...rows,...extra],NOW);
  assert.equal(result.daily.length,5);
