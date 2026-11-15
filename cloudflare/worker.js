@@ -7,7 +7,7 @@ import {runInstagramWindsorDailySync,overlayInstagramWindsorDaily,instagramWinds
 import {runInstagramWindsorMediaSync,overlayInstagramWindsorMedia,instagramWindsorMediaStatus} from './instagram-media-repair.js';
 import {runInstagramWindsorFollowersSync,overlayInstagramWindsorFollowers,instagramWindsorFollowersStatus} from './instagram-followers-sync.js';
 import {runTikTokOrganicSync,overlayTikTokOrganicState,tiktokOrganicStatus} from './tiktok-windsor-repair.js';
-import {syncPhaseForUtcMinute} from './sync-schedule.js';
+import {syncPhaseForUtcMinute,isLegacyThirtyMinuteCron} from './sync-schedule.js';
 import {snapshotWithRawFallback} from './snapshot-recovery.js';
 import {runYouTubeWindsorExtrasSync,overlayYouTubeWindsorExtras,youtubeWindsorExtrasStatus} from './youtube-windsor-extras.js';
 /* BACK2U Cloudflare Worker - private creator dashboard.
@@ -793,6 +793,19 @@ async function route(req,env,ctx){
     };
    }
   }catch(_){health.extraSync={state:'read-failed'};}
+  // Public operational health includes only Cron cadence/phase and freshness,
+  // never credentials, daily metrics, account IDs or exact private timestamps.
+  try{
+   const tick=env.DB?await get(env,'scheduler_heartbeat_v1'):null;
+   const age=Date.now()-Date.parse(tick?.at||'');
+   health.scheduler={
+    cadence:['30m','15m'].includes(tick?.cadence)?tick.cadence:'unknown',
+    lastPhase:['tiktok-daily','instagram-youtube-extras',
+     'tiktok-profile-instagram-followers','instagram-media-audience'].includes(tick?.phase)
+      ?tick.phase:'unknown',
+    recent:Number.isFinite(age)&&age>=0&&age<65*60000
+   };
+  }catch(_){health.scheduler={cadence:'unknown',lastPhase:'unknown',recent:false};}
   return json(health);
  }
  if(path==='/api/login')return req.method==='POST'?issueToken(req,env):json({error:'POST only'},405);
@@ -991,26 +1004,39 @@ export default {
   }catch(e){return json({error:'Interner Fehler',hint:clamp(e?.message)},502)}
  },
  async scheduled(controller,env,ctx){
-  // One dedicated source phase per 15-minute tick. Previously all seven
-  // source requests competed within the same waitUntil lifetime; an
-  // unfinished request could prevent critical account-day D1 writes.
+  // Respect the actual Cloudflare trigger expression: :15/:45 never fire
+  // when an older */30 schedule is still configured in production.
   const clock=new Date(controller?.scheduledTime||Date.now());
   const phase=syncPhaseForUtcMinute(clock.getUTCMinutes());
+  const legacy30=isLegacyThirtyMinuteCron(controller?.cron);
   const guarded=(label,job)=>job.then(r=>{
    if(r?.status==='error')console.warn(label+' sync failed:',clamp(r.error));
   }).catch(e=>console.error(label+' sync unavailable:',clamp(e?.message)));
-  if(phase==='tiktok-daily'){
-   ctx.waitUntil(guarded('TikTok Organic day',runTikTokOrganicSync(env,{get,put})));
-  }else if(phase==='instagram-youtube-extras'){
+  const runExtras=()=>{
    ctx.waitUntil(guarded('Instagram day',runInstagramWindsorDailySync(env,{get,put})));
    ctx.waitUntil(guarded('YouTube extras',runYouTubeWindsorExtrasSync(env,{get,put})));
-  }else if(phase==='tiktok-profile-instagram-followers'){
-   ctx.waitUntil(ttSync(env).catch(e=>console.error('TikTok Display sync:',clamp(e?.message))));
-   ctx.waitUntil(guarded('Instagram followers',runInstagramWindsorFollowersSync(env,{get,put})));
-  }else if(phase==='instagram-media-audience'){
+  };
+  const runMediaAndAudience=()=>{
    ctx.waitUntil(guarded('Instagram media',runInstagramWindsorMediaSync(env,{get,put})));
    ctx.waitUntil(guarded('Audience',runAudienceAutoSync(env,{get,put,
     tiktokOnly:env.BACK2U_WINDSOR_TIKTOK_ONLY==='true'})));
+  };
+  // Write only operational status into a separate key; originals stay intact.
+  // A missed trigger can now be distinguished from an upstream data error.
+  ctx.waitUntil(put(env,'scheduler_heartbeat_v1',{
+   schema:1,cadence:legacy30?'30m':'15m',phase,at:new Date().toISOString()
+  }).catch(()=>console.warn('Cron heartbeat storage unavailable')));
+  if(phase==='tiktok-daily'){
+   ctx.waitUntil(guarded('TikTok Organic day',runTikTokOrganicSync(env,{get,put})));
+   if(legacy30)runExtras();
+  }else if(phase==='instagram-youtube-extras'){
+   runExtras();
+  }else if(phase==='tiktok-profile-instagram-followers'){
+   ctx.waitUntil(ttSync(env).catch(e=>console.error('TikTok Display sync:',clamp(e?.message))));
+   ctx.waitUntil(guarded('Instagram followers',runInstagramWindsorFollowersSync(env,{get,put})));
+   if(legacy30)runMediaAndAudience();
+  }else if(phase==='instagram-media-audience'){
+   runMediaAndAudience();
   }
 
  }
