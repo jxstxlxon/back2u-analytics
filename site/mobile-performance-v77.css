@@ -100,3 +100,28 @@
 @media (max-width: 760px) {
   #extendedDailyMetrics .v77-missing-details ul { columns: 1; }
 }
+
+/* A 401/5xx is not zero views. Explain when the browser is showing archival
+ * seed data instead of a successfully authenticated snapshot. */
+#notice.live-unavailable {
+  display:block;
+  margin:12px 0 18px;
+  padding:13px 16px;
+  border-radius:15px;
+  border:1px solid rgba(var(--t-accent-rgb,120,176,178),.5);
+  background:rgba(var(--t-card,23,48,48),.94);
+  color:var(--t-ink-strong,#effff9);
+  font:600 12px/1.6 system-ui,sans-serif;
+  overflow-wrap:anywhere;
+}
+#notice .live-reconnect-button {
+  display:inline-block;
+  min-height:34px;
+  margin:7px 0 0 8px;
+  padding:6px 12px;
+  border:1px solid currentColor;
+  border-radius:11px;
+  background:rgba(var(--t-accent-rgb,111,200,162),.15);
+  color:inherit;
+  font:650 12px system-ui,sans-serif;
+}
