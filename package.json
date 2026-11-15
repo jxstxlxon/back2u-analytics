@@ -4,7 +4,7 @@
   "type": "module",
   "scripts": {
     "build": "npm test && node -e \"console.log('BACK2U build ready after data integrity checks')\"",
-    "test": "node tests/v77-data-integrity.mjs && node tests/v77-preview-youtube-fallback.mjs && node tests/v77-production-youtube-query.mjs && node tests/v77-instagram-windsor-repair.mjs && node tests/v77-instagram-windsor-media.mjs && node tests/v77-instagram-followers.mjs && node tests/v77-tiktok-windsor-repair.mjs && node tests/v77-daily-extras-ui.mjs && node tests/v77-youtube-windsor-extras.mjs"
+    "test": "node tests/v77-data-integrity.mjs && node tests/v77-preview-youtube-fallback.mjs && node tests/v77-production-youtube-query.mjs && node tests/v77-instagram-windsor-repair.mjs && node tests/v77-instagram-windsor-media.mjs && node tests/v77-instagram-followers.mjs && node tests/v77-tiktok-windsor-repair.mjs && node tests/v77-daily-extras-ui.mjs && node tests/v77-youtube-windsor-extras.mjs && node tests/v77-cron-source-phases.mjs"
   },
   "dependencies": {
     "@netlify/blobs": "11.1.9"

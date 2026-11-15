@@ -24,7 +24,7 @@
   },
   "triggers": {
     "crons": [
-      "*/30 * * * *"
+      "*/15 * * * *"
     ]
   },
   "keep_vars": true,

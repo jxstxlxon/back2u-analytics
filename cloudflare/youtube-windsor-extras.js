@@ -92,23 +92,24 @@ export async function runYouTubeWindsorExtrasSync(env,{
  if(key.length<16)return {status:'not_configured'};
  const old=await get(env,STATUS)||{};
  const last=Date.parse(old.lastAttemptAt||'');
+ const pipelineVersion='v77.10-full-28day-youtube-extras';
  const throttle=old.status==='ok'?6*3600000:
   old.status==='running'?45*60000:60*60000;
- if(!force&&Number.isFinite(last)&&now-last>=0&&now-last<throttle)
+ if(!force&&old.pipelineVersion===pipelineVersion&&Number.isFinite(last)&&now-last>=0&&now-last<throttle)
   return {status:'skipped',lastSuccessAt:old.lastSuccessAt||null};
  const stamp=new Date(now).toISOString();
- await put(env,STATUS,{...old,status:'running',lastAttemptAt:stamp});
+ await put(env,STATUS,{...old,pipelineVersion,status:'running',lastAttemptAt:stamp});
  try{
   const url=new URL('https://connectors.windsor.ai/youtube');
   url.searchParams.set('api_key',key);
   url.searchParams.set('fields',FIELDS.join(','));
-  url.searchParams.set('date_from',iso(now-18*DAY));
+  url.searchParams.set('date_from',iso(now-28*DAY));
   url.searchParams.set('date_to',iso(now-DAY));
   url.searchParams.set('select_accounts',CHANNEL);
   url.searchParams.set('_renderer','json');
   const response=await fetcher(url.href,{
    method:'GET',headers:{accept:'application/json'},
-   signal:AbortSignal.timeout(25000)
+   signal:AbortSignal.timeout(16000)
   });
   if(!response.ok)throw Error('Windsor YouTube HTTP '+response.status);
   const body=await response.json();
@@ -118,11 +119,11 @@ export async function runYouTubeWindsorExtrasSync(env,{
   const previous=await get(env,STORE);
   const combined=combineYouTubeWindsorExtras(previous,verified,now);
   await put(env,STORE,combined);
-  const status={status:'ok',lastAttemptAt:stamp,lastSuccessAt:stamp,
+  const status={pipelineVersion,status:'ok',lastAttemptAt:stamp,lastSuccessAt:stamp,
    dataThrough:combined.daily.at(-1)?.d||null,rows:combined.daily.length,error:null};
   await put(env,STATUS,status);return status;
  }catch(e){
-  const status={...old,status:'error',lastAttemptAt:stamp,
+  const status={...old,pipelineVersion,status:'error',lastAttemptAt:stamp,
    error:safeError(e),lastSuccessAt:old.lastSuccessAt||null};
   await put(env,STATUS,status);return status;
  }
