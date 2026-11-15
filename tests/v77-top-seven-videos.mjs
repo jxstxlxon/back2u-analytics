@@ -72,7 +72,8 @@ const posts=[
 const norm=s=>String(s||'').replace(/\s+/g,' ').trim();
 const getGroups=vm.runInNewContext(html.slice(groupStart,groupEnd)+'\n;crossPlatformVideoGroups',{
  mergedVideos:()=>posts,nl:norm,shift,toDay:d=>Date.parse(d+'T12:00:00Z'),
- guessFormat:()=> 'Jumpstyle',videoMetricValue:(v,k)=>v[k]
+ guessFormat:()=> 'Jumpstyle',videoMetricValue:(v,k)=>v[k],
+ state:{manualLinks:[],manualRevision:0},manualMergeGroups:groups=>groups
 });
 const grouped=getGroups();
 const captain=grouped.find(g=>g.members.some(v=>v.id==='video001'));
