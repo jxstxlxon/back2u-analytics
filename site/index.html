@@ -102,7 +102,7 @@ body.story-open{overflow:hidden}
 #back2uLoginOverlay input{display:block;width:100%;padding:15px 16px;border-radius:12px;background:#061326cc;border:1px solid #adcafa5a;color:white;font:inherit;font-size:16px;margin-bottom:12px}
 #back2uLoginOverlay button{border:0;border-radius:12px;background:#449dfb;color:white;font:600 15px system-ui;padding:13px 16px;width:100%;cursor:pointer}
 #back2uLoginOverlay #back2uLoginError{min-height:20px;color:#ffc5c5;font-size:12px;margin-top:14px}
-</style><link rel="stylesheet" href="/theme-studio.css?v=1"><link rel="stylesheet" href="/theme-reference.css?v=2"><link rel="stylesheet" href="/ui-v3.css?v=3"><link rel="stylesheet" href="/ui-v4.css?v=4"><link rel="stylesheet" href="/creator-hub-v5.css?v=6"><link rel="stylesheet" href="/mobile-theme-polish-v6.css?v=6"><link rel="stylesheet" href="/dashboard-v7.css?v=12"><link rel="stylesheet" href="/audience-import.css?v=2"><link rel="stylesheet" href="/guest-access.css?v=1"></head>
+</style><link rel="stylesheet" href="/theme-studio.css?v=1"><link rel="stylesheet" href="/theme-reference.css?v=2"><link rel="stylesheet" href="/ui-v3.css?v=3"><link rel="stylesheet" href="/ui-v4.css?v=4"><link rel="stylesheet" href="/creator-hub-v5.css?v=6"><link rel="stylesheet" href="/mobile-theme-polish-v6.css?v=6"><link rel="stylesheet" href="/dashboard-v7.css?v=12"><link rel="stylesheet" href="/audience-import.css?v=2"><link rel="stylesheet" href="/guest-access.css?v=1"><link rel="stylesheet" href="/mobile-performance-v77.css?v=1"></head>
 <body>
 <div class="ambient ambient-a"></div><div class="ambient ambient-b"></div><div class="ambient ambient-c"></div><div class="grain"></div>
 <div class="shell">
@@ -494,28 +494,46 @@ function renderExtendedDaily(){
   {p:'tt',key:'lostFollowers',name:'Verlorene Follower · Tagessumme',unit:'count'},
   {p:'tt',key:'bioLinkClicks',name:'Link-in-Bio-Klicks · Tagessumme',unit:'count'}
  ];
- const cards=[];
+ const cards=[],missing=[];
+ // Merge the day series only once per platform, not once for every card.
+ const dayByPlatform=Object.fromEntries(ps.map(p=>
+  [p,mergedDaily(p).filter(r=>r.d>=start&&r.d<=end)]));
  for(const spec of specs.filter(o=>ps.includes(o.p))){
-  const all=mergedDaily(spec.p).filter(r=>r.d>=start&&r.d<=end);
+  const all=dayByPlatform[spec.p]||[];
   const verifiedMetric=r=>spec.p==='yt'?r.source==='YouTube Analytics API'||
     r.sourceFields?.[spec.key]==='Windsor.ai YouTube Analytics (account-day)':
    spec.p==='ig'?['Meta Graph API (direct daily)','Windsor.ai Instagram Insights (account-day)']
     .includes(r.sourceFields?.[spec.key]):
    spec.p==='tt'&&r.source==='TikTok Organic via Windsor.ai';
-  const rows=all.filter(r=>typeof r[spec.key]==='number'&&Number.isFinite(r[spec.key])&&r[spec.key]>=0&&verifiedMetric(r));
+  // Net follower change may legitimately be negative, unlike views and likes.
+  const signed=spec.key==='netFollows'||spec.key==='follows';
+  const rows=all.filter(r=>typeof r[spec.key]==='number'&&
+   Number.isFinite(r[spec.key])&&(signed||r[spec.key]>=0)&&verifiedMetric(r));
   const latest=rows.length?rows[rows.length-1]:null;
   const value=spec.latest?(latest?.[spec.key]??null):
    (rows.length?rows.reduce((sum,r)=>sum+r[spec.key],0):null);
-  const formatted=value===null?'–':spec.unit==='minutes'?dec(value)+' Min.':
-   spec.unit==='seconds'?dec(value)+' s':fmt(value);
   const sourceLabel=spec.p==='tt'?'TikTok Organic':spec.p==='ig'?'Meta/Windsor':'YouTube Analytics/Windsor';
-  const note=(spec.latest?(latest?'Messdatum '+latest.d:'Noch kein bestätigter Tageswert'):
-    (rows.length+' von '+totalDays+' Tagen · '+(rows.length===totalDays?'vollständig':'unvollständig')))+' · '+sourceLabel;
-  cards.push('<div class="glass metric-box"><small>'+esc(NAMES[spec.p])+' · '+esc(spec.name)+
+  const name=NAMES[spec.p]+' · '+spec.name;
+  if(value===null){
+   missing.push(name);
+   continue;
+  }
+  const formatted=spec.unit==='minutes'?dec(value)+' Min.':
+   spec.unit==='seconds'?dec(value)+' s':fmt(value);
+  const note=(spec.latest?('Messdatum '+latest.d):
+   (rows.length+' von '+totalDays+' Tagen · '+
+    (rows.length===totalDays?'vollständig':'unvollständig')))+' · '+sourceLabel;
+  cards.push('<div class="glass metric-box"><small>'+esc(name)+
    '</small><strong>'+esc(formatted)+'</strong><p>'+esc(note)+'</p></div>');
  }
- panel.innerHTML=cards.length?cards.join(''):
-  '<div class="glass metric-box"><small>Verfügbare Direktdaten</small><strong>–</strong><p>Für TikTok liegen diese zusätzlichen offiziellen Tagesberichte nicht vor.</p></div>';
+ const missingDetails=missing.length?
+  '<details class="v77-missing-details"><summary>'+
+   missing.length+' Zusatzwerte ohne bestätigte Tagesdaten'+
+   '<span>Zum Anzeigen öffnen · keine fehlenden Zahlen schätzen</span></summary>'+
+   '<ul>'+missing.map(name=>'<li>'+esc(name)+': –</li>').join('')+'</ul></details>':'';
+ panel.innerHTML=(cards.length?cards.join(''):
+  '<div class="v77-missing-details"><strong>Noch keine bestätigten Zusatzwerte</strong><p>Die verbundenen Datenquellen werden separat geprüft. Fehlende Tage sind keine Nullwerte.</p></div>')+
+  missingDetails;
  foot.textContent='7/28/90 Tage verwenden nur bestätigte API-Tageswerte. Fehlende Tage sind keine Null. YouTube Analytics bzw. Windsor, Instagram Meta bzw. Windsor und TikTok Organic liefern getrennt gekennzeichnete Werte. Gemeldete und Netto-Followeränderung sind verschiedene Felder. Ø Wiedergabedauer zeigt den letzten verifizierten Tag, keine Summe. Erreichte/interagierende Personen werden als Tagessumme dargestellt, nicht als eindeutige Personen des gesamten Zeitraums.';
 }
 
