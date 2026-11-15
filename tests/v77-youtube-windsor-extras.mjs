@@ -33,6 +33,18 @@ test('missing metrics are unknown, never zero',()=>{
  const rows=validateYouTubeWindsorExtras(fixture.map(x=>({...x,shares:null,engaged_views:null})),NOW);
  assert.ok(rows.every(x=>!Object.hasOwn(x,'shares')&&!Object.hasOwn(x,'engagedViews')));
 });
+test('26 verified YouTube days inside a 28-day window retain real metrics',()=>{
+ const rows=Array.from({length:26},(_,i)=>({
+  date:new Date(Date.parse('2026-10-18T00:00:00Z')+i*86400000).toISOString().slice(0,10),
+  account_id:CHANNEL,engaged_views:7982+i,
+  estimated_minutes_watched:2388+i,
+  average_view_duration:17.9504,shares:5
+ }));
+ const parsed=validateYouTubeWindsorExtras(rows,NOW);
+ assert.equal(parsed.length,26);
+ assert.equal(parsed[0].d,'2026-10-18');
+ assert.equal(parsed.at(-1).d,'2026-11-12');
+});
 test('prior date history preserved',()=>{
  const old={schema:1,daily:[{d:'2026-11-01',engagedViews:111}]};
  const next=combineYouTubeWindsorExtras(old,validateYouTubeWindsorExtras(fixture,NOW),NOW);
@@ -62,6 +74,7 @@ await testAsync('Cron fetch stores separately without updating snapshot or exist
  assert.equal(urls.length,1);
  assert.equal(urls[0].pathname,'/youtube');
  assert.equal(urls[0].searchParams.get('date_to'),'2026-11-14');
+ assert.equal(urls[0].searchParams.get('date_from'),'2026-10-18');
  assert.equal(urls[0].searchParams.get('select_accounts'),CHANNEL);
  assert.ok(!JSON.stringify(res).includes(secret));
 });
