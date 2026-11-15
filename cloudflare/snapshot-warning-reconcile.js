@@ -24,7 +24,7 @@ export function hasVerifiedTikTokSync(record,job,liveSnapshot){
   liveSnapshot.platforms.tt.videos.some(v=>
    /^[0-9]{12,25}$/.test(String(v?.id||''))&&
    (v.source==='Official TikTok Display API'||
-    v.source==='TikTok Organic via Windsor.ai'));
+    v.source==='TikTok Organic über Windsor.ai'));
  return Boolean(measuredDays&&media);
 }
 export function reconcileSnapshotWarnings(snapshot,{
