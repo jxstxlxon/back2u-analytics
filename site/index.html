@@ -168,7 +168,7 @@ body.story-open{overflow:hidden}
  </div>
  <div class="creator-two-col v7-creator-tools"><section class="glass creator-panel"><div class="creator-panel-title"><span>💬</span><div><h3>Kommentar- & Caption-Werkstatt</h3><p>Vorlagen, die du direkt verändern und kopieren kannst.</p></div></div><div id="v7TextStudio"></div></section><section class="glass creator-panel"><div class="creator-panel-title"><span>🗓</span><div><h3>Dein nächster Content-Plan</h3><p>Vorschläge aus vergangenen Video-Ergebnissen, noch keine automatische Veröffentlichung.</p></div></div><div id="v7Planner"></div></section></div><div class="creator-method-note" id="creatorMethodNote">Fehlende Daten werden nicht geschätzt.</div>
 </section>
-<section id="system" class="view"><div class="section-heading"><div><div class="eyebrow">01 / DATA & CONNECTIONS</div><h2>Transparenz statt Blindflug</h2><p>Hier siehst du genau, was aktuell ist und welche Werte noch nicht vorliegen.</p></div></div><div id="connectionCards" class="connection-grid"></div>
+<section id="system" class="view"><div class="section-heading"><div><div class="eyebrow">01 / DATA & CONNECTIONS</div><h2>Transparenz statt Blindflug</h2><p>Hier siehst du genau, was aktuell ist und welche Werte noch nicht vorliegen.</p></div></div><div id="connectionCards" class="connection-grid"></div><div id="dataSourceWarnings" class="glass pane" hidden role="status" style="padding:16px 20px;margin-top:16px"></div>
  <section id="guestAccessPanel" class="glass pane guest-access-panel" aria-label="Gastzugänge verwalten" hidden>
   <div class="pane-header"><h3>🔐 Zeitlich begrenzte Gastzugänge</h3><span class="pill">Nur du verwaltest</span></div>
   <p class="guest-access-help">Erstelle für Freunde einen Link, der nach der ausgewählten Zeit automatisch abläuft. Gäste dürfen Statistiken und Inhalte ansehen sowie Themes nur in ihrem eigenen Browser ändern. Datenimport, Veröffentlichung und Verwaltung bleiben gesperrt.</p>
@@ -442,14 +442,16 @@ function renderFollowerCards(){
  if(incomplete)note+=' Mindestens ein aktueller Kontostand fehlt; die Zahl ist nur ein Teilstand.';
  if(archival)note+=' Archivwerte sind nicht live und haben einen anderen Stichtag.';
  if(!incomplete&&!archival)note+=selected.length===3?' Alle drei Kontostände stammen aus API-Abrufen.':' Der ausgewählte Kontostand stammt aus einem API-Abruf.';
- container.innerHTML='<article class="follower-aggregate glass"><div class="eyebrow">FOLLOWER INTELLIGENCE</div><div class="follower-aggregate-title">'+esc(title)+'</div><div class="follower-aggregate-total">'+fmt(total)+'</div><div class="follower-aggregate-subtitle">'+(incomplete?'Erfasster Teilstand':archival?'Summe mit Archivstand':'Aktueller erfasster Stand')+'</div><div class="follower-aggregate-breakdown">'+breakdown+'</div><div class="follower-aggregate-note">'+esc(note)+'</div></article>';
+ const stale=items.some(x=>x.count!==null&&x.asOf&&Number.isFinite(Date.parse(String(x.asOf).slice(0,10)))&&(Date.now()-Date.parse(String(x.asOf).slice(0,10)))>3*86400000);
+ if(stale)note+=' Achtung: Mindestens ein Kontostand ist veraltet. Ein API-Stand ist nicht automatisch ein aktueller Stand.';
+ container.innerHTML='<article class="follower-aggregate glass"><div class="eyebrow">FOLLOWER INTELLIGENCE</div><div class="follower-aggregate-title">'+esc(title)+'</div><div class="follower-aggregate-total">'+fmt(total)+'</div><div class="follower-aggregate-subtitle">'+(incomplete?'Erfasster Teilstand':archival?'Summe mit Archivstand':stale?'Veralteter Kontostand':'Aktueller erfasster Stand')+'</div><div class="follower-aggregate-breakdown">'+breakdown+'</div><div class="follower-aggregate-note">'+esc(note)+'</div></article>';
 }
 
 function renderDailyFreshness(){
  const el=$('#dailyFreshness');
  if(!state.live){el.textContent='Tageswerte sind Archivdaten. Noch kein bestätigter Live-Abgleich.';return;}
  const lastDay=anchorDate();
- const fields=[['yt','YouTube'],['ig','Instagram']];
+ const fields=[['yt','YouTube'],['ig','Instagram'],['tt','TikTok']];
  const messages=[];
  for(const [p,label] of fields){
   const rows=state.live?.platforms?.[p]?.daily||[];
@@ -458,7 +460,7 @@ function renderDailyFreshness(){
   const delayed=Math.max(0,Math.round((toDay(lastDay)-toDay(latest))/86400000));
   messages.push(label+': Tageswerte bis '+latest.split('-').reverse().join('.')+(delayed?' · '+delayed+' abgeschlossene Tage fehlen':' · bis gestern'));
  }
- messages.push('TikTok: keine vollständigen täglichen Profilaufrufe über die Display API');
+ if(state.sourceDiagnostics?.windsorConfigured===false)messages.push('Windsor-Verbindung im Cloudflare-Worker nicht eingerichtet; Instagram/TikTok-Abgleich dadurch blockiert');
  el.textContent='Datenabdeckung · '+messages.join('  |  ')+' · 7/28/90-Tage-Gesamtsummen können unvollständig sein.';
 }
 
@@ -748,6 +750,21 @@ function renderAudience(){if(window.BACK2U_V7?.audience){window.BACK2U_V7.audien
  const h=SEED.activeHoursTikTok,mx=Math.max(...h);$('#hourBars').innerHTML=`<div class="hour-grid">${h.map((v,i)=>`<div class="hour-unit" title="${String(i).padStart(2,'0')}:00 · ${fmt(v)} aktive Follower"><div class="hour-bar"><i style="height:${Math.max(4,v/mx*100)}%"></i></div><small>${String(i).padStart(2,'0')} h</small><b>${fmt(v)}</b></div>`).join('')}</div>`;
 }
 function renderSystem(){const s=state.live;$('#connectionCards').innerHTML=['yt','ig','tt'].map(p=>{let dailyCount=s?.platforms?.[p]?.daily?.length||0,videoCount=s?.platforms?.[p]?.videos?.length||0,available=dailyCount>0||videoCount>0,err=(s?.errors||[]).find(x=>x.platform===p);return `<div class="glass connection-card"><div class="platform-name">${tagPlatform(p)}</div><b>${available?'API-Daten geladen':s?err?.task?.endsWith('-feed')?'Live-Anbindung ausstehend':err?'Live-Abruf fehlgeschlagen':'Noch keine API-Daten':'Noch nicht live verbunden'}</b><small class="${available?'connected':'disabled'}">${available?esc((dailyCount?dailyCount+' Tage':'')+(dailyCount&&videoCount?' · ':'')+(videoCount?videoCount+' Videos':'')):err?esc(err.message):'Lokale historische Daten verfügbar'}</small></div>`}).join('');
+ const source=$('#dataSourceWarnings'),diag=state.sourceDiagnostics;
+ if(source){
+  const warnings=[];
+  if(diag?.windsorConfigured===false)
+   warnings.push('Windsor.ai ist in Cloudflare nicht verbunden: WINDSOR_API_KEY fehlt. Die automatischen Instagram-/TikTok-Updates können deshalb nicht laufen.');
+  if(diag?.windsorConfigured===true){
+   for(const [name,item] of [['Instagram-Follower',diag.instagramFollowers],['Instagram-Tageswerte',diag.instagramDays],['Instagram-Reels',diag.instagramMedia],['TikTok-Tageswerte und Videos',diag.tiktok]]){
+    const status=item?.syncStatus||item?.status||'never_run';
+    if(status==='error'||status==='not_configured')warnings.push(name+': '+(item.error||status));
+    else if(status==='never_run')warnings.push(name+': noch kein erfolgreicher automatischer Abruf bestätigt');
+   }
+  }
+  source.hidden=!warnings.length;
+  source.innerHTML=warnings.length?'<strong>Datenquelle prüfen</strong><p style="margin:6px 0 0;line-height:1.6">'+warnings.map(x=>esc(x)).join(' · ')+'</p>':'';
+ }
  let items=[['Datenquelle',s?s.source+' + lokale Exporte':'Gespeicherte YouTube-/Instagram-/TikTok-Exporte'],['Letzter erfolgreicher Abruf',s?new Date(s.generatedAt).toLocaleString('de-DE'):'Noch nicht von dieser Seite'],['Geprüfter Kanal','Back2u (YouTube), lxon_jxmpstyle (Instagram), back2u.mp3 (TikTok)'],['Anzahl Videoeinträge',fmt(mergedVideos().length)],['Datenstand für historische Clips','YouTube/Instagram: API-Gesamtwerte pro Video · TikTok: '+(s?.platforms?.tt?.videos?.length?'API nach Video-ID; 119 Screenshots separat zuschaltbar':'Screenshot-Archiv 10.11.2026')],['Aktualisierung',s?'Google Apps Script alle 30 Minuten; TikTok per Cloudflare-Cron alle 30 Minuten':'Noch kein Live-Feed'],['Vorgesehene Basis','Cloudflare Workers + D1 und privater Google Apps Script-Feed']];$('#systemInfo').innerHTML=items.map(x=>`<div class="system-line"><span>${esc(x[0])}</span><strong>${esc(x[1])}</strong></div>`).join('');
  const rows=[['Tägliche Views','ja','ja','nein'],['Video-Aufrufe','ja','ja','ja'],['Likes & Kommentare','ja','teilweise','ja'],['Zugeschriebene Follows','ja','teilweise','teilweise'],['Exakte 24h-Werte nach Upload','nein','nein','nein'],['Upload-Uhrzeit je Video','nach Live-API','teilweise','ja'],['Watch Time je Video','nach Live-API','nach Live-API','nach Live-API'],['Vollständige 90-Tage-Vergleiche','nach Live-API','nach Live-API','nach Live-API']];$('#qualityMatrix').innerHTML=`<div style="overflow-x:auto"><table class="matrix"><thead><tr><th>Kennzahl</th><th>YouTube</th><th>Instagram</th><th>TikTok</th></tr></thead><tbody>${rows.map(x=>`<tr><td>${esc(x[0])}</td>${x.slice(1).map(v=>`<td class="${v==='ja'?'yes':v==='nein'?'no':'part'}">${v==='ja'?'● Verfügbar':v==='nein'?'○ Fehlt':esc(v)}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`;
 }
@@ -948,7 +965,7 @@ document.querySelector('#back2uLoginForm').addEventListener('submit',async(e)=>{
 async function loadLive(force=false){if(state.loading)return;state.loading=true;$('#refreshBtn').classList.add('spinning');state.lastError=null;
  const url=location.protocol==='file:'?null:`/api/snapshot${force?'?refresh=1':''}`;
  if(!url){state.lastError='Lokale Datei – keine Serververbindung.';state.loading=false;$('#refreshBtn').classList.remove('spinning');renderActive();if(force)toast('Offline-Datei: Für Live-Daten den Cloudflare-Worker veröffentlichen.');return}
- try{let response=await fetch(url,{credentials:'same-origin',cache:'no-store',signal:AbortSignal.timeout(45000)});if(response.status===401){showLogin();throw Error('Bitte anmelden')}if(!response.ok)throw Error('API-Status '+response.status);let data=await response.json();if(!data.platforms||!data.generatedAt)throw Error('Ungültige Serverantwort');state.live=data;state.lastError=data.errors?.length?`${data.errors.length} Teildatenfehler`:null;toast(`Datenabgleich ${data.errors?.length?'mit Einschränkungen':'erfolgreich'}`)}catch(e){state.lastError=String(e.message||e);if(force)toast('Live-Abruf nicht möglich. Archivdaten bleiben erhalten.')}finally{state.loading=false;$('#refreshBtn').classList.remove('spinning');renderActive();if(state.storyMode)renderStory()}
+ try{let response=await fetch(url,{credentials:'same-origin',cache:'no-store',signal:AbortSignal.timeout(45000)});if(response.status===401){showLogin();throw Error('Bitte anmelden')}if(!response.ok)throw Error('API-Status '+response.status);let data=await response.json();if(!data.platforms||!data.generatedAt)throw Error('Ungültige Serverantwort');state.live=data;state.sourceDiagnostics=null;try{const sr=await fetch('/api/sync-sources/status',{credentials:'same-origin',cache:'no-store',signal:AbortSignal.timeout(8000)});if(sr.ok)state.sourceDiagnostics=await sr.json()}catch(_){}state.lastError=data.errors?.length?`${data.errors.length} Teildatenfehler`:null;toast(`Datenabgleich ${data.errors?.length?'mit Einschränkungen':'erfolgreich'}`)}catch(e){state.lastError=String(e.message||e);if(force)toast('Live-Abruf nicht möglich. Archivdaten bleiben erhalten.')}finally{state.loading=false;$('#refreshBtn').classList.remove('spinning');renderActive();if(state.storyMode)renderStory()}
 }
 async function syncTiktokNow(){
  const btn=$('#tiktokSyncNow'), hint=$('#tiktokSyncHint');
