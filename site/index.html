@@ -242,6 +242,7 @@ if(!SEED){document.body.textContent='Datensatz fehlt: seed.js wurde nicht gelade
 const COLORS={yt:'#ff849b',ig:'#b29bff',tt:'#63e7db'};
 const NAMES={yt:'YouTube',ig:'Instagram',tt:'TikTok'};
 const state={platform:'all',days:28,section:'overview',glass:48,sort:'views',fmt:'all',query:'',page:1,listExpanded:false,selected:null,live:null,loading:false,lastError:null,partialWarningCount:0,includeTiktokArchive:false,storyMode:false};
+function syncWarningCount(data){const n=Array.isArray(data?.errors)?data.errors.length:0;return Math.max(n,data?.snapshotFallback==='original-d1'?1:0)}
 try{const saved=Number(localStorage.getItem('back2u_glass'));if(Number.isFinite(saved)&&saved>=0&&saved<=100)state.glass=saved}catch{}
 try{
  const remembered=JSON.parse(localStorage.getItem('back2u_view_preferences_v5')||'null');
@@ -1052,8 +1053,7 @@ async function loadLive(force=false){if(state.loading)return;state.loading=true;
     if(state.section==='system')renderSystem();}}})
   .catch(()=>{});
  // Source incompleteness is not an HTTP/authentication failure.
- state.partialWarningCount=Math.max(Array.isArray(data.errors)?data.errors.length:0,
-  data.snapshotFallback==='original-d1'?1:0);
+ state.partialWarningCount=syncWarningCount(data);
  state.lastError=null;
  toast(state.partialWarningCount?'Daten geladen – einzelne Werte eingeschränkt':'Datenabgleich erfolgreich')
  }catch(e){state.lastError=String(e.message||e);if(force)toast('Live-Abruf nicht möglich. Archivdaten bleiben erhalten.');else if(!state.live&&state.lastError!=='Bitte anmelden')setTimeout(()=>{if(!state.live&&!state.loading)loadLive(true)},3500)}finally{state.loading=false;$('#refreshBtn').classList.remove('spinning');renderActive();if(state.storyMode)renderStory()}
