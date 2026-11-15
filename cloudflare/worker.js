@@ -7,6 +7,7 @@ import {runInstagramWindsorDailySync,overlayInstagramWindsorDaily,instagramWinds
 import {runInstagramWindsorMediaSync,overlayInstagramWindsorMedia,instagramWindsorMediaStatus} from './instagram-media-repair.js';
 import {runInstagramWindsorFollowersSync,overlayInstagramWindsorFollowers,instagramWindsorFollowersStatus} from './instagram-followers-sync.js';
 import {runTikTokOrganicSync,overlayTikTokOrganicState,tiktokOrganicStatus} from './tiktok-windsor-repair.js';
+import {syncPhaseForUtcMinute} from './sync-schedule.js';
 import {runYouTubeWindsorExtrasSync,overlayYouTubeWindsorExtras,youtubeWindsorExtrasStatus} from './youtube-windsor-extras.js';
 /* BACK2U Cloudflare Worker - private creator dashboard.
    Independent of Netlify. Do not publish API keys or creator analytics in static assets.
@@ -926,24 +927,27 @@ export default {
   }catch(e){return json({error:'Interner Fehler',hint:clamp(e?.message)},502)}
  },
  async scheduled(controller,env,ctx){
-  ctx.waitUntil(ttSync(env).catch(e=>console.error('TikTok scheduled sync:',clamp(e?.message))));
-  ctx.waitUntil(runYouTubeWindsorExtrasSync(env,{get,put})
-   .then(r=>{if(r.status==='error')console.warn('YouTube extras sync failed:',r.error)})
-   .catch(e=>console.error('YouTube extras unavailable:',clamp(e?.message))));
-  ctx.waitUntil(runTikTokOrganicSync(env,{get,put})
-   .then(r=>{if(r.status==='error')console.warn('TikTok Organic day sync failed:',r.error)})
-   .catch(e=>console.error('TikTok Organic sync unavailable:',clamp(e?.message))));
-  ctx.waitUntil(runInstagramWindsorFollowersSync(env,{get,put})
-   .then(r=>{if(r.status==='error')console.warn('Instagram follower sync failed:',r.error)})
-   .catch(e=>console.error('Instagram follower sync unavailable:',clamp(e?.message))));
-  ctx.waitUntil(runInstagramWindsorMediaSync(env,{get,put})
-   .then(r=>{if(r.status==='error')console.warn('Instagram media sync failed:',r.error)})
-   .catch(e=>console.error('Instagram media sync unavailable:',clamp(e?.message))));
-  ctx.waitUntil(runInstagramWindsorDailySync(env,{get,put})
-   .then(r=>{if(r.status==='error')console.warn('Instagram day sync failed:',r.error)})
-   .catch(e=>console.error('Instagram day sync unavailable:',clamp(e?.message))));
-  ctx.waitUntil(runAudienceAutoSync(env,{get,put,tiktokOnly:env.BACK2U_WINDSOR_TIKTOK_ONLY==='true'})
-   .then(r=>{if(r.status==='error')console.warn('Audience scheduled sync failed:',r.error)})
-   .catch(e=>console.error('Audience scheduled sync could not complete:',clamp(e?.message))));
+  // One dedicated source phase per 15-minute tick. Previously all seven
+  // source requests competed within the same waitUntil lifetime; an
+  // unfinished request could prevent critical account-day D1 writes.
+  const clock=new Date(controller?.scheduledTime||Date.now());
+  const phase=syncPhaseForUtcMinute(clock.getUTCMinutes());
+  const guarded=(label,job)=>job.then(r=>{
+   if(r?.status==='error')console.warn(label+' sync failed:',clamp(r.error));
+  }).catch(e=>console.error(label+' sync unavailable:',clamp(e?.message)));
+  if(phase==='tiktok-daily'){
+   ctx.waitUntil(guarded('TikTok Organic day',runTikTokOrganicSync(env,{get,put})));
+  }else if(phase==='instagram-youtube-extras'){
+   ctx.waitUntil(guarded('Instagram day',runInstagramWindsorDailySync(env,{get,put})));
+   ctx.waitUntil(guarded('YouTube extras',runYouTubeWindsorExtrasSync(env,{get,put})));
+  }else if(phase==='tiktok-profile-instagram-followers'){
+   ctx.waitUntil(ttSync(env).catch(e=>console.error('TikTok Display sync:',clamp(e?.message))));
+   ctx.waitUntil(guarded('Instagram followers',runInstagramWindsorFollowersSync(env,{get,put})));
+  }else if(phase==='instagram-media-audience'){
+   ctx.waitUntil(guarded('Instagram media',runInstagramWindsorMediaSync(env,{get,put})));
+   ctx.waitUntil(guarded('Audience',runAudienceAutoSync(env,{get,put,
+    tiktokOnly:env.BACK2U_WINDSOR_TIKTOK_ONLY==='true'})));
+  }
+
  }
 };
