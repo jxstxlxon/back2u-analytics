@@ -385,3 +385,41 @@ body[data-theme-tone] .v74-audience-source{margin:8px 0 0;color:var(--t-ink-labe
  body[data-theme-tone] #roadmap .step{padding:15px 14px}
  body[data-theme-tone] #roadmap .step h4{font-size:16px}
 }
+
+/* V7.7.21 — live seven-day top videos, theme-aware and mobile-first. */
+.top-seven-card{padding:19px 20px;margin:0 0 19px;min-width:0;border:1px solid rgba(var(--t-accent-rgb,111,200,162),.36);background-image:linear-gradient(132deg,rgba(var(--t-accent-rgb,111,200,162),.12),transparent 62%)}
+.top-seven-heading{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap}
+.top-seven-heading h3{font:800 clamp(17px,2.3vw,23px)/1.2 var(--t-font-display,system-ui);color:var(--t-ink-strong,#fff);letter-spacing:-.035em;margin:8px 0}
+.top-seven-heading p{font:500 12px/1.5 var(--t-font-ui,system-ui);color:var(--t-ink-muted,#c2d4db);margin:0;max-width:660px}
+.top-seven-time{font:700 11px/1.5 var(--t-font-ui,system-ui);padding:7px 11px;border:1px solid rgba(var(--t-accent-rgb,111,200,162),.34);border-radius:999px;background:rgba(var(--t-card,23,48,48),.34);color:var(--t-ink-strong,#fff)}
+.top-seven-controls{display:flex;align-items:flex-end;flex-wrap:wrap;gap:10px;margin:16px 0 13px}
+.top-seven-controls label{display:grid;gap:5px;flex:1 1 260px;font:650 11px var(--t-font-ui,system-ui);color:var(--t-ink-muted,#c2d4db)}
+.top-seven-controls select{width:100%;min-width:0;min-height:40px;border:1px solid rgba(var(--t-accent-rgb,111,200,162),.39);border-radius:12px;background:var(--t-card,#183a34);color:var(--t-ink-strong,#fff);padding:8px 11px;font:650 12px var(--t-font-ui,system-ui)}
+.top-seven-controls button{min-height:40px;flex:0 1 auto;white-space:normal}
+.top-seven-controls button:disabled{opacity:.6;cursor:wait}
+.top-seven-status{color:var(--t-ink-muted,#b9cbd4);font:500 11px/1.6 var(--t-font-ui,system-ui);margin:4px 0 12px;overflow-wrap:anywhere}
+.top-seven-list{display:grid;gap:7px}
+.top-seven-item{display:flex;align-items:center;gap:10px;min-width:0;padding:10px 12px;border:1px solid rgba(var(--t-accent-rgb,111,200,162),.22);border-radius:15px;background:rgba(var(--t-card,23,48,48),.23)}
+.top-seven-rank{font:850 15px var(--t-font-display,system-ui);width:22px;text-align:center;flex:none;color:var(--t-ink-strong,#fff)}
+.top-seven-thumb{width:48px;height:48px;border-radius:10px;overflow:hidden;flex:none;background:rgba(var(--t-card,23,48,48),.5)}
+.top-seven-thumb img,.top-seven-thumb .poster-fallback{width:100%;height:100%;object-fit:cover}
+.top-seven-body{display:grid;gap:5px;min-width:0;flex:1 1 auto}
+.top-seven-body strong{font:700 12px/1.4 var(--t-font-ui,system-ui);color:var(--t-ink-strong,#fff);overflow-wrap:anywhere;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden}
+.top-seven-body small{font:550 10px/1.35 var(--t-font-ui,system-ui);color:var(--t-ink-muted,#bfd0d9)}
+.top-seven-score{display:grid;gap:3px;text-align:right;min-width:94px}
+.top-seven-score b{font:850 18px/1.1 var(--t-font-display,system-ui);font-variant-numeric:tabular-nums;color:var(--t-ink-strong,#fff)}
+.top-seven-score small{font:550 10px/1.2 var(--t-font-ui,system-ui);color:var(--t-ink-muted,#bfd0d9)}
+.top-seven-item>a{flex:none;text-decoration:none;border:1px solid rgba(var(--t-accent-rgb,111,200,162),.3);border-radius:9px;padding:7px 9px;color:var(--t-ink-strong,#fff);font:700 11px var(--t-font-ui,system-ui)}
+.top-seven-item>a:focus-visible,.top-seven-controls button:focus-visible,.top-seven-controls select:focus-visible{outline:2px solid var(--t-accent,#6fdfbc);outline-offset:2px}
+.top-seven-empty{padding:19px 14px;border:1px dashed rgba(var(--t-accent-rgb,111,200,162),.3);border-radius:13px;color:var(--t-ink-muted,#bfd0d9);font:550 12px/1.5 var(--t-font-ui,system-ui)}
+@media(max-width:620px){
+ .top-seven-card{padding:15px 12px;border-radius:19px}
+ .top-seven-heading h3{font-size:19px}
+ .top-seven-controls button{width:100%}
+ .top-seven-item{gap:8px;padding:10px 8px;flex-wrap:wrap}
+ .top-seven-thumb{height:42px;width:42px}
+ .top-seven-rank{width:15px;font-size:13px}
+ .top-seven-score{min-width:74px}
+ .top-seven-score b{font-size:15px}
+ .top-seven-item>a{margin-left:auto}
+}
