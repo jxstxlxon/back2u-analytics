@@ -119,8 +119,9 @@ await testAsync('cron creates a separate D1 store and does not replace original 
  const r=await runTikTokOrganicSync(env,{...d,now:NOW,fetcher});
  assert.equal(r.status,'ok');
  assert.equal(d.m.has('snapshot'),false);
- assert.equal(d.m.get('tt_windsor_daily_v1').videos.length,7);
- assert.equal(calls.length,2);
+ assert.equal(d.m.get('tt_windsor_daily_v1').videos.length,0);
+ assert.equal(calls.length,1);
+ assert.equal(r.mediaStatus,'separate-oauth');
  assert.ok(calls.every(x=>x.pathname==='/tiktok_organic'&&x.searchParams.get('select_accounts')===ACCOUNT));
  const dailyQuery=calls.find(x=>x.searchParams.get('fields').includes('unique_video_views'));
  assert.equal(dailyQuery.searchParams.get('date_to'),'2026-11-14');
@@ -128,7 +129,7 @@ await testAsync('cron creates a separate D1 store and does not replace original 
  assert.ok(dailyQuery.searchParams.get('fields').includes('daily_lost_followers'));
  const skip=await runTikTokOrganicSync(env,{...d,now:NOW+20*60000,fetcher});
  assert.equal(skip.status,'skipped');
- assert.equal(calls.length,2);
+ assert.equal(calls.length,1);
 });
 await testAsync('connection outage leaves previous successful TikTok data intact',async()=>{
  const d=db(),env={WINDSOR_API_KEY:'private_mock_windsor_key_ABCDEFGHIJKLMNOPQ'};
@@ -199,12 +200,12 @@ await testAsync('media API outage still commits verified TikTok daily reports',a
   if(isMedia)throw Error('Simulated media API timeout');
   return{ok:true,json:async()=>rows};
  }});
- assert.equal(t.status,'partial');
+ assert.equal(t.status,'ok');
  assert.equal(t.dayThrough,'2026-11-13');
- assert.equal(t.mediaStatus,'unavailable');
+ assert.equal(t.mediaStatus,'separate-oauth');
  assert.equal(store.m.get('tt_windsor_daily_v1').daily.length,5);
  assert.equal(store.m.get('tt_windsor_daily_v1').videos.length,0);
- assert.deepEqual(calls.sort(),['day','media']);
+ assert.deepEqual(calls,['day']);
 });
 
 test('malformed out-of-period rows cannot block valid November account-days',()=>{
@@ -250,9 +251,9 @@ await testAsync('new importer version retries once despite a recent failed old p
   return{ok:true,json:async()=>url.includes('video_id')?videos:rows};
  }});
  assert.equal(result.status,'ok');
- assert.equal(result.pipelineVersion,'v77.8-resilient-days');
+ assert.equal(result.pipelineVersion,'v77.9-prioritize-verified-days');
  assert.equal(result.dayThrough,'2026-11-13');
- assert.equal(fetchCalls.length,2);
+ assert.equal(fetchCalls.length,1);
  const skip=await runTikTokOrganicSync(env,{...d,now:NOW+120000,
   fetcher:()=>{throw Error('must throttle same deployment')}});
  assert.equal(skip.status,'skipped');

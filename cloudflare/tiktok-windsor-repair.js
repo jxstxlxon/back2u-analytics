@@ -169,7 +169,7 @@ export async function runTikTokOrganicSync(env,{
  if(secret.length<16)return{status:'not_configured',reason:'WINDSOR_API_KEY fehlt'};
  const old=await get(env,STATUS_STORE)||{};
  const last=Date.parse(old.lastAttemptAt||'');
- const pipelineVersion='v77.8-resilient-days';
+ const pipelineVersion='v77.9-prioritize-verified-days';
  const throttle=(old.status==='ok'||old.status==='partial')?6*3600000:
   old.status==='running'?45*60000:10*60000;
  // A newly deployed validation fix must not be blocked by a stale
@@ -194,34 +194,25 @@ export async function runTikTokOrganicSync(env,{
    u.searchParams.set('_renderer','json');
    return u.href;
   };
-  const opts=()=>({method:'GET',headers:{accept:'application/json'},
-   signal:AbortSignal.timeout(25000)});
+  // A daily report must never wait for the separate media inventory.
+  // Cloudflare waitUntil may be terminated before a slow second request
+  // finishes, leaving the status at "running" and *no* day values in D1.
+  // TikTok OAuth continues handling the media catalogue separately.
   const dailyUrl=query('date,account_id,username,video_views,likes,comments,shares,followers_count,daily_total_followers,daily_lost_followers,engaged_audience,bio_link_clicks,total_followers_count,unique_video_views,profile_views','last_14d');
-  const mediaUrl=query('date,account_id,username,video_id,video_create_datetime,video_views_count,video_likes,video_comments,video_caption','last_21d');
-  const [dFetch,mFetch]=await Promise.allSettled([fetcher(dailyUrl,opts()),fetcher(mediaUrl,opts())]);
-  if(dFetch.status!=='fulfilled'||!dFetch.value.ok)
-   throw Error('TikTok day HTTP '+(dFetch.status==='fulfilled'?dFetch.value.status:'connection failed'));
-  const dr=await dFetch.value.json();
+  const dayResponse=await fetcher(dailyUrl,{method:'GET',
+   headers:{accept:'application/json'},signal:AbortSignal.timeout(16000)});
+  if(!dayResponse.ok)throw Error('TikTok day HTTP '+dayResponse.status);
+  const dr=await dayResponse.json();
   const verifiedDays=validateTikTokOrganicDays(responseRows(dr),now);
-  // Video inventory is optional: an independent media outage may not stop
-  // correct account-wide daily statistics from reaching the dashboard.
-  let media=[],mediaError=null;
-  if(mFetch.status==='fulfilled'&&mFetch.value.ok){
-   try{
-    const mr=await mFetch.value.json(),rows=responseRows(mr);
-    if(Array.isArray(rows)&&rows.length)media=validateTikTokOrganicMedia(rows,now);
-    else mediaError='no recent media';
-   }catch(e){mediaError=errorText(e)}
-  }else mediaError='video connector unavailable';
-  const verified={days:verifiedDays,media};
+  const verified={days:verifiedDays,media:[]};
   const previous=await get(env,DAY_STORE);
   const combined=combineTikTokOrganicState(previous,verified,now);
-  // Both batches must validate before a single new store is written.
+  // Day rows validate before this independent D1 write; media never blocks it.
   await put(env,DAY_STORE,combined);
-  const result={pipelineVersion,status:mediaError?'partial':'ok',lastAttemptAt:time,lastSuccessAt:time,
+  const result={pipelineVersion,status:'ok',lastAttemptAt:time,lastSuccessAt:time,
    dayThrough:combined.daily.at(-1)?.d||null,dailyDays:combined.daily.length,
    recentVideos:combined.videos.length,latestVideoDay:combined.videos.at(-1)?.date||null,
-   mediaStatus:mediaError?'unavailable':'ok',mediaError,error:null};
+   mediaStatus:'separate-oauth',mediaError:null,error:null};
   await put(env,STATUS_STORE,result);
   return result;
  }catch(e){
