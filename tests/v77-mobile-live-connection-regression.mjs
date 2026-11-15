@@ -29,7 +29,14 @@ assert.ok(html.includes("if(!state.live&&!state.loading)loadLive(true)"),
  'Failed initial load retries only once and does not overwrite live state');
 assert.ok(html.includes("Die Werte stammen vom letzten erfolgreich geladenen Stand."),
  'A transient failure must preserve and label the last good in-memory data');
-// Admin snapshot triggers background imports via ctx.waitUntil; the request-scoped\n// context must be threaded through the private API router. Otherwise a\n// ReferenceError turns authenticated /api/snapshot into HTTP 502.\nassert.match(worker,/async function route\\(req,env,ctx\\)\\s*\\{/);\nassert.match(worker,/if\\(path\\.startsWith\\('\\/api\\/'\\)\\)return await route\\(req,env,ctx\\)/);\nassert.ok(worker.includes("ctx.waitUntil(runInstagramWindsorDailySync"));\nassert.ok(worker.includes("ctx.waitUntil(runYouTubeWindsorExtrasSync"));\nassert.ok(worker.includes("health.snapshotStored="));
+// Admin snapshot triggers background imports through ctx.waitUntil.
+// The request-scoped context must reach the API router, or authenticated
+// /api/snapshot fails before returning saved videos and daily metrics.
+assert.ok(worker.includes('async function route(req,env,ctx){'));
+assert.ok(worker.includes("if(path.startsWith('/api/'))return await route(req,env,ctx);"));
+assert.ok(worker.includes('ctx.waitUntil(runInstagramWindsorDailySync'));
+assert.ok(worker.includes('ctx.waitUntil(runYouTubeWindsorExtrasSync'));
+assert.ok(worker.includes("health.snapshotStored="));
 assert.ok(worker.includes("health.snapshotHasVideoCatalog="));
 assert.ok(worker.includes("health.snapshotHasDailySeries="));
 assert.ok(!worker.includes("health.snapshotRecord="),
