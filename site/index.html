@@ -482,17 +482,23 @@ function renderExtendedDaily(){
   {p:'ig',key:'reach',name:'Tagesreichweite (Summe)',unit:'count'},
   {p:'ig',key:'likes',name:'Likes · Tageswerte',unit:'count'},
   {p:'ig',key:'comments',name:'Kommentare · Tageswerte',unit:'count'},
+  {p:'ig',key:'engagedAccounts',name:'Interagierende Konten · Tagessumme',unit:'count'},
   {p:'tt',key:'uniqueViews',name:'Erreichte Zuschauer · Tagessumme',unit:'count'},
+  {p:'tt',key:'engagedAudience',name:'Interagierende Zuschauer · Tagessumme',unit:'count'},
   {p:'tt',key:'profileViews',name:'Profilaufrufe · Tagessumme',unit:'count'},
   {p:'tt',key:'likes',name:'Likes · Tageswerte',unit:'count'},
   {p:'tt',key:'comments',name:'Kommentare · Tageswerte',unit:'count'},
   {p:'tt',key:'shares',name:'Geteilte Videos · Tageswerte',unit:'count'},
-  {p:'tt',key:'follows',name:'Neue Follows · Tagessumme',unit:'count'}
+  {p:'tt',key:'follows',name:'Gemeldete Followeränderung · Tagessumme',unit:'count'},
+  {p:'tt',key:'netFollows',name:'Netto-Followeränderung · Tagessumme',unit:'count'},
+  {p:'tt',key:'lostFollowers',name:'Verlorene Follower · Tagessumme',unit:'count'},
+  {p:'tt',key:'bioLinkClicks',name:'Link-in-Bio-Klicks · Tagessumme',unit:'count'}
  ];
  const cards=[];
  for(const spec of specs.filter(o=>ps.includes(o.p))){
   const all=mergedDaily(spec.p).filter(r=>r.d>=start&&r.d<=end);
-  const verifiedMetric=r=>spec.p==='yt'?r.source==='YouTube Analytics API':
+  const verifiedMetric=r=>spec.p==='yt'?r.source==='YouTube Analytics API'||
+    r.sourceFields?.[spec.key]==='Windsor.ai YouTube Analytics (account-day)':
    spec.p==='ig'?['Meta Graph API (direct daily)','Windsor.ai Instagram Insights (account-day)']
     .includes(r.sourceFields?.[spec.key]):
    spec.p==='tt'&&r.source==='TikTok Organic via Windsor.ai';
@@ -502,7 +508,7 @@ function renderExtendedDaily(){
    (rows.length?rows.reduce((sum,r)=>sum+r[spec.key],0):null);
   const formatted=value===null?'–':spec.unit==='minutes'?dec(value)+' Min.':
    spec.unit==='seconds'?dec(value)+' s':fmt(value);
-  const sourceLabel=spec.p==='tt'?'TikTok Organic':spec.p==='ig'?'Meta/Windsor':'YouTube Analytics';
+  const sourceLabel=spec.p==='tt'?'TikTok Organic':spec.p==='ig'?'Meta/Windsor':'YouTube Analytics/Windsor';
   const note=(spec.latest?(latest?'Messdatum '+latest.d:'Noch kein bestätigter Tageswert'):
     (rows.length+' von '+totalDays+' Tagen · '+(rows.length===totalDays?'vollständig':'unvollständig')))+' · '+sourceLabel;
   cards.push('<div class="glass metric-box"><small>'+esc(NAMES[spec.p])+' · '+esc(spec.name)+
@@ -510,7 +516,7 @@ function renderExtendedDaily(){
  }
  panel.innerHTML=cards.length?cards.join(''):
   '<div class="glass metric-box"><small>Verfügbare Direktdaten</small><strong>–</strong><p>Für TikTok liegen diese zusätzlichen offiziellen Tagesberichte nicht vor.</p></div>';
- foot.textContent='7/28/90 Tage zeigen nur bestätigte API-Tageswerte. Fehlende Tage werden nicht als Null geschätzt. YouTube: direkte Analytics; Instagram: Meta bzw. Windsor.ai; TikTok: TikTok Organic über Windsor.ai. Likes/Kommentare/Shares sind echte Tageswerte, Follows sind neue Follows (nicht Netto-Followerwachstum). Reichweite oder erreichte Zuschauer werden als Summe einzelner Tage dargestellt – nicht als eindeutige Personen im gesamten Zeitraum.';
+ foot.textContent='7/28/90 Tage verwenden nur bestätigte API-Tageswerte. Fehlende Tage sind keine Null. YouTube Analytics bzw. Windsor, Instagram Meta bzw. Windsor und TikTok Organic liefern getrennt gekennzeichnete Werte. Gemeldete und Netto-Followeränderung sind verschiedene Felder. Ø Wiedergabedauer zeigt den letzten verifizierten Tag, keine Summe. Erreichte/interagierende Personen werden als Tagessumme dargestellt, nicht als eindeutige Personen des gesamten Zeitraums.';
 }
 
 function renderOverview(){renderExtendedDaily();const x=allMetric();const historic=state.days===28&&!platforms().some(p=>state.live?.platforms?.[p]?.daily?.length);let heroLabel='Gesamtaufrufe',heroVal=x.views,delta='';const ps=platforms();
@@ -767,7 +773,7 @@ function renderSystem(){const s=state.live;$('#connectionCards').innerHTML=['yt'
   if(diag?.windsorConfigured===false)
    warnings.push('Windsor.ai ist in Cloudflare nicht verbunden: WINDSOR_API_KEY fehlt. Die automatischen Instagram-/TikTok-Updates können deshalb nicht laufen.');
   if(diag?.windsorConfigured===true){
-   for(const [name,item] of [['Instagram-Follower',diag.instagramFollowers],['Instagram-Tageswerte',diag.instagramDays],['Instagram-Reels',diag.instagramMedia],['TikTok-Tageswerte und Videos',diag.tiktok]]){
+   for(const [name,item] of [['Instagram-Follower',diag.instagramFollowers],['Instagram-Tageswerte',diag.instagramDays],['Instagram-Reels',diag.instagramMedia],['TikTok-Tageswerte und Videos',diag.tiktok],['YouTube-Zusatzwerte',diag.youtubeExtras]]){
     const status=item?.syncStatus||item?.status||'never_run';
     if(status==='error'||status==='not_configured')warnings.push(name+': '+(item.error||status));
     else if(status==='never_run')warnings.push(name+': noch kein erfolgreicher automatischer Abruf bestätigt');
