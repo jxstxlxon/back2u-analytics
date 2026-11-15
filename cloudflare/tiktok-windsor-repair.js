@@ -28,58 +28,55 @@ function accountOK(row){
 }
 
 export function validateTikTokOrganicDays(rows,now=Date.now()){
- if(!Array.isArray(rows)||rows.length<3||rows.length>35)
+ if(!Array.isArray(rows)||rows.length<3||rows.length>150)
   throw Error('TikTok-Tagesbericht fehlt oder ist unvollständig');
  const today=iso(now),cutoff=iso(now-21*DAY);
- const byDate=new Map(),candidates=[];
- const conflicted=new Set();
+ const byDate=new Map(),conflicted=new Set(),candidates=[];
+ const fields={views:'video_views',likes:'likes',comments:'comments',
+  shares:'shares',follows:'followers_count',
+  netFollows:'daily_total_followers',lostFollowers:'daily_lost_followers',
+  engagedAudience:'engaged_audience',bioLinkClicks:'bio_link_clicks',
+  uniqueViews:'unique_video_views',profileViews:'profile_views'};
+ // TikTok net follower changes may legitimately be negative.
+ const signed=x=>x!==''&&x!==null&&x!==undefined&&typeof x!=='boolean'&&
+  Number.isSafeInteger(Number(x))&&Math.abs(Number(x))<=1000000?Number(x):null;
  for(const row of rows){
+  // Never mix data from another TikTok account.
   if(!accountOK(row))throw Error('TikTok-Konto nicht verifiziert');
-  const d=String(row.date||'');
-  if(!dateOK(d)||d<cutoff||d>today)
-   throw Error('Ungültiger TikTok-Berichtstag');
-  const fields={views:'video_views',likes:'likes',comments:'comments',
-   shares:'shares',follows:'followers_count',netFollows:'daily_total_followers',
-   lostFollowers:'daily_lost_followers',engagedAudience:'engaged_audience',
-   bioLinkClicks:'bio_link_clicks',uniqueViews:'unique_video_views',
-   profileViews:'profile_views'};
-  // Current-day account rows can have NULL metrics while followers_count
-  // is already published. They must not veto all completed historical days.
+  const rawDate=String(row.date||'').trim();
+  // Windsor may include timestamp-formatted days, duplicated pending-day
+  // records, or extraneous rows outside the explicitly requested window.
+  const d=rawDate.slice(0,10);
+  if(!dateOK(d)||d<cutoff||d>today)continue;
   const followerTotal=numeric(row.total_followers_count);
   if(followerTotal!==null&&followerTotal>0)candidates.push({date:d,followers:followerTotal});
-  if(d===today)continue; // current-day NULL/duplicate rows are not completed days
+  if(d===today)continue; // current-day analytics are not completed
   const entry={d};
   for(const [to,from] of Object.entries(fields)){
-   const value=numeric(row[from]);
-   if(value!==null)entry[to]=value;
-   else if(row[from]!==null&&row[from]!==undefined&&row[from]!=='')
-    throw Error('TikTok-Tagesmetrik ungültig: '+from);
+   const raw=row[from];
+   const v=(to==='netFollows'||to==='follows')?signed(raw):numeric(raw);
+   // Unknown optional fields are *absent*, never invented as zero.
+   if(v!==null)entry[to]=v;
   }
-  if(entry.views===undefined){
-   if(d>=iso(now-3*DAY))continue;
-   throw Error('TikTok-Tagesaufrufe fehlen');
-  }
-  // A completely zero-filled recent report may be a not-yet-published batch.
-  // Do not interpret it as a confirmed day with zero views/follows/likes.
-  const incompleteZero=entry.views===0&&
+  // A row without a trustworthy primary views count cannot be a day.
+  if(entry.views===undefined)continue;
+  const placeholder=entry.views===0&&
    ['likes','comments','shares','follows'].every(k=>entry[k]===0||entry[k]===undefined)&&
    d>=iso(now-3*DAY);
-  if(incompleteZero)continue;
-  // Repeated, identical rows must not block ALL valid days. Conflicting rows
-  // for one date are discarded rather than guessed or silently summed.
+  if(placeholder)continue; // pending all-zero batch is not a verified day
   if(conflicted.has(d))continue;
-  const existing=byDate.get(d);
-  if(existing){
-   const keys=new Set([...Object.keys(existing),...Object.keys(entry)]);
-   const contradiction=[...keys].some(k=>k!=='d'&&existing[k]!==undefined&&
-      entry[k]!==undefined&&existing[k]!==entry[k]);
-   if(contradiction){conflicted.add(d);byDate.delete(d);continue}
-   byDate.set(d,{...existing,...entry});
+  const prior=byDate.get(d);
+  if(prior){
+   const keys=new Set([...Object.keys(prior),...Object.keys(entry)]);
+   const incompatible=[...keys].some(k=>k!=='d'&&prior[k]!==undefined&&
+    entry[k]!==undefined&&prior[k]!==entry[k]);
+   if(incompatible){conflicted.add(d);byDate.delete(d);continue}
+   byDate.set(d,{...prior,...entry});
   }else byDate.set(d,entry);
  }
- const daily=[...byDate.values()].filter(Boolean).sort((a,b)=>a.d.localeCompare(b.d));
+ const daily=[...byDate.values()].sort((x,y)=>x.d.localeCompare(y.d));
  if(daily.length<3)throw Error('TikTok-Tagesstatistik enthält zu wenig bestätigte Tage');
- const profile=candidates.sort((a,b)=>a.date.localeCompare(b.date)).at(-1)||null;
+ const profile=candidates.sort((x,y)=>x.date.localeCompare(y.date)).at(-1)||null;
  return {daily,profile};
 }
 
@@ -172,12 +169,16 @@ export async function runTikTokOrganicSync(env,{
  if(secret.length<16)return{status:'not_configured',reason:'WINDSOR_API_KEY fehlt'};
  const old=await get(env,STATUS_STORE)||{};
  const last=Date.parse(old.lastAttemptAt||'');
+ const pipelineVersion='v77.8-resilient-days';
  const throttle=(old.status==='ok'||old.status==='partial')?6*3600000:
-  old.status==='running'?45*60000:60*60000;
- if(!force&&Number.isFinite(last)&&now-last>=0&&now-last<throttle)
+  old.status==='running'?45*60000:10*60000;
+ // A newly deployed validation fix must not be blocked by a stale
+ // failed attempt from the previous importer. Retry once per version.
+ if(!force&&old.pipelineVersion===pipelineVersion&&
+    Number.isFinite(last)&&now-last>=0&&now-last<throttle)
   return{status:'skipped',lastSuccessAt:old.lastSuccessAt||null};
  const time=new Date(now).toISOString();
- await put(env,STATUS_STORE,{...old,status:'running',lastAttemptAt:time});
+ await put(env,STATUS_STORE,{...old,pipelineVersion,status:'running',lastAttemptAt:time});
  try{
   const query=(fields,preset)=>{
    const u=new URL('https://connectors.windsor.ai/tiktok_organic');
@@ -217,14 +218,14 @@ export async function runTikTokOrganicSync(env,{
   const combined=combineTikTokOrganicState(previous,verified,now);
   // Both batches must validate before a single new store is written.
   await put(env,DAY_STORE,combined);
-  const result={status:mediaError?'partial':'ok',lastAttemptAt:time,lastSuccessAt:time,
+  const result={pipelineVersion,status:mediaError?'partial':'ok',lastAttemptAt:time,lastSuccessAt:time,
    dayThrough:combined.daily.at(-1)?.d||null,dailyDays:combined.daily.length,
    recentVideos:combined.videos.length,latestVideoDay:combined.videos.at(-1)?.date||null,
    mediaStatus:mediaError?'unavailable':'ok',mediaError,error:null};
   await put(env,STATUS_STORE,result);
   return result;
  }catch(e){
-  const failed={...old,status:'error',lastAttemptAt:time,
+  const failed={...old,pipelineVersion,status:'error',lastAttemptAt:time,
    lastSuccessAt:old.lastSuccessAt||null,error:errorText(e)};
   await put(env,STATUS_STORE,failed);
   return failed;
