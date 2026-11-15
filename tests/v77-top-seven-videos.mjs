@@ -116,5 +116,5 @@ assert.match(css,/#topSevenList \.top-seven-item\s*\{\s*display:grid/);
 assert.match(css,/grid-template-areas:"rank thumb body score"/);
 assert.match(css,/#topSevenList \.top-seven-platforms/);
 assert.match(css,/@media\(max-width:620px\)\s*\{\s*#topSevenList \.top-seven-item/);
-assert.ok(html.includes('href="/dashboard-v7.css?v=14"'),'iOS Safari must load new CSS');
+assert.ok(html.includes('href="/dashboard-v7.css?v=15"'),'iOS Safari must load new CSS');
 console.log('OK Top 10: three-platform grouped video ranking, strict crosspost matching, scope-safe sums, zero/missing distinction, genuine YouTube 7d and stable iPhone grid');
