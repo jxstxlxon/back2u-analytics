@@ -1000,7 +1000,16 @@ document.querySelector('#back2uLoginForm').addEventListener('submit',async(e)=>{
 async function loadLive(force=false){if(state.loading)return;state.loading=true;$('#refreshBtn').classList.add('spinning');state.lastError=null;
  const url=location.protocol==='file:'?null:`/api/snapshot${force?'?refresh=1':''}`;
  if(!url){state.lastError='Lokale Datei – keine Serververbindung.';state.loading=false;$('#refreshBtn').classList.remove('spinning');renderActive();if(force)toast('Offline-Datei: Für Live-Daten den Cloudflare-Worker veröffentlichen.');return}
- try{let response=await fetch(url,{credentials:'same-origin',cache:'no-store',signal:AbortSignal.timeout(45000)});if(response.status===401){showLogin();throw Error('Bitte anmelden')}if(!response.ok)throw Error('API-Status '+response.status);let data=await response.json();if(!data.platforms||!data.generatedAt)throw Error('Ungültige Serverantwort');state.live=data;state.sourceDiagnostics=null;try{const sr=await fetch('/api/sync-sources/status',{credentials:'same-origin',cache:'no-store',signal:AbortSignal.timeout(8000)});if(sr.ok)state.sourceDiagnostics=await sr.json()}catch(_){}state.lastError=data.errors?.length?`${data.errors.length} Teildatenfehler`:null;toast(`Datenabgleich ${data.errors?.length?'mit Einschränkungen':'erfolgreich'}`)}catch(e){state.lastError=String(e.message||e);if(force)toast('Live-Abruf nicht möglich. Archivdaten bleiben erhalten.')}finally{state.loading=false;$('#refreshBtn').classList.remove('spinning');renderActive();if(state.storyMode)renderStory()}
+ try{let response=await fetch(url,{credentials:'same-origin',cache:'no-store',signal:AbortSignal.timeout(45000)});if(response.status===401){showLogin();throw Error('Bitte anmelden')}if(!response.ok)throw Error('API-Status '+response.status);let data=await response.json();if(!data.platforms||!data.generatedAt)throw Error('Ungültige Serverantwort');state.live=data;state.sourceDiagnostics=null;
+ // Diagnostics are optional. Never freeze the overview for up to 8 seconds
+ // while waiting on multiple Cloudflare D1 status reads.
+ fetch('/api/sync-sources/status',{credentials:'same-origin',cache:'no-store',
+  signal:AbortSignal.timeout(8000)})
+  .then(async sr=>{if(sr.ok){const info=await sr.json();
+   if(state.live===data){state.sourceDiagnostics=info;
+    if(state.section==='system')renderSystem();}}})
+  .catch(()=>{});
+ state.lastError=data.errors?.length?`${data.errors.length} Teildatenfehler`:null;toast(`Datenabgleich ${data.errors?.length?'mit Einschränkungen':'erfolgreich'}`)}catch(e){state.lastError=String(e.message||e);if(force)toast('Live-Abruf nicht möglich. Archivdaten bleiben erhalten.')}finally{state.loading=false;$('#refreshBtn').classList.remove('spinning');renderActive();if(state.storyMode)renderStory()}
 }
 async function syncTiktokNow(){
  const btn=$('#tiktokSyncNow'), hint=$('#tiktokSyncHint');
