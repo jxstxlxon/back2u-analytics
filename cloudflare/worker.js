@@ -745,6 +745,31 @@ async function route(req,env){
     };
    }
   }catch(_){health.tiktokSync={state:'read-failed',reason:'storage'};}
+  // Temporary high-level production diagnosis for missing extras; expose no
+  // account metrics, dates, tokens or error messages to the public health URL.
+  try {
+   if(env.DB){
+    const [igData,igJob,ytData,ytJob]=await Promise.all([
+     get(env,'ig_windsor_daily_v1'),get(env,'ig_windsor_daily_sync_v1'),
+     get(env,'yt_windsor_extras_v1'),get(env,'yt_windsor_extras_sync_v1')
+    ]);
+    const status=j=>['ok','partial','error','running'].includes(j?.status)?
+     j.status:'never_run';
+    health.extraSync={
+     instagram:{state:status(igJob),
+      hasDays:!!igData?.daily?.length,
+      hasSaves:!!igData?.daily?.some(d=>Number.isFinite(d.saves)),
+      hasShares:!!igData?.daily?.some(d=>Number.isFinite(d.shares)),
+      hasEngagedAccounts:!!igData?.daily?.some(d=>Number.isFinite(d.engagedAccounts)),
+      hasFullWindow:(igData?.daily?.length||0)>=27},
+     youtube:{state:status(ytJob),
+      hasDays:!!ytData?.daily?.length,
+      hasEngagedViews:!!ytData?.daily?.some(d=>Number.isFinite(d.engagedViews)),
+      hasWatchMinutes:!!ytData?.daily?.some(d=>Number.isFinite(d.watchMinutes)),
+      hasFullWindow:(ytData?.daily?.length||0)>=25}
+    };
+   }
+  }catch(_){health.extraSync={state:'read-failed'};}
   return json(health);
  }
  if(path==='/api/login')return req.method==='POST'?issueToken(req,env):json({error:'POST only'},405);
