@@ -23,6 +23,7 @@ jobs:
               flag=$(node -e 'try{const h=JSON.parse(process.env.HEALTH);if(typeof h.windsorReady==="boolean"&&h.tiktokSync&&typeof h.tiktokSync.state==="string"&&h.extraSync&&h.extraSync.instagram&&h.extraSync.youtube)process.stdout.write(h.windsorReady?"ready":"missing");else process.stdout.write("not-deployed")}catch{process.stdout.write("invalid")}')
               if [ "$flag" = "ready" ]; then
                 echo "WINDSOR_CONNECTION=CONFIGURED"
+                node -e 'const h=JSON.parse(process.env.HEALTH);for(const k of ["snapshotStored","snapshotHasVideoCatalog","snapshotHasDailySeries"]){if(typeof h[k]==="boolean")console.log("PROD_"+k.toUpperCase()+"="+h[k])}'
                 node -e 'const x=JSON.parse(process.env.HEALTH).tiktokSync;for(const k of ["state","reason","hasSavedDays","savedNewerThanSnapshot","originalHasDays","lastAttemptRecent","lastSuccessRecent"]){let v=x[k];if(typeof v==="boolean"||typeof v==="string")console.log("TIKTOK_"+k.toUpperCase()+"="+v)}'
                 node -e 'const h=JSON.parse(process.env.HEALTH);for(const [name,x] of Object.entries(h.extraSync||{})){if(!x||typeof x!=="object")continue;for(const [k,v] of Object.entries(x)){if(typeof v==="boolean"||typeof v==="string")console.log("EXTRAS_"+name.toUpperCase()+"_"+k.toUpperCase()+"="+v)}}'
                 exit 0
