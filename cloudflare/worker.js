@@ -10,6 +10,7 @@ import {runInstagramWindsorFollowersSync,overlayInstagramWindsorFollowers,instag
 import {runTikTokOrganicSync,overlayTikTokOrganicState,tiktokOrganicStatus} from './tiktok-windsor-repair.js';
 import {syncPhaseForUtcMinute,isLegacyThirtyMinuteCron} from './sync-schedule.js';
 import {snapshotWithRawFallback} from './snapshot-recovery.js';
+import {reconcileSnapshotWarnings} from './snapshot-warning-reconcile.js';
 import {runYouTubeWindsorExtrasSync,overlayYouTubeWindsorExtras,youtubeWindsorExtrasStatus} from './youtube-windsor-extras.js';
 /* BACK2U Cloudflare Worker - private creator dashboard.
    Independent of Netlify. Do not publish API keys or creator analytics in static assets.
@@ -361,7 +362,9 @@ async function hydratedSnapshot(env){
      videoCount:tiktokProfile.videoCount,asOf:tiktokProfile.updatedAt,
      source:'TikTok Display API',history:tiktokProfile.history||[]};
  }
- const tiktokWindsor=await get(env,'tt_windsor_daily_v1');
+ const [tiktokWindsor,tiktokSync,tiktokCursor]=await Promise.all([
+  get(env,'tt_windsor_daily_v1'),get(env,'tt_windsor_sync_v1'),get(env,'tt_page_cursor')
+ ]);
  if(tiktokWindsor?.schema===1)overlayTikTokOrganicState(s,tiktokWindsor,tiktokProfile);
  const [verified,windsorYT]=await Promise.all([
   get(env,'yt_analytics_daily'),get(env,'yt_windsor_extras_v1')
@@ -376,7 +379,10 @@ async function hydratedSnapshot(env){
   s.dataThrough=s.platforms.yt.daily.at(-1)?.d||s.dataThrough;
  }
  if(windsorYT?.schema===1)overlayYouTubeWindsorExtras(s,windsorYT);
- return s;
+ // The old Sheets bootstrap warning can survive despite verified current
+ // TikTok media and day values. Reconcile only in the authenticated view.
+ // Keep real unfinished TikTok pagination and all unrelated errors visible.
+ return reconcileSnapshotWarnings(s,{tiktokOrganic:tiktokWindsor,tiktokSync,tiktokCursor});
 }
 
 async function ingestInstagramProfile(req,env){

@@ -267,6 +267,14 @@ const COLORS={yt:'#ff849b',ig:'#b29bff',tt:'#63e7db'};
 const NAMES={yt:'YouTube',ig:'Instagram',tt:'TikTok'};
 const state={platform:'all',days:28,section:'overview',glass:48,sort:'views',fmt:'all',query:'',page:1,listExpanded:false,selected:null,live:null,loading:false,lastError:null,partialWarningCount:0,topSevenMode:'uploads',manualLinks:[],manualRevision:0,manualCanEdit:false,includeTiktokArchive:false,storyMode:false};
 function syncWarningCount(data){const n=Array.isArray(data?.errors)?data.errors.length:0;return Math.max(n,data?.snapshotFallback==='original-d1'?1:0)}
+function snapshotWarningHint(data){
+ const problems=Array.isArray(data?.errors)?data.errors:[];
+ if(problems.length===1&&problems[0]?.platform==='tt'&&problems[0]?.task==='video-list')
+  return 'TikTok: Der Abruf aller älteren Videos ist noch nicht abgeschlossen.';
+ if(problems.length===1&&problems[0]?.platform==='tt'&&problems[0]?.task==='tt-feed')
+  return 'TikTok: Die Synchronisierung ist noch nicht als vollständig bestätigt.';
+ return 'Einzelne Zusatzwerte können fehlen.';
+}
 try{const saved=Number(localStorage.getItem('back2u_glass'));if(Number.isFinite(saved)&&saved>=0&&saved<=100)state.glass=saved}catch{}
 try{
  const remembered=JSON.parse(localStorage.getItem('back2u_view_preferences_v5')||'null');
@@ -1147,10 +1155,14 @@ function renderActive(){document.body.dataset.activeSection=state.section;setSyn
    // Do not obscure genuine missing supplemental statistics either.
    notice.textContent=state.live.snapshotFallback==='original-d1'?
     'Gespeicherte Basisdaten geladen. Zusatzwerte sind derzeit eingeschränkt. ':
-    `Daten aus Cloudflare geladen · ${state.partialWarningCount} ${state.partialWarningCount===1?'Einschränkung':'Einschränkungen'}. Einzelne Zusatzwerte können fehlen. `;
+    `Daten aus Cloudflare geladen · ${state.partialWarningCount} ${state.partialWarningCount===1?'Einschränkung':'Einschränkungen'}. ${snapshotWarningHint(state.live)} `;
    const button=document.createElement('button');button.type='button';
-   button.className='live-reconnect-button';button.textContent='Erneut prüfen';
-   button.addEventListener('click',()=>loadLive(true));notice.append(button);
+   button.className='live-reconnect-button';
+   const unfinishedTikTok=state.live?.errors?.some(e=>e?.platform==='tt'&&e?.task==='video-list')&&
+    document.body.dataset.back2uAccessRole==='admin';
+   button.textContent=unfinishedTikTok?'TikTok weiter synchronisieren':'Erneut prüfen';
+   button.addEventListener('click',()=>unfinishedTikTok?syncTiktokNow():loadLive(true));
+   notice.append(button);
   }else notice.textContent=state.days===90?
    '90 Tage: Es werden nur tatsächlich verfügbare Zeiträume angezeigt. Fehlende Werte werden nicht hochgerechnet.':'';
  }
