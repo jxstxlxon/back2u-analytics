@@ -708,7 +708,7 @@ async function ttAuditVideos(env){
  await put(env,'tt_video_query_audit',audit);
  return audit;
 }
-async function route(req,env){
+async function route(req,env,ctx){
  const path=new URL(req.url).pathname;
  if(path==='/api/health'){
   // Temporary deployment diagnostic: expose only generic health categories,
@@ -977,7 +977,7 @@ export default {
  async fetch(req,env,ctx){
   const path=new URL(req.url).pathname;
   try{
-   if(path.startsWith('/api/'))return await route(req,env);
+   if(path.startsWith('/api/'))return await route(req,env,ctx);
    if(req.method!=='GET'&&req.method!=='HEAD')return json({error:'Method not allowed'},405);
    if(path==='/terms.html'||path==='/privacy.html'||/^\/tiktok[\w-]*\.txt$/i.test(path))return env.ASSETS.fetch(req);
    if(path==='/guest')return guestLandingPage();
