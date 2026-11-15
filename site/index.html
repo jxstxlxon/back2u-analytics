@@ -102,7 +102,7 @@ body.story-open{overflow:hidden}
 #back2uLoginOverlay input{display:block;width:100%;padding:15px 16px;border-radius:12px;background:#061326cc;border:1px solid #adcafa5a;color:white;font:inherit;font-size:16px;margin-bottom:12px}
 #back2uLoginOverlay button{border:0;border-radius:12px;background:#449dfb;color:white;font:600 15px system-ui;padding:13px 16px;width:100%;cursor:pointer}
 #back2uLoginOverlay #back2uLoginError{min-height:20px;color:#ffc5c5;font-size:12px;margin-top:14px}
-</style><link rel="stylesheet" href="/theme-studio.css?v=1"><link rel="stylesheet" href="/theme-reference.css?v=2"><link rel="stylesheet" href="/ui-v3.css?v=3"><link rel="stylesheet" href="/ui-v4.css?v=4"><link rel="stylesheet" href="/creator-hub-v5.css?v=6"><link rel="stylesheet" href="/mobile-theme-polish-v6.css?v=6"><link rel="stylesheet" href="/dashboard-v7.css?v=14"><link rel="stylesheet" href="/audience-import.css?v=2"><link rel="stylesheet" href="/guest-access.css?v=1"><link rel="stylesheet" href="/mobile-performance-v77.css?v=2"></head>
+</style><link rel="stylesheet" href="/theme-studio.css?v=1"><link rel="stylesheet" href="/theme-reference.css?v=2"><link rel="stylesheet" href="/ui-v3.css?v=3"><link rel="stylesheet" href="/ui-v4.css?v=4"><link rel="stylesheet" href="/creator-hub-v5.css?v=6"><link rel="stylesheet" href="/mobile-theme-polish-v6.css?v=6"><link rel="stylesheet" href="/dashboard-v7.css?v=15"><link rel="stylesheet" href="/audience-import.css?v=2"><link rel="stylesheet" href="/guest-access.css?v=1"><link rel="stylesheet" href="/mobile-performance-v77.css?v=2"></head>
 <body>
 <div class="ambient ambient-a"></div><div class="ambient ambient-b"></div><div class="ambient ambient-c"></div><div class="grain"></div>
 <div class="shell">
@@ -143,7 +143,25 @@ body.story-open{overflow:hidden}
    <p class="top-seven-status" id="topSevenStatus" role="status"></p>
    <div id="topSevenList" class="top-seven-list" aria-live="polite"></div>
   </section>
-  <div class="video-sync-row"><button type="button" class="small-button" id="tiktokSyncNow">↻ TikTok jetzt synchronisieren</button><button type="button" class="small-button" id="tiktokAuditNow">◎ TikTok-Videos gegenprüfen</button><span role="status" id="tiktokSyncHint">TikTok-Sandbox · offizieller Videoabruf</span><span role="status" id="tiktokAuditHint">Zweiter TikTok-API-Test · schreibgeschützt</span></div>
+  <details id="manualLinksPanel" class="glass manual-links-panel" hidden>
+ <summary>↔ Videos manuell zuordnen <small>Optional · nur Eigentümer</small></summary>
+ <div class="manual-links-body">
+  <p>Fehlt ein Crosspost wegen eines anderen Titels, kannst du zwei vorhandene Videos verknüpfen. Die Originaldaten bleiben unverändert, und die Zuordnung lässt sich aufheben.</p>
+  <label for="manualAnchorSearch">1. Ausgangsvideo suchen</label>
+  <input id="manualAnchorSearch" type="search" placeholder="Titel, Song oder Plattform …" autocomplete="off"/>
+  <div id="manualAnchorResults" class="manual-search-results"></div>
+  <div id="manualAnchorSelected" class="manual-selected" role="status">Noch kein Ausgangsvideo ausgewählt.</div>
+  <label for="manualMatchSearch">2. Passende Plattformversion suchen</label>
+  <input id="manualMatchSearch" type="search" placeholder="Andere Plattformversion finden …" autocomplete="off" disabled/>
+  <div id="manualMatchResults" class="manual-search-results"></div>
+  <div id="manualMatchSelected" class="manual-selected">Noch keine zweite Version ausgewählt.</div>
+  <button type="button" id="manualLinkSave" disabled>Videos dauerhaft verknüpfen</button>
+  <p id="manualLinksStatus" class="manual-links-status" role="status"></p>
+  <h4>Deine manuellen Zuordnungen</h4>
+  <div id="manualSavedLinks" class="manual-saved-links"></div>
+ </div>
+</details>
+<div class="video-sync-row"><button type="button" class="small-button" id="tiktokSyncNow">↻ TikTok jetzt synchronisieren</button><button type="button" class="small-button" id="tiktokAuditNow">◎ TikTok-Videos gegenprüfen</button><span role="status" id="tiktokSyncHint">TikTok-Sandbox · offizieller Videoabruf</span><span role="status" id="tiktokAuditHint">Zweiter TikTok-API-Test · schreibgeschützt</span></div>
   <label class="tiktok-archive-control" id="tiktokArchiveRow" hidden><input type="checkbox" id="showArchivedTikTok"/> <span>119 TikTok-Screenshot-Archiveinträge zusätzlich anzeigen (können API-Videos doppeln)</span></label>
   <div class="video-period-info" id="videoPeriodInfo" role="status"></div>
   <div class="v7-search-help" role="note"><b>Video suchen</b> – Titel, Song, Format (z. B. Hakken), Plattform oder Video-ID eingeben. Ältere Videos bleiben dabei auffindbar.</div>
@@ -247,7 +265,7 @@ const SEED = window.SEED;
 if(!SEED){document.body.textContent='Datensatz fehlt: seed.js wurde nicht geladen.';return;}
 const COLORS={yt:'#ff849b',ig:'#b29bff',tt:'#63e7db'};
 const NAMES={yt:'YouTube',ig:'Instagram',tt:'TikTok'};
-const state={platform:'all',days:28,section:'overview',glass:48,sort:'views',fmt:'all',query:'',page:1,listExpanded:false,selected:null,live:null,loading:false,lastError:null,partialWarningCount:0,topSevenMode:'uploads',includeTiktokArchive:false,storyMode:false};
+const state={platform:'all',days:28,section:'overview',glass:48,sort:'views',fmt:'all',query:'',page:1,listExpanded:false,selected:null,live:null,loading:false,lastError:null,partialWarningCount:0,topSevenMode:'uploads',manualLinks:[],manualRevision:0,manualCanEdit:false,includeTiktokArchive:false,storyMode:false};
 function syncWarningCount(data){const n=Array.isArray(data?.errors)?data.errors.length:0;return Math.max(n,data?.snapshotFallback==='original-d1'?1:0)}
 try{const saved=Number(localStorage.getItem('back2u_glass'));if(Number.isFinite(saved)&&saved>=0&&saved<=100)state.glass=saved}catch{}
 try{
@@ -635,10 +653,39 @@ function knownMetric(items,metric){
  const vals=items.map(x=>videoMetricValue(x,metric)).filter(x=>typeof x==='number'&&Number.isFinite(x));
  return vals.length?vals.reduce((a,b)=>a+b,0):null;
 }
+function manualVideoRef(v){
+ const platform=String(v?.platform||''),id=String(v?.id||'');
+ const patterns={yt:/^[A-Za-z0-9_-]{11}$/,ig:/^\d{12,25}$/,tt:/^\d{12,25}$/};
+ return Object.hasOwn(patterns,platform)&&patterns[platform].test(id)?platform+':'+id:null;
+}
+function manualMergeGroups(groups,links){
+ let result=groups.slice();
+ for(const link of links||[]){
+  const wanted=new Set((link.members||[]).map(manualVideoRef).filter(Boolean));
+  if(wanted.size<2)continue;
+  const hits=result.filter(g=>g.members.some(v=>wanted.has(manualVideoRef(v))));
+  if(hits.length<2)continue;
+  const members=hits.flatMap(g=>g.members);
+  if(new Set(members.map(v=>v.platform)).size!==members.length||members.length>3)continue;
+  const ordered=members.slice().sort((a,b)=>['yt','ig','tt'].indexOf(a.platform)-['yt','ig','tt'].indexOf(b.platform));
+  const cover=ordered.find(v=>v.platform==='yt')||ordered[0];
+  const merged={...hits[0],members:ordered,first:cover,title:cover.title||hits[0].title,
+   date:ordered.map(v=>v.date).filter(Boolean).sort()[0]||hits[0].date,
+   format:cover.format||hits[0].format,manual:true,
+   groupKey:ordered.map(v=>v.platform+':'+(v.id||v.url||v.title)).join('|'),
+   views:knownMetric(ordered,'views'),likes:knownMetric(ordered,'likes'),
+   comments:knownMetric(ordered,'comments'),follows:knownMetric(ordered,'follows'),
+   shares:knownMetric(ordered,'shares')};
+  const at=result.indexOf(hits[0]);
+  result=result.filter(g=>!hits.includes(g));
+  result.splice(at,0,merged);
+ }
+ return result;
+}
 let groupCache=null;
 function crossPlatformVideoGroups(){
  const base=mergedVideos();
- if(groupCache?.source===base)return groupCache.groups;
+ if(groupCache?.source===base&&groupCache.manualRevision===state.manualRevision)return groupCache.groups;
  const items=base.slice().sort((a,b)=>String(b.date||'').localeCompare(String(a.date||'')));
  const groups=[],days=new Map();
  for(const v of items){
@@ -665,7 +712,8 @@ function crossPlatformVideoGroups(){
   const members=g.members.sort((a,b)=>['yt','ig','tt'].indexOf(a.platform)-['yt','ig','tt'].indexOf(b.platform));
   return {...g,groupKey:members.map(v=>v.platform+':'+(v.id||v.url||v.title)).join('|'),views:knownMetric(members,'views'),likes:knownMetric(members,'likes'),comments:knownMetric(members,'comments'),follows:knownMetric(members,'follows'),shares:knownMetric(members,'shares')};
  });
- groupCache={source:base,groups:finished};return finished;
+ const linked=manualMergeGroups(finished,state.manualLinks);
+ groupCache={source:base,manualRevision:state.manualRevision,groups:linked};return linked;
 }
 function groupPlatformLabel(g,metric){
  return g.members.map(v=>'<span class="platform-chip" data-platform="'+esc(v.platform)+'">'+tagPlatform(v.platform)+' <b>'+fmt(videoMetricValue(v,metric))+'</b></span>').join('');
@@ -853,6 +901,7 @@ function renderTopSeven(){
     (period?'7-Tage-Aufrufe':'Gesamte Aufrufe')+'</small></div>'+
     '<div class="top-seven-platforms" aria-label="Aufrufe nach Plattform">'+chips+'</div>'+
     (links?'<div class="top-seven-links" aria-label="Originalvideos öffnen">'+links+'</div>':'')+
+    (state.manualCanEdit&&members.length<3?'<button type="button" class="top-seven-link-more" data-manual-rank="'+i+'">↔ Zuordnen</button>':'')+
     '</article>';
   }).join('');
  }
@@ -860,6 +909,7 @@ function renderTopSeven(){
  const caveat=period?
   'Nur bestätigte 7-Tage-Videoaufrufe (derzeit YouTube); Instagram und TikTok werden ohne solche Einzelvideo-Messwerte mit „–“ angezeigt.':
   'Die Aufrufe sind bisherige Plattform-Gesamtwerte, NICHT nur die neuen Aufrufe dieser Woche.';
+ root.querySelectorAll('[data-manual-rank]').forEach(el=>el.addEventListener('click',()=>window.BACK2U_MANUAL_LINKS?.openGroup(result.items[Number(el.dataset.manualRank)]?.group)));
  info.textContent=result.totalRanked+' Videogruppen im Ranking'+
   (result.unknown?' · '+result.unknown+' zugeordnete Einträge ohne vergleichbare Gesamtzahl':'')+
   '. Crossposts werden nur bei ausreichend sicherer Titel- und Datumsübereinstimmung zusammengefasst. „–“ bedeutet nicht zugeordnet oder kein verfügbarer Messwert. '+
@@ -1106,6 +1156,18 @@ function renderActive(){document.body.dataset.activeSection=state.section;setSyn
  }
  if(state.section==='overview')renderOverview();else if(state.section==='videos')renderVideos();else if(state.section==='experiments')renderExperiments();else if(state.section==='audience')renderAudience();else if(state.section==='creator'){window.BACK2U_CREATOR_HUB?.render();window.BACK2U_V7?.creator()}else if(state.section==='system')renderSystem();}
 
+window.BACK2U_MANUAL_BRIDGE={
+ groups:()=>crossPlatformVideoGroups(),
+ videos:()=>mergedVideos(),
+ videoRef:manualVideoRef,
+ setLinks(data){
+  state.manualLinks=Array.isArray(data.groups)?data.groups:[];
+  state.manualCanEdit=!!data.canEdit;
+  state.manualRevision++;
+  groupCache=null;
+  if(state.section==='videos')renderVideos();
+ }
+};
 window.BACK2U_V7_BRIDGE={
  snapshot(){
   const range=targetRange();
@@ -1244,5 +1306,5 @@ window.BACK2U_REFRESH_CHART=()=>{if(state.section==='overview')renderTrend()};gl
  renderActive();loadLive(false);
 })();
 </script><script src="/reference-theme-art.js?v=4" defer></script><script src="/theme-studio.js?v=4" defer></script><script src="/chart-v3.js?v=6" defer></script><script src="/story-composer-v3.js?v=6" defer></script><script src="/creator-hub-v5.js?v=9" defer></script><script src="/dashboard-v7.js?v=12" defer></script>
-<script src="/guest-access.js?v=1" defer></script><script src="/audience-import.js?v=3" defer></script>
+<script src="/guest-access.js?v=1" defer></script><script src="/manual-video-links.js?v=1" defer></script><script src="/audience-import.js?v=3" defer></script>
 </body></html>
