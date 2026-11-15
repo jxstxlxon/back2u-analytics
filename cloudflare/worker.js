@@ -3,6 +3,7 @@ import {validateDirectAudience,mergeDirectAudience,chooseEffectiveAudience} from
 import {validateDirectMedia,mergeDirectMedia,overlayDirectMedia} from './direct-media.js';
 import {validateDirectVideoInsights,mergeDirectVideoInsights,validateInstagramDaily,mergeInstagramDaily,overlayDirectInsights} from './direct-insights.js';
 import {auditDirectCoverage} from './parity-audit.js';
+import {runInstagramWindsorDailySync,overlayInstagramWindsorDaily,instagramWindsorDailyStatus} from './instagram-daily-repair.js';
 /* BACK2U Cloudflare Worker - private creator dashboard.
    Independent of Netlify. Do not publish API keys or creator analytics in static assets.
    The Cloudflare D1 binding DB must contain the back2u_store(key,value,updated_at) table.
@@ -330,10 +331,13 @@ async function hydratedSnapshot(env){
   s.platforms.ig.profile={...s.platforms.ig.profile,followers:instagramProfile.followers,username:instagramProfile.username,
    asOf:instagramProfile.updatedAt,source:'Instagram Graph API',history:instagramProfile.history||[]};
  }
- const [catalog,videoInsights,igDaily]=await Promise.all([
-  get(env,'direct_media_v1'),get(env,'direct_video_insights_v1'),get(env,'direct_ig_daily_v1')
+ const [catalog,videoInsights,igDaily,windsorIGDaily]=await Promise.all([
+  get(env,'direct_media_v1'),get(env,'direct_video_insights_v1'),
+  get(env,'direct_ig_daily_v1'),get(env,'ig_windsor_daily_v1')
  ]);
  if(catalog?.schema===1)overlayDirectMedia(s,catalog);
+ // Fresh account-day values repair a stale Sheets snapshot; direct Meta data is applied afterward.
+ if(windsorIGDaily?.schema===1)overlayInstagramWindsorDaily(s,windsorIGDaily);
  if(videoInsights?.schema===1||igDaily?.schema===1)
   overlayDirectInsights(s,{video:videoInsights,daily:igDaily});
  const tiktokProfile=await get(env,'tt_profile');
@@ -736,6 +740,8 @@ async function route(req,env){
  if(path==='/api/audience')return audienceAdmin(req,env);
  if(path==='/api/audience/sync')return audienceSyncAdmin(req,env);
  if(path==='/api/direct-audience/status')return directAudienceStatus(req,env);
+ if(path==='/api/instagram-daily/status')return req.method==='GET'
+  ?json(await instagramWindsorDailyStatus(env,{get})):json({error:'GET only'},405);
  if(path==='/api/direct-parity') {
   if(req.method!=='GET')return json({error:'GET only'},405);
   const [audience,media,video,instagramDaily,youtubeDaily]=await Promise.all([
@@ -841,6 +847,9 @@ export default {
  },
  async scheduled(controller,env,ctx){
   ctx.waitUntil(ttSync(env).catch(e=>console.error('TikTok scheduled sync:',clamp(e?.message))));
+  ctx.waitUntil(runInstagramWindsorDailySync(env,{get,put})
+   .then(r=>{if(r.status==='error')console.warn('Instagram day sync failed:',r.error)})
+   .catch(e=>console.error('Instagram day sync unavailable:',clamp(e?.message))));
   ctx.waitUntil(runAudienceAutoSync(env,{get,put,tiktokOnly:env.BACK2U_WINDSOR_TIKTOK_ONLY==='true'})
    .then(r=>{if(r.status==='error')console.warn('Audience scheduled sync failed:',r.error)})
    .catch(e=>console.error('Audience scheduled sync could not complete:',clamp(e?.message))));

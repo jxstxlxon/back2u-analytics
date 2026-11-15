@@ -1,0 +1,99 @@
+import assert from 'node:assert/strict';
+import {
+ validateInstagramWindsorDaily,mergeInstagramWindsorDaily,
+ overlayInstagramWindsorDaily,runInstagramWindsorDailySync,
+ instagramWindsorDailyStatus
+} from '../cloudflare/instagram-daily-repair.js';
+const now=Date.parse('2026-11-15T01:15:00Z');
+const fixture=[
+ ['2026-11-10',6822,4235,605,8,18],
+ ['2026-11-11',5918,3795,734,11,26],
+ ['2026-11-12',7661,4795,972,15,34],
+ ['2026-11-13',9441,6385,1111,10,45],
+ ['2026-11-14',7444,4664,713,7,0]
+].map(([date,views,reach,likes,comments,follower_count_1d])=>
+ ({date,views,reach,likes,comments,follower_count_1d,account_id:'27282542318110290'}));
+let passed=0;function check(label,fn){fn();passed++;console.log('OK '+label)}
+async function checkAsync(label,fn){await fn();passed++;console.log('OK '+label)}
+const makeDb=()=>{const m=new Map();return{m,get:async(_,key)=>m.get(key)||null,put:async(_,key,value)=>{m.set(key,value)}}};
+check('fresh Windsor data verifies real 2026-11-14 Instagram account-day totals',()=>{
+ const daily=validateInstagramWindsorDaily(fixture,now);
+ assert.equal(daily.at(-1).d,'2026-11-14');
+ assert.equal(daily.at(-1).views,7444);
+ assert.equal(daily.at(-1).reach,4664);
+ assert.equal(daily.at(-1).follows,0);
+});
+check('wrong source account rejected',()=>{
+ assert.throws(()=>validateInstagramWindsorDaily(fixture.map(x=>({...x,account_id:'other'})),now),/Konto/);
+});
+check('today or future rows rejected to avoid incomplete totals',()=>{
+ assert.throws(()=>validateInstagramWindsorDaily([...fixture,{...fixture[0],date:'2026-11-15'}],now),/Datum/);
+});
+check('duplicate dates are rejected',()=>{
+ assert.throws(()=>validateInstagramWindsorDaily([...fixture,fixture[0]],now),/Datum/);
+});
+check('invalid/missing metrics cannot masquerade as zeros',()=>{
+ assert.throws(()=>validateInstagramWindsorDaily(fixture.map(x=>({...x,reach:null})),now),/fehlen/);
+ assert.throws(()=>validateInstagramWindsorDaily(fixture.map(x=>({...x,views:'broken'})),now),/Messwert/);
+});
+check('saved historical days remain preserved when new days are added',()=>{
+ const old={schema:1,daily:[{d:'2026-11-01',views:99,reach:90}]};
+ const next=mergeInstagramWindsorDaily(old,validateInstagramWindsorDaily(fixture,now),now);
+ assert.equal(next.daily[0].d,'2026-11-01');
+ assert.equal(next.daily.at(-1).d,'2026-11-14');
+ assert.equal(next.daily.length,6);
+});
+check('dashboard displays new days without touching videos or YouTube',()=>{
+ const snapshot={platforms:{yt:{videos:[{id:'Y'}]},ig:{
+  videos:[{id:'I',views:42}],daily:[{d:'2026-11-11',views:10,reach:10}]
+ }}};
+ const oldYt=JSON.stringify(snapshot.platforms.yt),oldVids=JSON.stringify(snapshot.platforms.ig.videos);
+ const record=mergeInstagramWindsorDaily(null,validateInstagramWindsorDaily(fixture,now),now);
+ overlayInstagramWindsorDaily(snapshot,record);
+ assert.equal(snapshot.platforms.ig.daily.at(-1).d,'2026-11-14');
+ assert.equal(snapshot.platforms.ig.daily.at(-1).views,7444);
+ assert.equal(snapshot.platforms.ig.daily.find(x=>x.d==='2026-11-11').views,5918);
+ assert.equal(JSON.stringify(snapshot.platforms.yt),oldYt);
+ assert.equal(JSON.stringify(snapshot.platforms.ig.videos),oldVids);
+});
+await checkAsync('one existing Cloudflare cron run imports real days without changing snapshot',async()=>{
+ const db=makeDb(),calls=[];
+ const fetcher=async url=>{calls.push(new URL(url));return{ok:true,json:async()=>fixture}};
+ const env={WINDSOR_API_KEY:'test_private_secret_at_least_16'};
+ const result=await runInstagramWindsorDailySync(env,{...db,fetcher,now});
+ assert.equal(result.status,'ok');
+ assert.equal(result.dataThrough,'2026-11-14');
+ assert.equal(db.m.has('snapshot'),false);
+ assert.equal(db.m.get('ig_windsor_daily_v1').daily.length,5);
+ assert.equal(calls.length,1);
+ assert.equal(calls[0].pathname,'/instagram');
+ assert.equal(calls[0].searchParams.get('select_accounts'),'17841476673616735');
+ assert.equal(calls[0].searchParams.get('date_preset'),'last_14d');
+ assert.equal(calls[0].searchParams.get('fields'),'date,views,reach,likes,comments,follower_count_1d,account_id');
+ const duplicate=await runInstagramWindsorDailySync(env,{...db,fetcher,now:now+30*60000});
+ assert.equal(duplicate.status,'skipped');
+ assert.equal(calls.length,1);
+});
+await checkAsync('upstream failure never clears last successful report',async()=>{
+ const db=makeDb(),env={WINDSOR_API_KEY:'test_private_secret_at_least_16'};
+ await runInstagramWindsorDailySync(env,{...db,fetcher:async()=>({ok:true,json:async()=>fixture}),now});
+ const oldReport=JSON.stringify(db.m.get('ig_windsor_daily_v1'));
+ const r=await runInstagramWindsorDailySync(env,{...db,fetcher:async()=>({ok:false,status:500}),now:now+24*3600000});
+ assert.equal(r.status,'error');
+ assert.equal(JSON.stringify(db.m.get('ig_windsor_daily_v1')),oldReport);
+});
+await checkAsync('no secret means no network requests or database writes',async()=>{
+ const db=makeDb(),fetcher=()=>{throw Error('Network called with no secret')};
+ const r=await runInstagramWindsorDailySync({}, {...db,fetcher,now});
+ assert.equal(r.status,'not_configured');
+ assert.equal(db.m.size,0);
+});
+await checkAsync('admin diagnostics disclose no private credentials',async()=>{
+ const db=makeDb(),secret='private_dummy_token_very_long';
+ db.m.set('snapshot',{platforms:{ig:{daily:[{d:'2026-11-11'}]}}});
+ const result=await instagramWindsorDailyStatus({WINDSOR_API_KEY:secret},{get:db.get});
+ assert.equal(result.snapshotDataThrough,'2026-11-11');
+ assert.equal(result.configured,true);
+ assert.ok(!JSON.stringify(result).includes(secret));
+});
+console.log('BACK2U Instagram Daily Cron Repair: '+passed+'/'+passed+' passed');
