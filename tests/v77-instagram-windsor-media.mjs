@@ -7,7 +7,7 @@ import {
 const now=Date.parse('2026-11-15T01:30:00Z');
 const data=Array.from({length:22},(_,i)=>({
  date:'2026-11-'+String(10+Math.floor(i/5)).padStart(2,'0'),
- media_id:String(18100000000000000+i),
+ media_id:String(18100000000000000n+BigInt(i)),
  media_caption:'Jumpstyle video '+i,
  media_views:500+i,media_like_count:40+i,
  media_total_comments_count:2,media_reach:400+i,
