@@ -9,7 +9,7 @@ const worker=readFileSync(new URL('../cloudflare/worker.js',import.meta.url),'ut
 for(const [i,m] of [...html.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/g)].entries()){
  if(m[1].trim())new vm.Script(m[1],{filename:'dashboard-live-connection-inline-'+i});
 }
-new vm.Script(worker.replace(/^import[^\n]+/gm,''),{filename:'cloudflare-worker.js'});
+// Worker ESM compilation is covered separately by the Cloudflare dry-run CI.
 
 assert.match(css,/html body\[data-theme-artwork="on"\]\[data-theme-background\]/);
 assert.match(css,/background-attachment:\s*scroll\s*!important/);
