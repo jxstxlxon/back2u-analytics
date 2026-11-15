@@ -207,4 +207,55 @@ await testAsync('media API outage still commits verified TikTok daily reports',a
  assert.deepEqual(calls.sort(),['day','media']);
 });
 
+test('malformed out-of-period rows cannot block valid November account-days',()=>{
+ const extra=[
+  {...rows[0],date:'2026-09-01'},
+  {...rows[0],date:'2026-11-99'},
+  {...rows[1],date:'2026-11-09T00:00:00.000Z'}
+ ];
+ const result=validateTikTokOrganicDays([...rows,...extra],NOW);
+ assert.equal(result.daily.length,5);
+ assert.equal(result.daily.at(-1).d,'2026-11-13');
+});
+test('an invalid optional metric is missing, not a cause to discard valid daily views',()=>{
+ const edited=rows.map(x=>x.date==='2026-11-11'?{...x,
+  engaged_audience:'not available',bio_link_clicks:'n/a'}:x);
+ const result=validateTikTokOrganicDays(edited,NOW);
+ assert.equal(result.daily.length,5);
+ const target=result.daily.find(x=>x.d==='2026-11-11');
+ assert.ok(!Object.hasOwn(target,'engagedAudience'));
+ assert.ok(!Object.hasOwn(target,'bioLinkClicks'));
+ assert.ok(target.views>0);
+});
+test('negative net follows is a legitimate measured TikTok change',()=>{
+ const edited=rows.map(x=>({...x,daily_total_followers:-3,followers_count:-1}));
+ const result=validateTikTokOrganicDays(edited,NOW);
+ assert.equal(result.daily.length,5);
+ assert.ok(result.daily.every(x=>x.netFollows===-3&&x.follows===-1));
+});
+test('a single primary missing day does not discard other valid days',()=>{
+ const edited=rows.map(x=>x.date==='2026-11-11'?{...x,video_views:'NaN'}:x);
+ const result=validateTikTokOrganicDays(edited,NOW);
+ assert.equal(result.daily.length,4);
+ assert.ok(!result.daily.some(x=>x.d==='2026-11-11'));
+ assert.equal(result.daily.at(-1).d,'2026-11-13');
+});
+await testAsync('new importer version retries once despite a recent failed old parser',async()=>{
+ const d=db(),fetchCalls=[];
+ const env={WINDSOR_API_KEY:'private_mock_windsor_key_ABCDEFGHIJKLMNOPQ'};
+ d.m.set('tt_windsor_sync_v1',{status:'error',lastAttemptAt:new Date(NOW).toISOString(),
+  error:'Ungültiger TikTok-Berichtstag'});
+ const result=await runTikTokOrganicSync(env,{...d,now:NOW+1000,fetcher:async url=>{
+  fetchCalls.push(url);
+  return{ok:true,json:async()=>url.includes('video_id')?videos:rows};
+ }});
+ assert.equal(result.status,'ok');
+ assert.equal(result.pipelineVersion,'v77.8-resilient-days');
+ assert.equal(result.dayThrough,'2026-11-13');
+ assert.equal(fetchCalls.length,2);
+ const skip=await runTikTokOrganicSync(env,{...d,now:NOW+120000,
+  fetcher:()=>{throw Error('must throttle same deployment')}});
+ assert.equal(skip.status,'skipped');
+});
+
 console.log('BACK2U TikTok Windsor recovery '+passed+'/'+passed+' tests passed');
