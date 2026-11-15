@@ -75,7 +75,8 @@ await testAsync('Cron fetch stores separately without updating snapshot or exist
  assert.equal(urls[0].pathname,'/youtube');
  assert.equal(urls[0].searchParams.get('date_to'),'2026-11-14');
  assert.equal(urls[0].searchParams.get('date_from'),'2026-10-18');
- assert.equal(urls[0].searchParams.get('select_accounts'),CHANNEL);
+ assert.equal(urls[0].searchParams.get('select_accounts'),'83736');
+ assert.equal(fixture[0].account_id,CHANNEL,'Rows remain verified against the public YouTube channel ID');
  assert.ok(!JSON.stringify(res).includes(secret));
 });
 await testAsync('API error does not clear previous verified data',async()=>{
