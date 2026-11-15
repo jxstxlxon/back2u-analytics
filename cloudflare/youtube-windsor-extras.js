@@ -3,6 +3,9 @@
  * Windsor.ai YouTube Analytics connector. No fake values and no YouTube
  * private Apps Script changes. Does not overwrite verified official metrics.
  */
+// Windsor source-connection account identifier != YouTube public channel ID.
+// Verified against the connected YouTube account on 2026-11-15.
+const WINDSOR_ACCOUNT='83736';
 const CHANNEL='UCBnnaMohI_VfKihekEwaQEw';
 const STORE='yt_windsor_extras_v1',STATUS='yt_windsor_extras_sync_v1';
 const DAY=86400000;
@@ -92,7 +95,7 @@ export async function runYouTubeWindsorExtrasSync(env,{
  if(key.length<16)return {status:'not_configured'};
  const old=await get(env,STATUS)||{};
  const last=Date.parse(old.lastAttemptAt||'');
- const pipelineVersion='v77.10-full-28day-youtube-extras';
+ const pipelineVersion='v77.13-youtube-correct-windsor-account';
  const throttle=old.status==='ok'?6*3600000:
   old.status==='running'?45*60000:60*60000;
  if(!force&&old.pipelineVersion===pipelineVersion&&Number.isFinite(last)&&now-last>=0&&now-last<throttle)
@@ -105,7 +108,7 @@ export async function runYouTubeWindsorExtrasSync(env,{
   url.searchParams.set('fields',FIELDS.join(','));
   url.searchParams.set('date_from',iso(now-28*DAY));
   url.searchParams.set('date_to',iso(now-DAY));
-  url.searchParams.set('select_accounts',CHANNEL);
+  url.searchParams.set('select_accounts',WINDSOR_ACCOUNT);
   url.searchParams.set('_renderer','json');
   const response=await fetcher(url.href,{
    method:'GET',headers:{accept:'application/json'},
