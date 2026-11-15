@@ -10,7 +10,25 @@
  */
 @media screen and (max-width: 860px) and (pointer: coarse) {
   html { scroll-behavior: auto !important; }
+  /* iOS Safari may leave huge black unpainted bands while scrolling
+   * a fixed full-screen photographic background. Use one GPU-cheap
+   * opaque theme gradient across the complete document instead. */
+  html { background: var(--t-bg,#0b2521) !important; }
+  html body,
+  html body[data-theme-artwork="on"],
+  html body[data-theme-artwork="on"][data-theme-background] {
+    background-color: var(--t-bg,#0b2521) !important;
+    background-image: linear-gradient(155deg,
+      var(--t-bg,#0b2521),var(--t-bg2,#114b3e)) !important;
+    background-attachment: scroll !important;
+    background-repeat: no-repeat !important;
+    background-size: 100% 100% !important;
+    min-height: 100dvh;
+  }
   .ambient, .grain { display: none !important; }
+  #back2uLoginOverlay { -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important; }
+
   .view.active { animation: none !important; }
 
   html body .glass,
