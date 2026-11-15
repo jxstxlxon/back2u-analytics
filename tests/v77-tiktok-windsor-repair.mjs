@@ -125,6 +125,7 @@ await testAsync('cron creates a separate D1 store and does not replace original 
  assert.ok(calls.every(x=>x.pathname==='/tiktok_organic'&&x.searchParams.get('select_accounts')===ACCOUNT));
  const dailyQuery=calls.find(x=>x.searchParams.get('fields').includes('unique_video_views'));
  assert.equal(dailyQuery.searchParams.get('date_to'),'2026-11-14');
+ assert.equal(dailyQuery.searchParams.get('date_from'),'2026-10-18');
  assert.ok(dailyQuery.searchParams.get('fields').includes('engaged_audience'));
  assert.ok(dailyQuery.searchParams.get('fields').includes('daily_lost_followers'));
  const skip=await runTikTokOrganicSync(env,{...d,now:NOW+20*60000,fetcher});
@@ -251,7 +252,7 @@ await testAsync('new importer version retries once despite a recent failed old p
   return{ok:true,json:async()=>url.includes('video_id')?videos:rows};
  }});
  assert.equal(result.status,'ok');
- assert.equal(result.pipelineVersion,'v77.11-phase-isolated-daily');
+ assert.equal(result.pipelineVersion,'v77.12-28day-and-mobile');
  assert.equal(result.dayThrough,'2026-11-13');
  assert.equal(fetchCalls.length,1);
  const skip=await runTikTokOrganicSync(env,{...d,now:NOW+120000,
@@ -262,7 +263,7 @@ await testAsync('new importer version retries once despite a recent failed old p
 await testAsync('stale running status after two minutes retries instead of staying stuck for 45 minutes',async()=>{
  const d=db(),env={WINDSOR_API_KEY:'private_mock_windsor_key_ABCDEFGHIJKLMNOPQ'};
  const first=NOW-3*60000;
- d.m.set('tt_windsor_sync_v1',{pipelineVersion:'v77.11-phase-isolated-daily',
+ d.m.set('tt_windsor_sync_v1',{pipelineVersion:'v77.12-28day-and-mobile',
   status:'running',lastAttemptAt:new Date(first).toISOString()});
  const res=await runTikTokOrganicSync(env,{...d,now:NOW,fetcher:async()=>({
   ok:true,json:async()=>rows
@@ -270,6 +271,28 @@ await testAsync('stale running status after two minutes retries instead of stayi
  assert.equal(res.status,'ok');
  assert.equal(res.dayThrough,'2026-11-13');
  assert.equal(d.m.get('tt_windsor_daily_v1').daily.length,5);
+});
+
+test('TikTok accepts 27 completed genuine source days in 28-day window',()=>{
+ const first=Date.parse('2026-10-18T00:00:00.000Z');
+ const verified28=Array.from({length:28},(_,i)=>({
+  date:new Date(first+i*86400000).toISOString().slice(0,10),
+  account_id:ACCOUNT,username:USER,
+  video_views:i===27?0:5641+i*12,
+  likes:i===27?0:350+i,
+  comments:i===27?0:12,
+  shares:i===27?0:5,
+  unique_video_views:i===27?0:4275+i,
+  profile_views:i===27?0:97,
+  engaged_audience:i===27?0:799,
+  daily_total_followers:i===27?0:18
+ }));
+ const result=validateTikTokOrganicDays(verified28,NOW);
+ assert.equal(result.daily.length,27);
+ assert.equal(result.daily[0].d,'2026-10-18');
+ assert.equal(result.daily.at(-1).d,'2026-11-13');
+ assert.equal(result.daily[0].uniqueViews,4275);
+ assert.ok(!result.daily.some(x=>x.d==='2026-11-14'));
 });
 
 console.log('BACK2U TikTok Windsor recovery '+passed+'/'+passed+' tests passed');
