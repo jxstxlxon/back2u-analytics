@@ -760,9 +760,13 @@ function topSevenRanking(videos,mode,today,selectedPlatforms){
  if(mode==='period'){
   const candidates=matching.filter(v=>{
    const range=v.analytics?.periods?.['7'],value=v.analytics?.views7d;
-   return v.platform==='yt'&&hasCount(value)&&
-    range?.start===shift(range?.end||today,-6)&&
-    typeof range?.end==='string'&&range.end<=today&&range.end>=shift(today,-3);
+   const end=range?.end;
+   if(v.platform!=='yt'||v.analytics?.source!=='YouTube Analytics API (video range)'||
+      !hasCount(value)||typeof end!=='string'||
+      !/^\d{4}-\d{2}-\d{2}$/.test(end)||
+      !Number.isFinite(Date.parse(end+'T12:00:00Z'))||
+      ymd(Date.parse(end+'T12:00:00Z'))!==end)return false;
+   return range.start===shift(end,-6)&&end<=today&&end>=shift(today,-3);
   });
   reportEnd=candidates.map(v=>v.analytics.periods['7'].end).sort().at(-1)||null;
   reportStart=reportEnd?shift(reportEnd,-6):null;
@@ -770,7 +774,7 @@ function topSevenRanking(videos,mode,today,selectedPlatforms){
    .map(v=>({video:v,views:v.analytics.views7d}));
  }else{
   const recent=matching.filter(v=>typeof v.date==='string'&&
-   /^\\d{4}-\\d{2}-\\d{2}$/.test(v.date)&&v.date>=periodStart&&v.date<=today);
+   /^\d{4}-\d{2}-\d{2}$/.test(v.date)&&v.date>=periodStart&&v.date<=today);
   unknown=recent.filter(v=>v.reportType!=='lifetime'||!hasCount(v.views)).length;
   rows=recent.filter(v=>v.reportType==='lifetime'&&hasCount(v.views))
    .map(v=>({video:v,views:v.views}));
