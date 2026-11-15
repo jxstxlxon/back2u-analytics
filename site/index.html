@@ -1160,6 +1160,9 @@ window.BACK2U_MANUAL_BRIDGE={
  groups:()=>crossPlatformVideoGroups(),
  videos:()=>mergedVideos(),
  videoRef:manualVideoRef,
+ verifiedVideo(v){const ref=manualVideoRef(v);
+  return !!ref&&(state.live?.platforms?.[v.platform]?.videos||[]).some(x=>manualVideoRef({...x,platform:v.platform})===ref);
+ },
  setLinks(data){
   state.manualLinks=Array.isArray(data.groups)?data.groups:[];
   state.manualCanEdit=!!data.canEdit;
@@ -1229,6 +1232,7 @@ async function loadLive(force=false){if(state.loading)return;state.loading=true;
  const url=location.protocol==='file:'?null:`/api/snapshot${force?'?refresh=1':''}`;
  if(!url){state.lastError='Lokale Datei – keine Serververbindung.';state.loading=false;$('#refreshBtn').classList.remove('spinning');renderActive();if(force)toast('Offline-Datei: Für Live-Daten den Cloudflare-Worker veröffentlichen.');return}
  try{let response=await fetch(url,{credentials:'same-origin',cache:'no-store',signal:AbortSignal.timeout(45000)});if(response.status===401){showLogin();throw Error('Bitte anmelden')}if(!response.ok)throw Error('API-Status '+response.status);let data=await response.json();if(!data.platforms||!data.generatedAt)throw Error('Ungültige Serverantwort');state.live=data;state.sourceDiagnostics=null;
+  window.dispatchEvent(new Event('back2u:live'));
  // Diagnostics are optional. Never freeze the overview for up to 8 seconds
  // while waiting on multiple Cloudflare D1 status reads.
  fetch('/api/sync-sources/status',{credentials:'same-origin',cache:'no-store',
