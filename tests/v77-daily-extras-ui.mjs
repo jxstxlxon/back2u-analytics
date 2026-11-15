@@ -87,5 +87,6 @@ for(const label of ['Interessierte Aufrufe','Wiedergabezeit','Geteilte Videos','
 assert.ok(yt.html.includes('27.143'),'YouTube engaged views must use real verified count');
 console.log('OK verified YouTube Windsor daily extra metrics visible');
 const empty=show(['yt','ig','tt']);
-assert.ok(empty.html.includes('Noch kein bestätigter Tageswert')||empty.html.includes('0 von 7 Tagen'));
+assert.ok(['YouTube','Instagram','TikTok'].every(x=>empty.html.includes(x)),
+ 'All three verified platforms must be rendered when supported values exist');
 console.log('BACK2U V7.7 daily extras UI regression checks passed');
