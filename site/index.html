@@ -123,7 +123,7 @@ body.story-open{overflow:hidden}
   <div id="followerCards" class="follower-cards" aria-label="Follower und Abonnenten"></div>
   <div id="dailyFreshness" class="daily-freshness" role="status"></div>
   <section id="extendedDailyCard" class="v77-extended-daily" aria-label="Zusätzliche bestätigte Plattform-Analytics">
-   <div class="section-heading"><div><div class="eyebrow">DIREKTE API / ZUSATZWERTE</div>
+   <div class="section-heading"><div><div class="eyebrow">BESTÄTIGTE API / ZUSATZWERTE</div>
     <h2>Mehr als nur Aufrufe</h2>
     <p>Neue, offiziell abgerufene Kennzahlen mit echter Datenabdeckung. Unbekannte Werte bleiben offen.</p></div></div>
    <div id="extendedDailyMetrics" class="metric-grid" role="status" aria-live="polite"></div>
@@ -479,27 +479,38 @@ function renderExtendedDaily(){
   {p:'ig',key:'shares',name:'Geteilte Beiträge',unit:'count'},
   {p:'ig',key:'saves',name:'Gespeicherte Beiträge',unit:'count'},
   {p:'ig',key:'interactions',name:'Interaktionen',unit:'count'},
-  {p:'ig',key:'reach',name:'Tagesreichweite (Summe)',unit:'count'}
+  {p:'ig',key:'reach',name:'Tagesreichweite (Summe)',unit:'count'},
+  {p:'ig',key:'likes',name:'Likes · Tageswerte',unit:'count'},
+  {p:'ig',key:'comments',name:'Kommentare · Tageswerte',unit:'count'},
+  {p:'tt',key:'uniqueViews',name:'Erreichte Zuschauer · Tagessumme',unit:'count'},
+  {p:'tt',key:'profileViews',name:'Profilaufrufe · Tagessumme',unit:'count'},
+  {p:'tt',key:'likes',name:'Likes · Tageswerte',unit:'count'},
+  {p:'tt',key:'comments',name:'Kommentare · Tageswerte',unit:'count'},
+  {p:'tt',key:'shares',name:'Geteilte Videos · Tageswerte',unit:'count'},
+  {p:'tt',key:'follows',name:'Neue Follows · Tagessumme',unit:'count'}
  ];
  const cards=[];
  for(const spec of specs.filter(o=>ps.includes(o.p))){
   const all=mergedDaily(spec.p).filter(r=>r.d>=start&&r.d<=end);
-  const rows=all.filter(r=>typeof r[spec.key]==='number'&&Number.isFinite(r[spec.key])&&r[spec.key]>=0&&
-   (spec.p==='yt'?r.source==='YouTube Analytics API':
-    r.sourceFields?.[spec.key]==='Meta Graph API (direct daily)'));
+  const verifiedMetric=r=>spec.p==='yt'?r.source==='YouTube Analytics API':
+   spec.p==='ig'?['Meta Graph API (direct daily)','Windsor.ai Instagram Insights (account-day)']
+    .includes(r.sourceFields?.[spec.key]):
+   spec.p==='tt'&&r.source==='TikTok Organic via Windsor.ai';
+  const rows=all.filter(r=>typeof r[spec.key]==='number'&&Number.isFinite(r[spec.key])&&r[spec.key]>=0&&verifiedMetric(r));
   const latest=rows.length?rows[rows.length-1]:null;
   const value=spec.latest?(latest?.[spec.key]??null):
    (rows.length?rows.reduce((sum,r)=>sum+r[spec.key],0):null);
   const formatted=value===null?'–':spec.unit==='minutes'?dec(value)+' Min.':
    spec.unit==='seconds'?dec(value)+' s':fmt(value);
-  const note=spec.latest?(latest?'Messdatum '+latest.d:'Noch kein bestätigter Tageswert'):
-    (rows.length+' von '+totalDays+' Tagen · '+(rows.length===totalDays?'vollständig':'unvollständig'));
+  const sourceLabel=spec.p==='tt'?'TikTok Organic':spec.p==='ig'?'Meta/Windsor':'YouTube Analytics';
+  const note=(spec.latest?(latest?'Messdatum '+latest.d:'Noch kein bestätigter Tageswert'):
+    (rows.length+' von '+totalDays+' Tagen · '+(rows.length===totalDays?'vollständig':'unvollständig')))+' · '+sourceLabel;
   cards.push('<div class="glass metric-box"><small>'+esc(NAMES[spec.p])+' · '+esc(spec.name)+
    '</small><strong>'+esc(formatted)+'</strong><p>'+esc(note)+'</p></div>');
  }
  panel.innerHTML=cards.length?cards.join(''):
   '<div class="glass metric-box"><small>Verfügbare Direktdaten</small><strong>–</strong><p>Für TikTok liegen diese zusätzlichen offiziellen Tagesberichte nicht vor.</p></div>';
- foot.textContent='7/28/90 Tage zeigen ausschließlich wirklich erfasste Direktwerte. Bei unvollständiger Abdeckung ist die angezeigte Summe nur eine Teilsumme. Instagram-Tagesreichweite ist die Summe einzelner Tagesreichweiten, keine eindeutige Reichweite des Gesamtzeitraums. TikTok wird nicht geschätzt.';
+ foot.textContent='7/28/90 Tage zeigen nur bestätigte API-Tageswerte. Fehlende Tage werden nicht als Null geschätzt. YouTube: direkte Analytics; Instagram: Meta bzw. Windsor.ai; TikTok: TikTok Organic über Windsor.ai. Likes/Kommentare/Shares sind echte Tageswerte, Follows sind neue Follows (nicht Netto-Followerwachstum). Reichweite oder erreichte Zuschauer werden als Summe einzelner Tage dargestellt – nicht als eindeutige Personen im gesamten Zeitraum.';
 }
 
 function renderOverview(){renderExtendedDaily();const x=allMetric();const historic=state.days===28&&!platforms().some(p=>state.live?.platforms?.[p]?.daily?.length);let heroLabel='Gesamtaufrufe',heroVal=x.views,delta='';const ps=platforms();
@@ -766,7 +777,7 @@ function renderSystem(){const s=state.live;$('#connectionCards').innerHTML=['yt'
   source.innerHTML=warnings.length?'<strong>Datenquelle prüfen</strong><p style="margin:6px 0 0;line-height:1.6">'+warnings.map(x=>esc(x)).join(' · ')+'</p>':'';
  }
  let items=[['Datenquelle',s?s.source+' + lokale Exporte':'Gespeicherte YouTube-/Instagram-/TikTok-Exporte'],['Letzter erfolgreicher Abruf',s?new Date(s.generatedAt).toLocaleString('de-DE'):'Noch nicht von dieser Seite'],['Geprüfter Kanal','Back2u (YouTube), lxon_jxmpstyle (Instagram), back2u.mp3 (TikTok)'],['Anzahl Videoeinträge',fmt(mergedVideos().length)],['Datenstand für historische Clips','YouTube/Instagram: API-Gesamtwerte pro Video · TikTok: '+(s?.platforms?.tt?.videos?.length?'API nach Video-ID; 119 Screenshots separat zuschaltbar':'Screenshot-Archiv 10.11.2026')],['Aktualisierung',s?'Google Apps Script alle 30 Minuten; TikTok per Cloudflare-Cron alle 30 Minuten':'Noch kein Live-Feed'],['Vorgesehene Basis','Cloudflare Workers + D1 und privater Google Apps Script-Feed']];$('#systemInfo').innerHTML=items.map(x=>`<div class="system-line"><span>${esc(x[0])}</span><strong>${esc(x[1])}</strong></div>`).join('');
- const rows=[['Tägliche Views','ja','ja','nein'],['Video-Aufrufe','ja','ja','ja'],['Likes & Kommentare','ja','teilweise','ja'],['Zugeschriebene Follows','ja','teilweise','teilweise'],['Exakte 24h-Werte nach Upload','nein','nein','nein'],['Upload-Uhrzeit je Video','nach Live-API','teilweise','ja'],['Watch Time je Video','nach Live-API','nach Live-API','nach Live-API'],['Vollständige 90-Tage-Vergleiche','nach Live-API','nach Live-API','nach Live-API']];$('#qualityMatrix').innerHTML=`<div style="overflow-x:auto"><table class="matrix"><thead><tr><th>Kennzahl</th><th>YouTube</th><th>Instagram</th><th>TikTok</th></tr></thead><tbody>${rows.map(x=>`<tr><td>${esc(x[0])}</td>${x.slice(1).map(v=>`<td class="${v==='ja'?'yes':v==='nein'?'no':'part'}">${v==='ja'?'● Verfügbar':v==='nein'?'○ Fehlt':esc(v)}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`;
+ const rows=[['Tägliche Views','ja','ja',s?.platforms?.tt?.windsorDailyThrough?'ja':'nur bei erfolgreichem Windsor-Sync'],['Video-Aufrufe','ja','ja','ja'],['Likes & Kommentare','ja','teilweise','ja'],['Zugeschriebene Follows','ja','teilweise','teilweise'],['Exakte 24h-Werte nach Upload','nein','nein','nein'],['Upload-Uhrzeit je Video','nach Live-API','teilweise','ja'],['Watch Time je Video','nach Live-API','nach Live-API','nach Live-API'],['Vollständige 90-Tage-Vergleiche','nach Live-API','nach Live-API','nach Live-API']];$('#qualityMatrix').innerHTML=`<div style="overflow-x:auto"><table class="matrix"><thead><tr><th>Kennzahl</th><th>YouTube</th><th>Instagram</th><th>TikTok</th></tr></thead><tbody>${rows.map(x=>`<tr><td>${esc(x[0])}</td>${x.slice(1).map(v=>`<td class="${v==='ja'?'yes':v==='nein'?'no':'part'}">${v==='ja'?'● Verfügbar':v==='nein'?'○ Fehlt':esc(v)}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`;
 }
 
 function storyData(){
