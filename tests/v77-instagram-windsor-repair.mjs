@@ -58,6 +58,21 @@ check('real Instagram Saves, Shares, Interactions and Accounts Engaged pass thro
  assert.equal(snapshot.platforms.ig.daily[0].shares,60);
  assert.equal(snapshot.platforms.ig.daily[0].sourceFields.interactions,'Windsor.ai Instagram Insights (account-day)');
 });
+check('28-day reimport fills Saves/Shares/Engaged Accounts without losing prior optional values',()=>{
+ const previous={schema:1,daily:[{d:'2026-11-10',views:1000,reach:950,saves:17,shares:3}]};
+ const rows=Array.from({length:28},(_,i)=>({
+  date:new Date(Date.parse('2026-10-18T00:00:00Z')+i*86400000).toISOString().slice(0,10),
+  account_id:'27282542318110290',views:4735+i,reach:3250+i,
+  likes:337+i,comments:6,saves:i===23?undefined:26+i,
+  shares:24+i,total_interactions:451+i,accounts_engaged:321+i
+ }));
+ const combined=mergeInstagramWindsorDaily(previous,validateInstagramWindsorDaily(rows,now),now);
+ assert.equal(combined.daily.length,28);
+ assert.equal(combined.daily[0].d,'2026-10-18');
+ assert.equal(combined.daily.at(-1).d,'2026-11-14');
+ assert.equal(combined.daily.find(x=>x.d==='2026-11-10').saves,17);
+ assert.equal(combined.daily.at(-1).engagedAccounts,348);
+});
 check('saved historical days remain preserved when new days are added',()=>{
  const old={schema:1,daily:[{d:'2026-11-01',views:99,reach:90}]};
  const next=mergeInstagramWindsorDaily(old,validateInstagramWindsorDaily(fixture,now),now);
@@ -96,6 +111,24 @@ await checkAsync('one existing Cloudflare cron run imports real days without cha
  const duplicate=await runInstagramWindsorDailySync(env,{...db,fetcher,now:now+30*60000});
  assert.equal(duplicate.status,'skipped');
  assert.equal(calls.length,1);
+});
+await checkAsync('schema upgrade forces exactly one new import despite old successful six-hour throttle',async()=>{
+ const db=makeDb(),urls=[];
+ const env={WINDSOR_API_KEY:'test_private_secret_at_least_16'};
+ db.m.set('ig_windsor_daily_sync_v1',{
+  status:'ok',pipelineVersion:'v77.10-full-28day-instagram-extras',
+  lastAttemptAt:new Date(now).toISOString(),lastSuccessAt:new Date(now).toISOString()
+ });
+ const result=await runInstagramWindsorDailySync(env,{...db,now,
+  fetcher:async url=>{urls.push(url);return{ok:true,json:async()=>fixture}}
+ });
+ assert.equal(result.status,'ok');
+ assert.equal(result.pipelineVersion,'v77.14-retry-full-instagram-extras');
+ assert.equal(urls.length,1);
+ const again=await runInstagramWindsorDailySync(env,{...db,now:now+60000,
+  fetcher:()=>{throw Error('should have been throttled')}
+ });
+ assert.equal(again.status,'skipped');
 });
 await checkAsync('upstream failure never clears last successful report',async()=>{
  const db=makeDb(),env={WINDSOR_API_KEY:'test_private_secret_at_least_16'};
