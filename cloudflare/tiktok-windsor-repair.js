@@ -61,7 +61,7 @@ export function validateTikTokOrganicDays(rows,now=Date.now()){
   // A row without a trustworthy primary views count cannot be a day.
   if(entry.views===undefined)continue;
   const placeholder=entry.views===0&&
-   ['likes','comments','shares','follows'].every(k=>entry[k]===0||entry[k]===undefined)&&
+   ['likes','comments','shares','uniqueViews','profileViews','engagedAudience'].every(k=>entry[k]===0||entry[k]===undefined)&&
    d>=iso(now-3*DAY);
   if(placeholder)continue; // pending all-zero batch is not a verified day
   if(conflicted.has(d))continue;
