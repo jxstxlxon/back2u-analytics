@@ -722,6 +722,10 @@ async function route(req,env){
     const [sync,stored,snapshot]=await Promise.all([
      get(env,'tt_windsor_sync_v1'),get(env,'tt_windsor_daily_v1'),get(env,'snapshot')
     ]);
+    // Diagnostic booleans only: never expose media counts, dates or data.
+    health.snapshotStored=!!(snapshot?.platforms?.yt&&snapshot?.platforms?.ig&&snapshot?.platforms?.tt);
+    health.snapshotHasVideoCatalog=!!(['yt','ig','tt'].some(p=>snapshot?.platforms?.[p]?.videos?.length));
+    health.snapshotHasDailySeries=!!(['yt','ig','tt'].some(p=>snapshot?.platforms?.[p]?.daily?.length));
     const allowed=['ok','partial','error','running','skipped','not_configured'];
     const state=allowed.includes(sync?.status)?sync.status:'never_run';
     const failure=String(sync?.error||'').toLowerCase();
