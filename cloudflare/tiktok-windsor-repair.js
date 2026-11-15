@@ -38,7 +38,13 @@ export function validateTikTokOrganicDays(rows,now=Date.now()){
   if(!dateOK(d)||d<cutoff||d>today||byDate.has(d))
    throw Error('Ungültiger oder mehrfacher TikTok-Berichtstag');
   const fields={views:'video_views',likes:'likes',comments:'comments',
-   shares:'shares',follows:'followers_count'};
+   shares:'shares',follows:'followers_count',
+   uniqueViews:'unique_video_views',profileViews:'profile_views'};
+  // Current-day account rows can have NULL metrics while followers_count
+  // is already published. They must not veto all completed historical days.
+  const followerTotal=numeric(row.total_followers_count);
+  if(followerTotal!==null&&followerTotal>0)candidates.push({date:d,followers:followerTotal});
+  if(d===today){byDate.set(d,null);continue}
   const entry={d};
   for(const [to,from] of Object.entries(fields)){
    const value=numeric(row[from]);
@@ -46,7 +52,11 @@ export function validateTikTokOrganicDays(rows,now=Date.now()){
    else if(row[from]!==null&&row[from]!==undefined&&row[from]!=='')
     throw Error('TikTok-Tagesmetrik ungültig: '+from);
   }
-  if(entry.views===undefined)throw Error('TikTok-Tagesaufrufe fehlen');
+  if(entry.views===undefined){
+   // Yesterday's partial response must not block older, verified dates.
+   if(d>=iso(now-3*DAY)){byDate.set(d,null);continue}
+   throw Error('TikTok-Tagesaufrufe fehlen');
+  }
   // A completely zero-filled recent report may be a not-yet-published batch.
   // Do not interpret it as a confirmed day with zero views/follows/likes.
   const incompleteZero=entry.views===0&&
@@ -54,9 +64,6 @@ export function validateTikTokOrganicDays(rows,now=Date.now()){
    d>=iso(now-3*DAY);
   if(d<today&&!incompleteZero)byDate.set(d,entry);
   else byDate.set(d,null); // preserves duplicate guard, but never writes it
-  const followers=numeric(row.total_followers_count);
-  if(followers!==null&&followers>0)
-   candidates.push({date:d,followers});
  }
  const daily=[...byDate.values()].filter(Boolean).sort((a,b)=>a.d.localeCompare(b.d));
  if(daily.length<3)throw Error('TikTok-Tagesstatistik enthält zu wenig bestätigte Tage');
@@ -153,7 +160,8 @@ export async function runTikTokOrganicSync(env,{
  if(secret.length<16)return{status:'not_configured',reason:'WINDSOR_API_KEY fehlt'};
  const old=await get(env,STATUS_STORE)||{};
  const last=Date.parse(old.lastAttemptAt||'');
- const throttle=old.status==='ok'?6*3600000:old.status==='running'?45*60000:60*60000;
+ const throttle=(old.status==='ok'||old.status==='partial')?6*3600000:
+  old.status==='running'?45*60000:60*60000;
  if(!force&&Number.isFinite(last)&&now-last>=0&&now-last<throttle)
   return{status:'skipped',lastSuccessAt:old.lastSuccessAt||null};
  const time=new Date(now).toISOString();
@@ -170,23 +178,32 @@ export async function runTikTokOrganicSync(env,{
   };
   const opts=()=>({method:'GET',headers:{accept:'application/json'},
    signal:AbortSignal.timeout(25000)});
-  const dailyUrl=query('date,account_id,username,video_views,likes,comments,shares,followers_count,total_followers_count','last_14dT');
+  const dailyUrl=query('date,account_id,username,video_views,likes,comments,shares,followers_count,total_followers_count,unique_video_views,profile_views','last_14dT');
   const mediaUrl=query('date,account_id,username,video_id,video_create_datetime,video_views_count,video_likes,video_comments,video_caption','last_21d');
-  const [d,m]=await Promise.all([fetcher(dailyUrl,opts()),fetcher(mediaUrl,opts())]);
-  if(!d.ok||!m.ok)throw Error('TikTok Windsor HTTP '+(d.ok?m.status:d.status));
-  const [dr,mr]=await Promise.all([d.json(),m.json()]);
-  const verified={
-   days:validateTikTokOrganicDays(responseRows(dr),now),
-   media:validateTikTokOrganicMedia(responseRows(mr),now)
-  };
+  const [dFetch,mFetch]=await Promise.allSettled([fetcher(dailyUrl,opts()),fetcher(mediaUrl,opts())]);
+  if(dFetch.status!=='fulfilled'||!dFetch.value.ok)
+   throw Error('TikTok day HTTP '+(dFetch.status==='fulfilled'?dFetch.value.status:'connection failed'));
+  const dr=await dFetch.value.json();
+  const verifiedDays=validateTikTokOrganicDays(responseRows(dr),now);
+  // Video inventory is optional: an independent media outage may not stop
+  // correct account-wide daily statistics from reaching the dashboard.
+  let media=[],mediaError=null;
+  if(mFetch.status==='fulfilled'&&mFetch.value.ok){
+   try{
+    const mr=await mFetch.value.json(),rows=responseRows(mr);
+    if(Array.isArray(rows)&&rows.length)media=validateTikTokOrganicMedia(rows,now);
+    else mediaError='no recent media';
+   }catch(e){mediaError=errorText(e)}
+  }else mediaError='video connector unavailable';
+  const verified={days:verifiedDays,media};
   const previous=await get(env,DAY_STORE);
   const combined=combineTikTokOrganicState(previous,verified,now);
   // Both batches must validate before a single new store is written.
   await put(env,DAY_STORE,combined);
-  const result={status:'ok',lastAttemptAt:time,lastSuccessAt:time,
+  const result={status:mediaError?'partial':'ok',lastAttemptAt:time,lastSuccessAt:time,
    dayThrough:combined.daily.at(-1)?.d||null,dailyDays:combined.daily.length,
    recentVideos:combined.videos.length,latestVideoDay:combined.videos.at(-1)?.date||null,
-   error:null};
+   mediaStatus:mediaError?'unavailable':'ok',mediaError,error:null};
   await put(env,STATUS_STORE,result);
   return result;
  }catch(e){
@@ -202,6 +219,7 @@ export async function tiktokOrganicStatus(env,{get}){
  return {
   configured:!!(env.WINDSOR_API_KEY&&String(env.WINDSOR_API_KEY).trim().length>=16),
   status:job?.status||'never_run',lastSuccessAt:job?.lastSuccessAt||null,
+  mediaStatus:job?.mediaStatus||null,mediaError:job?.mediaError||null,
   lastAttemptAt:job?.lastAttemptAt||null,error:job?.error||null,
   dayThrough:saved?.daily?.at(-1)?.d||null,
   latestVideoDay:saved?.videos?.at(-1)?.date||null,
