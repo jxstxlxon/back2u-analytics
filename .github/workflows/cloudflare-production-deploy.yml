@@ -1,0 +1,85 @@
+name: BACK2U publish Cloudflare production
+on:
+  push:
+    branches: [cloudflare-migration]
+    paths:
+      - site/**
+      - cloudflare/**
+      - wrangler.cloudflare.jsonc
+      - package.json
+      - .github/workflows/cloudflare-production-deploy.yml
+permissions:
+  contents: read
+concurrency:
+  group: back2u-production-worker
+  cancel-in-progress: false
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    if: github.ref == 'refs/heads/cloudflare-migration'
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check Cloudflare account connection
+        shell: bash
+        run: |
+          set -euo pipefail
+          # Never print secret values. Missing credentials mean no deployment;
+          # fail clearly rather than misleadingly claiming a successful release.
+          if [[ -z "$CLOUDFLARE_API_TOKEN" || -z "$CLOUDFLARE_ACCOUNT_ID" ]]; then
+            echo "BACK2U_DEPLOY=NOT_CONFIGURED"
+            echo "Add repository Actions secrets CLOUDFLARE_API_TOKEN and CLOUDFLARE_ACCOUNT_ID."
+            exit 1
+          fi
+          echo "BACK2U_DEPLOY=AUTH_CONFIGURED"
+      - name: Verify all analytics, account-access, layout and data regressions
+        run: npm test
+      - name: Compile Worker and UI assets before publishing
+        run: npx --yes wrangler@4 deploy --dry-run --config wrangler.cloudflare.jsonc --outdir .wrangler-dry-run
+      - name: Deploy only the production Worker with existing D1 bindings
+        run: npx --yes wrangler@4 deploy --config wrangler.cloudflare.jsonc
+      - name: Confirm the actual deployed PC/iPhone UI and public health
+        shell: bash
+        run: |
+          set -euo pipefail
+          base="https://back2u-cloud.leon-mueller0806.workers.dev"
+          ok=0
+          for attempt in $(seq 1 10); do
+            if curl -fsSL --max-time 12 "$base/" -o /tmp/back2u-deployed-index.html \
+              && curl -fsSL --max-time 12 "$base/workspace-v78.css" -o /tmp/back2u-deployed-layout.css \
+              && curl -fsSL --max-time 12 "$base/api/health" -o /tmp/back2u-deployed-health.json; then
+              if node --input-type=module - <<'NODE'
+          import {readFileSync} from 'node:fs';
+          const html=readFileSync('/tmp/back2u-deployed-index.html','utf8');
+          const css=readFileSync('/tmp/back2u-deployed-layout.css','utf8');
+          const h=JSON.parse(readFileSync('/tmp/back2u-deployed-health.json','utf8'));
+          const ok=html.includes('id="mobileBottomNav"') &&
+            html.includes('id="topSevenExpand"') &&
+            css.includes('grid-template-areas:"side notice" "side content"') &&
+            css.includes('env(safe-area-inset-bottom,0px)') &&
+            typeof h.windsorReady==='boolean' && !!h.tiktokSync;
+          console.log('BACK2U_DEPLOY_UI='+(ok?'VERIFIED':'NOT_YET_AVAILABLE'));
+          console.log('BACK2U_DEPLOY_HEALTH='+(typeof h.windsorReady==='boolean'?'PRESENT':'UNKNOWN'));
+          if(!ok)process.exit(1);
+          NODE
+              then
+                ok=1
+                break
+              fi
+            fi
+            sleep 9
+          done
+          if [ "$ok" != 1 ]; then
+            echo "BACK2U_DEPLOY=RELEASE_NOT_VERIFIED"
+            echo "Worker update attempted but the public UI/health checks did not confirm it."
+            exit 1
+          fi
+          echo "BACK2U_DEPLOY=VERIFIED"
