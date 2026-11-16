@@ -206,6 +206,19 @@ try{
 
  assert.equal(sceneStyle.artwork,'on');
 
+
+ assert.ok(await phone.evaluate(()=>window.BACK2U_THEMES.use('ex19')));
+ await phone.waitForFunction(()=>document.body.dataset.themeId==='ex19');
+ const redlineMobile=await phone.evaluate(()=>{
+  const hero=document.querySelector('#overview .hero-main');
+  const h=document.querySelector('.masthead h1');
+  return {mesh:getComputedStyle(hero,'::before').backgroundImage,
+   titleHeight:h.getBoundingClientRect().height,
+   overflow:document.documentElement.scrollWidth>document.documentElement.clientWidth+20};
+ });
+ assert.ok(redlineMobile.mesh.includes('theme-momentum-mesh-v816.svg')&&redlineMobile.titleHeight>40&&!redlineMobile.overflow,
+  'iPhone must render reference-grade design without hiding the real headline');
+ await shot(phone,'iphone-v816-reference-hyperdrive');
  await phone.locator('#themeStudioPanel [data-v80-theme="n04"]').click();
  assert.equal(await phone.evaluate(()=>window.BACK2U_THEMES.current()),'n04');
  await phone.locator('#themeClose').click();
@@ -334,6 +347,44 @@ try{
   assert.ok(!art.legacySvg&&art.heading&&!art.overflow,'Photo hero must remain usable '+id+' '+JSON.stringify(art));
   await shot(desktop,'desktop-'+id);
  }
+
+ // The design must be visible in the real render, not only stylesheet text.
+ assert.ok(await desktop.evaluate(()=>window.BACK2U_THEMES.use('ex19')));
+ await desktop.waitForFunction(()=>document.body.dataset.themeId==='ex19');
+ const redlineChrome=await desktop.evaluate(()=>{
+  const top=document.querySelector('.topbar');
+  const main=document.querySelector('#overview .hero-main');
+  const nav=document.querySelector('#dashboardWorkspace>.section-nav');
+  const cards=[...document.querySelectorAll('#platformStack .platform-card')];
+  return {
+   chrome:getComputedStyle(top).borderTopWidth,
+   topLight:getComputedStyle(top,'::before').backgroundImage,
+   mesh:getComputedStyle(main,'::before').backgroundImage,
+   cards:cards.length,
+   colors:cards.map(x=>getComputedStyle(x).borderLeftColor),
+   navigation:getComputedStyle(nav.querySelector('button.active')).backgroundImage,
+   heading:document.querySelector('.masthead h1').getBoundingClientRect().height,
+   overflow:document.documentElement.scrollWidth>document.documentElement.clientWidth+20
+  };
+ });
+ assert.ok(parseFloat(redlineChrome.chrome)>=1.5,'Retina top border missing: '+JSON.stringify(redlineChrome));
+ assert.ok(redlineChrome.topLight.includes('linear-gradient'),'Missing illuminated topbar micro-detail');
+ assert.ok(redlineChrome.mesh.includes('theme-momentum-mesh-v816.svg'),
+  'Momentum card must display the real static neon particle mesh');
+ assert.equal(redlineChrome.cards,3,'Keep all real platform KPIs');
+ assert.equal(new Set(redlineChrome.colors).size,3,'Each platform must retain its distinct accent');
+ assert.ok(redlineChrome.heading>50&&!redlineChrome.overflow,'Desktop chrome must not hide headline or overflow');
+ await shot(desktop,'desktop-v816-reference-hyperdrive');
+ assert.ok(await desktop.evaluate(()=>window.BACK2U_THEMES.use('ex20')));
+ await desktop.waitForFunction(()=>document.body.dataset.themeId==='ex20');
+ const lightChrome=await desktop.evaluate(()=>({
+  headline:document.querySelector('.masthead h1').getBoundingClientRect().height,
+  stats:document.querySelector('#heroValue').getBoundingClientRect().width,
+  overflow:document.documentElement.scrollWidth>document.documentElement.clientWidth+20
+ }));
+ assert.ok(lightChrome.headline>50&&lightChrome.stats>50&&!lightChrome.overflow,
+  'Dreamwave remains usable and its real data visible');
+ await shot(desktop,'desktop-v816-reference-dreamwave');
  const railLayout=await desktop.locator('#dashboardWorkspace>.section-nav').evaluate(x=>({
   position:getComputedStyle(x).position,referenceLayout:document.body.dataset.referenceLayout||''
  }));
