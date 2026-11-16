@@ -1038,7 +1038,7 @@ function renderVideos(){renderTopSeven();if(state.platform==='all'){const hasApi
  const selected=state.selected;
  state.selected=vlist.find(v=>v.platform===selected?.platform&&(
   v.id&&selected.id?String(v.id)===String(selected.id):
-  v.url&&selected.url?String(v.url).replace(/\\?.*$/,'').replace(/\\/$/,'')===String(selected.url).replace(/\\?.*$/,'').replace(/\\/$/,''):
+  v.url&&selected.url?String(v.url).split('?')[0].replace(/[/]$/,'')===String(selected.url).split('?')[0].replace(/[/]$/,''):
   v.title===selected.title&&v.date===selected.date
  ))||vlist[0]||null;
  renderDetail();$$('[data-vid-index]').forEach(b=>b.addEventListener('click',()=>{state.selected=vlist[Number(b.dataset.vidIndex)];renderDetail();$$('[data-vid-index]').forEach(e=>e.classList.remove('active'));b.classList.add('active')}));
