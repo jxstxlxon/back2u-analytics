@@ -153,7 +153,7 @@ try{
    heroImage:kpiBg.includes('data:image/svg+xml'),
    sceneOnly:getComputedStyle(stage).display==='none',
    stageRatio:img.getBoundingClientRect().width/mast.getBoundingClientRect().width,
-   stageOpacity:Number.parseFloat(getComputedStyle(img.parentElement).opacity),
+   stageOpacity:Number.parseFloat(getComputedStyle(img).opacity),
    mastImage:mastBg.includes('data:image/svg+xml'),
    width:document.documentElement.scrollWidth,
    viewport:document.documentElement.clientWidth
