@@ -10,8 +10,18 @@ const esc=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&
 const cssColor=(p,fallback)=>'var(--chart-'+p+', '+fallback+')';
 const colorFor={yt:'#ff7b92',ig:'#a995ff',tt:'#39dbc9'};
 function niceStep(n){const q=Math.pow(10,Math.floor(Math.log10(n||1))),v=n/q;return(v<=1?1:v<=2?2:v<=2.5?2.5:v<=5?5:10)*q}
+let lastChartSignature=null;
 function draw(ctx){
  const {ps,xs,dMap,NAMES,days,range}=ctx;
+ // Reuse the existing SVG when its data, presentation and viewport are unchanged.
+ // Preserve keyboard/day selection and avoid hundreds of unnecessary SVG writes.
+ const compact=chart.getBoundingClientRect().width<=540;
+ const signature=JSON.stringify([
+  mode,compact,days,range.start,range.end,
+  ps.map(p=>[p,NAMES[p],xs.map(d=>dMap[p].get(d)??null)])
+ ]);
+ if(signature===lastChartSignature&&chart.querySelector('svg, .empty'))return;
+ lastChartSignature=signature;
  chart.classList.remove('v71-drawn');
  document.getElementById('trendLegend').innerHTML=ps.map(p=>'<span><i class="legend-color-'+p+'" style="background:'+cssColor(p,colorFor[p])+'"></i>'+esc(NAMES[p])+'</span>').join('');
  document.getElementById('chartTitle').textContent='Tagesverlauf · '+(mode==='bar'?'Balken':mode==='area'?'Flächen':'Linien');
@@ -56,7 +66,6 @@ function draw(ctx){
  const all=ps.flatMap(p=>xs.map(x=>dMap[p].get(x)).filter(v=>typeof v==='number'&&Number.isFinite(v)&&v>=0));
  const max=Math.max(1,...all),tick=niceStep(max/4),ymax=Math.ceil(max/tick)*tick;
  // A small real SVG viewport keeps labels readable on iPhone instead of shrinking a 1000px SVG.
- const compact=chart.getBoundingClientRect().width<=540;
  const W=compact?430:1000,H=compact?300:295,L=compact?63:83,R=compact?14:18,T=compact?22:16,B=compact?49:41,PW=W-L-R,PH=H-T-B;
  const x=i=>L+PW*i/(xs.length-1),y=v=>T+PH*(1-v/ymax);
  let out='<svg viewBox="0 0 '+W+' '+H+'" role="img" aria-label="Tagesdiagramm mit numerischer Y-Achse und '+ps.length+' Plattformreihen" preserveAspectRatio="xMidYMid meet"><defs>';
