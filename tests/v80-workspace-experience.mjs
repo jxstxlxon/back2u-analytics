@@ -3,6 +3,14 @@ import {readFileSync} from 'node:fs';
 import vm from 'node:vm';
 
 const html=readFileSync(new URL('../site/index.html',import.meta.url),'utf8');
+
+assert.ok(html.includes('return state.days===28}'),
+ 'Archived 28-day snapshots must never substitute for real 90-day totals');
+assert.ok(html.includes('state.selected=groups.find(g=>g.groupKey===state.selected?.groupKey)'),
+ 'Grouped details must bind to current video snapshot after refresh');
+assert.ok(html.includes('state.selected=vlist.find(v=>v.platform===selected?.platform'),
+ 'Single-video details must bind to current video record after refresh');
+
 const ux=readFileSync(new URL('../site/workspace-v80.js',import.meta.url),'utf8');
 const css=readFileSync(new URL('../site/workspace-v80.css',import.meta.url),'utf8');
 const universe=readFileSync(new URL('../site/theme-universe-v806.css',import.meta.url),'utf8');
