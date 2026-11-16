@@ -102,7 +102,7 @@ body.story-open{overflow:hidden}
 #back2uLoginOverlay input{display:block;width:100%;padding:15px 16px;border-radius:12px;background:#061326cc;border:1px solid #adcafa5a;color:white;font:inherit;font-size:16px;margin-bottom:12px}
 #back2uLoginOverlay button{border:0;border-radius:12px;background:#449dfb;color:white;font:600 15px system-ui;padding:13px 16px;width:100%;cursor:pointer}
 #back2uLoginOverlay #back2uLoginError{min-height:20px;color:#ffc5c5;font-size:12px;margin-top:14px}
-</style><link rel="stylesheet" href="/theme-studio.css?v=1"><link rel="stylesheet" href="/theme-reference.css?v=2"><link rel="stylesheet" href="/ui-v3.css?v=3"><link rel="stylesheet" href="/ui-v4.css?v=4"><link rel="stylesheet" href="/creator-hub-v5.css?v=6"><link rel="stylesheet" href="/mobile-theme-polish-v6.css?v=6"><link rel="stylesheet" href="/dashboard-v7.css?v=15"><link rel="stylesheet" href="/audience-import.css?v=2"><link rel="stylesheet" href="/guest-access.css?v=1"><link rel="stylesheet" href="/mobile-performance-v77.css?v=2"></head>
+</style><link rel="stylesheet" href="/theme-studio.css?v=1"><link rel="stylesheet" href="/theme-reference.css?v=2"><link rel="stylesheet" href="/ui-v3.css?v=3"><link rel="stylesheet" href="/ui-v4.css?v=4"><link rel="stylesheet" href="/creator-hub-v5.css?v=6"><link rel="stylesheet" href="/mobile-theme-polish-v6.css?v=6"><link rel="stylesheet" href="/dashboard-v7.css?v=15"><link rel="stylesheet" href="/audience-import.css?v=2"><link rel="stylesheet" href="/guest-access.css?v=1"><link rel="stylesheet" href="/mobile-performance-v77.css?v=2"><link rel="stylesheet" href="/workspace-v78.css?v=1"></head>
 <body>
 <div class="ambient ambient-a"></div><div class="ambient ambient-b"></div><div class="ambient ambient-c"></div><div class="grain"></div>
 <div class="shell">
@@ -113,7 +113,8 @@ body.story-open{overflow:hidden}
 <div id="guestAccessBanner" class="guest-access-banner" role="status" hidden></div>
 <div class="masthead"><div><div class="eyebrow"><span class="tiny-orb"></span> OWN YOUR MOMENTUM <span id="sourceStamp" class="source-stamp">Daten bis 10.11.2026</span></div><h1>Dein Content.<br/><em>Deine Zahlen.</em></h1><p>Ein Ort für deine Videos, dein Wachstum und deine nächsten Entscheidungen.</p></div><div class="mast-right glass"><div class="mini-label">LENS / GLASS INTENSITY</div><div class="glass-toolbar"><button data-glass-preset="10" title="Kristallklar">Clear</button><button data-glass-preset="48" class="selected" title="Milchglas">Glass</button><button data-glass-preset="90" title="Stark getönt">Frost</button></div><input id="glassSlider" type="range" min="0" max="100" value="48" aria-label="Glasintensität einstellen"/><div class="glass-scale"><span>transparent</span><strong id="glassValue">48%</strong><span>tief</span></div></div></div>
 <div class="controlbar glass"><div class="platform-tabs" role="group" aria-label="Plattform auswählen"><button data-platform="all" class="selected">Alle</button><button data-platform="yt"><span class="platform-dot ytdot"></span>YouTube</button><button data-platform="ig"><span class="platform-dot igdot"></span>Instagram</button><button data-platform="tt"><span class="platform-dot ttdot"></span>TikTok</button></div><div class="period-tabs" role="group" aria-label="Zeitraum wählen"><button data-days="7">7 Tage</button><button data-days="28" class="selected">28 Tage</button><button data-days="90">90 Tage</button></div></div>
-<div class="section-nav" role="navigation" aria-label="Ansichten"><button data-section="overview" class="active"><span class="navglyph">◈</span> Übersicht</button><button data-section="videos"><span class="navglyph">▸</span> Video Radar</button><button data-section="experiments"><span class="navglyph">◎</span> Experimente</button><button data-section="audience"><span class="navglyph">◉</span> Zielgruppe</button><button data-section="creator"><span class="navglyph">✦</span> Creator Hub</button><button data-section="system"><span class="navglyph">⌁</span> System</button></div>
+<div class="dashboard-workspace" id="dashboardWorkspace">
+<nav class="section-nav" aria-label="Dashboard-Bereiche"><button type="button" data-section="overview" aria-current="page" class="active"><span class="navglyph">◈</span> Übersicht</button><button type="button" data-section="videos"><span class="navglyph">▸</span> Video Radar</button><button type="button" data-section="creator"><span class="navglyph">✦</span> Creator Hub</button><button type="button" data-section="experiments"><span class="navglyph">◎</span> Experimente</button><button type="button" data-section="audience"><span class="navglyph">◉</span> Zielgruppe</button><button type="button" data-section="system"><span class="navglyph">⌁</span> System</button></nav>
 <div id="notice" class="notice" role="status"></div>
 <main>
 <section id="overview" class="view active">
@@ -129,9 +130,9 @@ body.story-open{overflow:hidden}
    <div id="extendedDailyMetrics" class="metric-grid" role="status" aria-live="polite"></div>
    <div id="extendedDailyNote" class="smallprint"></div>
   </section>
-  <div class="section-heading"><div><div class="eyebrow">02 / SIGNAL</div><h2>Deine Entwicklung</h2><p>Die Aufrufe im Zeitverlauf – unterschiedliche Messgrößen werden gekennzeichnet.</p></div><div id="trendLegend" class="legend"></div></div>
+  <div class="section-heading overview-trend-heading"><div><div class="eyebrow">02 / SIGNAL</div><h2>Deine Entwicklung</h2><p>Die Aufrufe im Zeitverlauf – unterschiedliche Messgrößen werden gekennzeichnet.</p></div><div id="trendLegend" class="legend"></div></div>
   <div class="chart-card glass"><div class="chart-head"><div><strong id="chartTitle">Tägliche Aufrufe</strong><span id="chartSubtitle">Auf Basis der vorhandenen Tageswerte</span></div><div class="tooltip-n" id="chartHoverLabel">Zum Vergleichen über das Diagramm fahren</div></div><div id="chartDataStatus" class="v7-data-status" role="status"></div><div id="chartKpis" class="chart-kpis" aria-label="Auswertung vorhandener Tageswerte"></div><div id="chartDayBreakdown" class="chart-day-breakdown" aria-live="polite" aria-atomic="true"></div><div id="chartModes" class="chart-mode-group" role="group" aria-label="Diagrammart"><button type="button" data-chart-mode="line" aria-pressed="true">Linie</button><button type="button" data-chart-mode="area" aria-pressed="false">Fläche</button><button type="button" data-chart-mode="bar" aria-pressed="false">Balken</button></div><div class="line-chart-wrap" id="trendChart"></div><div id="chartSummaryNote" class="chart-summary-note"></div><div class="chart-foot" id="chartFoot"></div></div><section class="glass v7-chart-pie-card" aria-label="Tageswerte nach Plattform"><div class="v7-chart-pie-head"><h3>Woher kamen die Aufrufe?</h3><p>Prozentanteile der verfügbaren Tageswerte – absolute Zahlen stehen darüber.</p></div><div id="chartPlatformPie" class="v7-pie-content" aria-live="polite"></div></section>
-  <div class="section-heading"><div><div class="eyebrow">03 / STANDOUTS</div><h2>Videos, die herausstechen</h2><p>Nach bisherigen Aufrufen der im Zeitraum veröffentlichten Videos.</p></div><button class="subtle-link" data-go="videos">Alle Videos ansehen <span>↗</span></button></div>
+  <div class="section-heading overview-top-heading"><div><div class="eyebrow">03 / STANDOUTS</div><h2>Videos, die herausstechen</h2><p>Nach bisherigen Aufrufen der im Zeitraum veröffentlichten Videos.</p></div><button class="subtle-link" data-go="videos">Alle Videos ansehen <span>↗</span></button></div>
   <div id="topCards" class="top-grid"></div>
   <div class="insight-strip glass"><div class="insight-symbol">✦</div><div><b id="headlineInsight">Datenbasiert statt Bauchgefühl.</b><p id="headlineInsightText">Die nächsten Empfehlungen werden anhand deiner Videos berechnet.</p></div><button data-go="experiments">Experimente prüfen <span>→</span></button></div>
 </section>
@@ -142,6 +143,7 @@ body.story-open{overflow:hidden}
    <div class="top-seven-controls"><label for="topSevenMode">Rangliste<select id="topSevenMode" aria-label="Art des 7-Tage-Video-Rankings"><option value="uploads">Letzte 7 Tage veröffentlicht</option><option value="period">Aufrufe im 7-Tage-Zeitraum (nur geprüft)</option></select></label><button type="button" id="topSevenRefresh" class="small-button">↻ Top-Videos abrufen</button></div>
    <p class="top-seven-status" id="topSevenStatus" role="status"></p>
    <div id="topSevenList" class="top-seven-list" aria-live="polite"></div>
+   <button type="button" id="topSevenExpand" class="top-seven-expand" aria-expanded="false" aria-controls="topSevenList" hidden>Alle 10 Videos anzeigen ↓</button>
   </section>
   <details id="manualLinksPanel" class="glass manual-links-panel" hidden>
  <summary>↔ Videos manuell zuordnen <small>Optional · nur Eigentümer</small></summary>
@@ -241,7 +243,24 @@ body.story-open{overflow:hidden}
  <div class="glass pane"><div class="pane-header"><h3>So funktioniert die Live-Verbindung</h3></div><p>Das Dashboard zeigt historische Exportdaten und lädt über <code>/api/snapshot</code> die zuletzt an Cloudflare D1 übertragenen API-Daten. Google Apps Script sendet YouTube- und Instagram-Werte in regelmäßigen Abständen. Der Übertragungsschlüssel bleibt in Script Properties und Cloudflare-Secrets; dein Browser erhält nur Statistikdaten. TikTok-Sandboxdaten werden nach der Autorisierung separat über die Display API synchronisiert; die älteren Studio-Screenshots bleiben zur historischen Einordnung erhalten.</p><div class="warning-line">Solange die Webseite nicht mit dem Worker veröffentlicht wurde, bleibt sie eine lokale Momentaufnahme.</div></div>
 </section>
 </main>
+</div><!-- /dashboard-workspace -->
 <footer><span>BACK2U / PERFORMANCE INTELLIGENCE</span><span><a href="/terms.html" style="color:inherit;text-decoration:underline;text-underline-offset:3px">Terms</a> · <a href="/privacy.html" style="color:inherit;text-decoration:underline;text-underline-offset:3px">Privacy</a></span><span id="footVersion">Exportbasis 10.11.2026 · drei Plattformen</span></footer>
+</div>
+<nav id="mobileBottomNav" class="mobile-bottom-nav" aria-label="Schnellnavigation">
+ <button type="button" data-section="overview" class="active" aria-current="page"><span aria-hidden="true">◈</span><small>Übersicht</small></button>
+ <button type="button" data-section="videos"><span aria-hidden="true">▸</span><small>Videos</small></button>
+ <button type="button" data-section="creator"><span aria-hidden="true">✦</span><small>Creator</small></button>
+ <button type="button" data-section="audience"><span aria-hidden="true">◉</span><small>Zielgruppe</small></button>
+ <button type="button" id="mobileMoreToggle" aria-haspopup="true" aria-expanded="false" aria-controls="mobileMoreDrawer"><span aria-hidden="true">☷</span><small>Mehr</small></button>
+</nav>
+<div id="mobileMoreDrawer" class="mobile-more-drawer" hidden>
+ <button type="button" id="mobileMoreBackdrop" class="mobile-more-backdrop" aria-label="Weitere Bereiche schließen"></button>
+ <div class="mobile-more-sheet" role="group" aria-label="Weitere Bereiche">
+  <div class="mobile-more-title"><strong>Weitere Bereiche</strong><button type="button" id="mobileMoreClose" aria-label="Menü schließen">✕</button></div>
+  <button type="button" data-section="experiments"><span aria-hidden="true">◎</span> Experimente <small>Was funktioniert besser?</small></button>
+  <button type="button" data-section="system"><span aria-hidden="true">⌁</span> System & Daten <small>Sync, Qualität und Einstellungen</small></button>
+  <button type="button" id="mobileMoreTheme"><span aria-hidden="true">✧</span> Design anpassen <small>Liquid Glass und Farbwelten</small></button>
+ </div>
 </div>
 <div id="storyOverlay" class="story-overlay" role="dialog" aria-label="BACK2U Story-Modus" aria-modal="true" hidden>
   <div class="story-toolbar"><span>STORY-MODUS · 9:16 · V6</span><button type="button" id="storySave" class="story-control">↧ Story-Bild speichern</button><button type="button" id="storyClose" class="story-control" aria-label="Story-Modus schließen">✕</button></div>
@@ -265,7 +284,7 @@ const SEED = window.SEED;
 if(!SEED){document.body.textContent='Datensatz fehlt: seed.js wurde nicht geladen.';return;}
 const COLORS={yt:'#ff849b',ig:'#b29bff',tt:'#63e7db'};
 const NAMES={yt:'YouTube',ig:'Instagram',tt:'TikTok'};
-const state={platform:'all',days:28,section:'overview',glass:48,sort:'views',fmt:'all',query:'',page:1,listExpanded:false,selected:null,live:null,loading:false,lastError:null,partialWarningCount:0,topSevenMode:'uploads',manualLinks:[],manualRevision:0,manualCanEdit:false,includeTiktokArchive:false,storyMode:false};
+const state={platform:'all',days:28,section:'overview',glass:48,sort:'views',fmt:'all',query:'',page:1,listExpanded:false,selected:null,live:null,loading:false,lastError:null,partialWarningCount:0,topSevenMode:'uploads',topSevenExpanded:false,manualLinks:[],manualRevision:0,manualCanEdit:false,includeTiktokArchive:false,storyMode:false};
 function syncWarningCount(data){const n=Array.isArray(data?.errors)?data.errors.length:0;return Math.max(n,data?.snapshotFallback==='original-d1'?1:0)}
 function snapshotWarningHint(data){
  const problems=Array.isArray(data?.errors)?data.errors:[];
@@ -383,12 +402,28 @@ function glassSet(value){state.glass=Math.min(100,Math.max(0,Number(value)||0));
  $('#glassSlider').value=state.glass;$('#glassValue').textContent=state.glass+'%';$$('[data-glass-preset]').forEach(b=>b.classList.toggle('selected',Number(b.dataset.glassPreset)===state.glass));
  try{localStorage.setItem('back2u_glass',state.glass)}catch{}
 }
+function closeMobileMore(restoreFocus=false){
+ const drawer=$('#mobileMoreDrawer'),toggle=$('#mobileMoreToggle');
+ const wasOpen=!drawer.hidden;
+ drawer.hidden=true;toggle.setAttribute('aria-expanded','false');
+ if(restoreFocus&&wasOpen)toggle.focus({preventScroll:true});
+}
+function toggleMobileMore(){
+ const drawer=$('#mobileMoreDrawer'),toggle=$('#mobileMoreToggle');
+ if(!drawer.hidden){closeMobileMore(true);return}
+ drawer.hidden=false;toggle.setAttribute('aria-expanded','true');
+ $('#mobileMoreClose').focus({preventScroll:true});
+}
 function setSection(s){
  const valid=['overview','videos','experiments','audience','system','creator'];
  if(!valid.includes(s))return;
  state.section=s;
  document.body.dataset.activeSection=s;
- $$('[data-section]').forEach(x=>x.classList.toggle('active',x.dataset.section===s));
+ $('[data-section]').forEach(x=>{const active=x.dataset.section===s;
+  x.classList.toggle('active',active);
+  if(active)x.setAttribute('aria-current','page');else x.removeAttribute('aria-current');
+ });
+ closeMobileMore();$('#mobileMoreToggle').classList.toggle('active',['experiments','system'].includes(s));
  $$('.view').forEach(x=>x.classList.toggle('active',x.id===s));
  renderActive();
  if(window.scrollY>0)window.scrollTo({top:0,behavior:'auto'});
@@ -880,6 +915,11 @@ function renderTopSeven(){
  const period=result.mode==='period',time=result.start?
   result.start.split('-').reverse().join('.')+' – '+result.end.split('-').reverse().join('.'):'Noch kein bestätigter Zeitraum';
  rangeLabel.textContent=time;
+ const more=$('#topSevenExpand');
+ more.hidden=result.items.length<=3;
+ more.setAttribute('aria-expanded',String(state.topSevenExpanded));
+ more.textContent=state.topSevenExpanded?'Weniger Videos anzeigen ↑':'Alle '+result.items.length+' Videos anzeigen ↓';
+ root.dataset.collapsed=String(!state.topSevenExpanded);
  if(!result.items.length){
   root.innerHTML='<div class="top-seven-empty">'+(period?
    'Keine aktuellen, bestätigten 7-Tage-Aufrufe je Video verfügbar. Diese Messgröße liegt nicht für alle Plattformen vor.':
@@ -1314,6 +1354,13 @@ function bind(){
  $('#videoSearch').addEventListener('input',e=>{state.query=e.target.value;state.page=1;clearTimeout(videoSearchTimer);videoSearchTimer=setTimeout(()=>{if(state.section==='videos')renderVideos()},165)});
  $('#topSevenMode').addEventListener('change',e=>{state.topSevenMode=e.target.value;renderTopSeven()});
  $('#topSevenRefresh').addEventListener('click',()=>loadLive(true));
+ $('#topSevenExpand').addEventListener('click',()=>{state.topSevenExpanded=!state.topSevenExpanded;renderTopSeven();});
+ $('#mobileMoreToggle').addEventListener('click',toggleMobileMore);
+ $('#mobileMoreBackdrop').addEventListener('click',()=>closeMobileMore(true));
+ $('#mobileMoreClose').addEventListener('click',()=>closeMobileMore(true));
+ $('#mobileMoreTheme').addEventListener('click',()=>{closeMobileMore();$('#themeStudioToggle').click();});
+ document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('#mobileMoreDrawer').hidden)closeMobileMore(true)});
+
  $('#videoExpand').addEventListener('click',()=>{state.listExpanded=!state.listExpanded;state.page=1;renderVideos()});$('#videoSort').addEventListener('change',e=>{state.sort=e.target.value;state.page=1;renderVideos()});$('#formatFilter').addEventListener('change',e=>{state.fmt=e.target.value;state.page=1;renderVideos()});$('#prevPage').addEventListener('click',()=>{state.page--;renderVideos()});$('#nextPage').addEventListener('click',()=>{state.page++;renderVideos()});$('#exportJson').addEventListener('click',exportData);
 }
 window.BACK2U_REFRESH_CHART=()=>{if(state.section==='overview')renderTrend()};glassSet(state.glass);bind();
