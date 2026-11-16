@@ -441,6 +441,40 @@ try{
  await desktop.waitForFunction(()=>document.querySelector('#system')?.classList.contains('active'));
  assert.ok(await desktop.locator('#connectionCards').isVisible());
  assert.ok(await desktop.locator('#v80SystemMethods').count()===1);
+ // Regression: after loading a second valid API snapshot, the selected video
+ // detail must be rebound to the NEW record instead of displaying stale metrics.
+ // All values are local synthetic fixtures; no user API/account is accessed.
+ let syntheticViews=111;
+ await desktop.route('**/api/snapshot*',async route=>{
+  const sample={generatedAt:'2026-11-16T15:00:00Z',dataThrough:'2026-11-15',
+   errors:[],platforms:{
+    yt:{videos:[{id:'QA_SENTINEL',platform:'yt',title:'QA_REFRESH_SENTINEL_VIDEO',
+      date:'2026-11-15',views:syntheticViews,likes:11,comments:1,reportType:'lifetime'}],daily:[],profile:{}},
+    ig:{videos:[],daily:[],profile:{}},tt:{videos:[],daily:[],profile:{}}
+   }};
+  await route.fulfill({status:200,contentType:'application/json',body:JSON.stringify(sample)});
+ });
+ await desktop.locator('#dashboardWorkspace>.section-nav [data-section="videos"]').click();
+ await desktop.locator('#videoSearch').fill('QA_REFRESH_SENTINEL_VIDEO');
+ await desktop.locator('#refreshBtn').click();
+ await desktop.waitForFunction(()=>document.querySelector('#detailPanel .detail-metrics .detail-metric b')?.textContent==='111',
+  null,{timeout:15000});
+ assert.ok((await desktop.locator('#videoList').innerText()).includes('111'));
+ syntheticViews=222;
+ await desktop.locator('#refreshBtn').click();
+ await desktop.waitForFunction(()=>document.querySelector('#detailPanel .detail-metrics .detail-metric b')?.textContent==='222',
+  null,{timeout:15000});
+ assert.ok((await desktop.locator('#videoList').innerText()).includes('222'),
+  'Grouped list and selected detail must show the same refreshed count');
+ await desktop.locator('.controlbar [data-platform="yt"]').click();
+ await desktop.waitForFunction(()=>document.querySelector('#detailPanel .detail-metrics .detail-metric b')?.textContent==='222');
+ syntheticViews=333;
+ await desktop.locator('#refreshBtn').click();
+ await desktop.waitForFunction(()=>document.querySelector('#detailPanel .detail-metrics .detail-metric b')?.textContent==='333',
+  null,{timeout:15000});
+ assert.ok((await desktop.locator('#videoList').innerText()).includes('333'),
+  'Single-platform detail must rebind to freshly loaded video by ID');
+ console.log('OK refreshed group and single-video detail reflect latest synthetic API snapshot');
  assert.deepEqual(desktopErrors,[]);
  console.log('OK Chromium Desktop 1440: sticky rail, creator, system and safe content geometry');
  await desktop.close();
