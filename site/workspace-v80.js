@@ -31,7 +31,9 @@
   const nav=create('nav',cls);
   nav.setAttribute('aria-label','Direkt zu den wichtigsten Funktionen');
   for(const item of items)nav.append(button(item[0],item[1]));
-  container.insertAdjacentElement('afterbegin',nav);
+  const heading=container.querySelector(':scope > .section-heading');
+  if(heading)heading.insertAdjacentElement('afterend',nav);
+  else container.insertAdjacentElement('afterbegin',nav);
   return nav;
  }
  function themeFavorites(){
