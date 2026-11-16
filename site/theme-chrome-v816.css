@@ -390,3 +390,17 @@ body[data-theme-artwork="on"]:is([data-theme-tone="light"],[data-theme-family="a
   animation:none!important;
  }
 }
+
+
+/* v816 browser QA — :is() adopts the highest selector specificity.
+ * #overview in the shared surfaces selector previously overrode each platform
+ * border. Use an explicit, stronger per-platform selector after the card rules. */
+body[data-theme-artwork="on"] #overview .platform-stack>.platform-card:nth-child(1){
+ border-left:3px solid #ff6c95!important;
+}
+body[data-theme-artwork="on"] #overview .platform-stack>.platform-card:nth-child(2){
+ border-left:3px solid #b495ff!important;
+}
+body[data-theme-artwork="on"] #overview .platform-stack>.platform-card:nth-child(3){
+ border-left:3px solid #60ebd4!important;
+}
