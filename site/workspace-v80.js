@@ -45,10 +45,10 @@
   wrap.setAttribute('aria-label','Theme-Schnellauswahl');
   const intro=create('div','v80-theme-heading');
   intro.append(create('strong','', 'Schnell deinen Look wechseln'),
-   create('small','','Vier passende Startpunkte. Alle bisherigen Themes und Regler bleiben darunter.'));
+   create('small','','Neue Extreme Collection – sechs spektakuläre Looks direkt testen. Alle bisherigen Themes bleiben darunter.'));
   wrap.append(intro);
   const grid=create('div','v80-theme-favorite-grid');
-  const presets=['n24','n04','n23','n15'];
+  const presets=['ex01','ex02','ex03','ex04','ex05','ex06','n24','n04'];
   for(const id of presets){
    const p=themes.get(id),b=create('button','v80-theme-favorite');
    b.type='button';b.dataset.v80Theme=id;
@@ -57,7 +57,7 @@
    const preview=create('span','v80-theme-color-preview');
    preview.setAttribute('aria-hidden','true');
    const name=create('strong','',p.name.replace(/^\d+ · /,''));
-   const type=create('small','',p.family==='light'?'Helles Glas':p.family==='aero'?'Frutiger Aero':'Dunkles Glas');
+   const type=create('small','',p.id.startsWith('ex')?'Extreme Collection':p.family==='light'?'Helles Glas':p.family==='aero'?'Frutiger Aero':'Dunkles Glas');
    b.append(preview,name,type);
    b.addEventListener('click',()=>{themes.use(id);updateThemeButtons()});
    grid.append(b);

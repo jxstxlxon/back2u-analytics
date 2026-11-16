@@ -11,10 +11,10 @@ const v78=readFileSync(new URL('../site/workspace-v78.css',import.meta.url),'utf
 
 new vm.Script(ux,{filename:'workspace-v80.js'});
 new vm.Script(stories,{filename:'story-composer-v3.js'});
-assert.ok(html.includes('href="/workspace-v80.css?v=3"'),'Current workspace CSS must be cache-busted after scroll fixes');
-assert.ok(html.includes('src="/workspace-v80.js?v=1" defer'));
+assert.ok(html.includes('href="/workspace-v80.css?v=4"'),'Current workspace CSS must be cache-busted after scroll fixes');
+assert.ok(html.includes('src="/workspace-v80.js?v=2" defer'));
 assert.ok(html.includes('src="/story-composer-v3.js?v=7" defer'));
-assert.ok(html.indexOf('src="/workspace-v80.js?v=1"')>html.indexOf('src="/audience-import.js?v=4"'),
+assert.ok(html.indexOf('src="/workspace-v80.js?v=2"')>html.indexOf('src="/audience-import.js?v=4"'),
  'Interaction enhancements must follow authenticated existing renderers and themes');
 assert.ok(v78.includes('grid-template-areas:"side notice" "side content"'),
  'V8 must preserve the V7.8 verified desktop/iPhone base');
@@ -45,7 +45,7 @@ assert.ok(ux.includes("node.hidden=!visible"),'Audience filters must change pres
 assert.ok(ux.includes("selected==='all'||title.includes(labels[selected])"));
 assert.ok(ux.includes("const themes=window.BACK2U_THEMES"));
 assert.ok(ux.includes("themes.use(id)"),'Quick palette choice must persist through official theme API');
-for(const id of ['n24','n04','n23','n15'])assert.ok(ux.includes("'"+id+"'"));
+for(const id of ['ex01','ex02','ex03','ex04','ex05','ex06','n24','n04'])assert.ok(ux.includes("'"+id+"'"));
 assert.ok(ux.includes("original")===false||!ux.includes("state.edits={}"),
  'Theme quick picks must not wipe saved customizations');
 assert.ok(ux.includes("const maintenance=section.querySelector('.video-sync-row')"));

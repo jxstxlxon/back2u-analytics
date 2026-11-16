@@ -17,10 +17,63 @@ const profiles={
  fa06:['aero','sidebar','citrus'],fa07:['aero','sidebar','pearl'],fa08:['aero','sidebar','garden'],
  fa09:['aero','sidebar','prism'],fa10:['aero','sidebar','sunrise']
 };
+
+/* Exclusive EXTREME collection: lightweight precomposed SVG scenes.
+ * No Gaussian filters or animated wallpaper: remain fast while scrolling.
+ */
+const extremeKinds={
+ ex01:['aurora','sidebar','spectral'],ex02:['plasma','sidebar','obsidian'],
+ ex03:['emerald','sidebar','gem'],ex04:['infinity','sidebar','ocean'],
+ ex05:['backrooms','sidebar','vintage'],ex06:['corvette','sidebar','chrome'],
+ ex07:['cathedral','sidebar','spectral'],ex08:['reactor','sidebar','neon'],
+ ex09:['lunar','wide','chrome'],ex10:['sakura','sidebar','iridescent'],
+ ex11:['blackice','wide','frost'],ex12:['eclipse','sidebar','molten']
+};
+function extremeArt(p){
+ const config=extremeKinds[p.id];
+ if(!config)return null;
+ const [type,layout,finish]=config;
+ const bg=p.bg,mid=p.bg2,a=p.accent,b=p.secondary;
+ const frame='<rect width="1600" height="900" fill="url(#ground)"/>';
+ const streaks='<g fill="none" stroke-linecap="round"><path d="M-180 770C240 420 290 60 760 230S1280 670 1760 85" stroke="url(#beam)" stroke-width="110" opacity=".22"/><path d="M-180 770C240 420 290 60 760 230S1280 670 1760 85" stroke="url(#beam)" stroke-width="7" opacity=".73"/><path d="M-90 870Q510 540 930 750T1690 490" stroke="url(#beam)" stroke-width="4" opacity=".55"/></g>';
+ const bars='<g stroke="url(#beam)" fill="none" stroke-width="2" opacity=".50"><path d="M0 150H380L550 280H950L1170 100H1600M0 710H250L580 500H1200L1600 640"/><circle cx="550" cy="280" r="14"/><circle cx="1200" cy="500" r="14"/></g>';
+ const crystal='<g fill="url(#facet)" stroke="#ffffff" stroke-opacity=".57" stroke-width="3"><path d="M1330 180l150 180-70 290-180-200z"/><path d="M1390 250l54 123-37 185-88-120z"/><path d="M280 90l100 130-80 180-130-120z"/></g>';
+ const bubbles='<g fill="url(#orb)" stroke="#ffffff" stroke-opacity=".65" stroke-width="5"><circle cx="1280" cy="265" r="120"/><circle cx="420" cy="710" r="72"/><circle cx="1060" cy="560" r="43"/></g>';
+ const backrooms='<g><path d="M0 0H1600V600L920 460H570L0 660Z" fill="#9a9750" opacity=".52"/><path d="M0 900L590 460H925L1600 900Z" fill="#c4ab66" opacity=".40"/><path d="M500 0V900M1080 0V900M0 600L600 460H910L1600 570M0 820L570 500M1600 830L940 500" stroke="#3c371c" stroke-width="15" fill="none" opacity=".53"/><g fill="#f9f7bb" opacity=".81"><rect x="110" y="56" width="350" height="24" rx="3"/><rect x="700" y="50" width="400" height="24" rx="3"/><rect x="1240" y="60" width="250" height="24" rx="3"/></g><g fill="none" stroke="#e8dc8b" stroke-width="2" opacity=".40"><path d="M0 720H1600M0 800H1600M300 0V900M1300 0V900"/></g></g>';
+ // Corvette-inspired black grand-tourer profile: no third-party logo.
+ const corvette='<g><path d="M0 720H1600" stroke="#d3413a" stroke-width="7" opacity=".48"/><path d="M180 660Q245 620 400 607L570 545Q665 490 860 498L1120 536Q1260 552 1360 610L1460 632Q1500 652 1485 680H230Q170 676 180 660Z" fill="#06090d" stroke="#a2aab3" stroke-opacity=".84" stroke-width="5"/><path d="M570 545L660 505Q865 485 1030 517L1136 554Z" fill="#18212d" stroke="#acc8d9" stroke-width="2"/><path d="M1100 557L1360 614" fill="none" stroke="#f64c40" stroke-width="12"/><path d="M1320 626H1455" stroke="#ff4040" stroke-width="19"/><circle cx="478" cy="678" r="75" fill="#090b10" stroke="#6e7989" stroke-width="10"/><circle cx="1212" cy="678" r="75" fill="#090b10" stroke="#6e7989" stroke-width="10"/><circle cx="478" cy="678" r="39" fill="#333946"/><circle cx="1212" cy="678" r="39" fill="#333946"/><path d="M260 694Q700 760 1430 697" fill="none" stroke="#f1443d" opacity=".55" stroke-width="3"/></g>';
+ const horizon='<g fill="none" stroke="url(#beam)" stroke-width="12" opacity=".85"><path d="M-40 680C260 580 520 740 840 652S1400 570 1660 650"/><path d="M-40 790C260 690 520 840 840 740S1400 700 1660 760" stroke-width="5"/></g>';
+ const cathedral='<g stroke="url(#beam)" stroke-width="9" fill="none" opacity=".58"><path d="M120 870V330Q240 120 370 330V870M570 870V160Q730 -70 910 160V870M1120 870V330Q1250 100 1390 330V870"/><path d="M160 850V395Q250 230 335 395V850M630 850V220Q730 75 850 220V850M1170 850V390Q1250 230 1350 390V850"/></g>';
+ const eclipse='<g><circle cx="1260" cy="290" r="190" fill="url(#orb)"/><circle cx="1215" cy="265" r="173" fill="#140c0b"/><path d="M1090 365Q1320 490 1430 200" stroke="'+a+'" stroke-width="10" fill="none" opacity=".75"/></g>';
+ const scenes={
+  aurora:streaks+crystal+bubbles,
+  plasma:streaks+eclipse,
+  emerald:streaks+crystal,
+  infinity:horizon+bubbles+'<g fill="white" opacity=".42"><ellipse cx="250" cy="125" rx="220" ry="44"/><ellipse cx="1180" cy="120" rx="250" ry="40"/></g>',
+  backrooms:backrooms,
+  corvette:corvette,
+  cathedral:cathedral+streaks,
+  reactor:bars+crystal,
+  lunar:crystal+bars,
+  sakura:streaks+'<g fill="'+a+'" opacity=".36"><circle cx="150" cy="180" r="18"/><circle cx="320" cy="285" r="12"/><circle cx="1320" cy="420" r="27"/><circle cx="1500" cy="160" r="17"/></g>',
+  blackice:crystal+horizon,
+  eclipse:eclipse+streaks
+ };
+ const svg='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid slice"><defs>'+
+ '<linearGradient id="ground" x2="1" y2="1"><stop stop-color="'+bg+'"/><stop offset=".53" stop-color="'+mid+'"/><stop offset="1" stop-color="'+bg+'"/></linearGradient>'+
+ '<linearGradient id="beam" x2="1" y2=".6"><stop stop-color="'+a+'"/><stop offset=".5" stop-color="'+b+'"/><stop offset="1" stop-color="#ffffff"/></linearGradient>'+
+ '<linearGradient id="facet" x2="1" y2="1"><stop stop-color="'+a+'" stop-opacity=".46"/><stop offset=".5" stop-color="#ffffff" stop-opacity=".22"/><stop offset="1" stop-color="'+b+'" stop-opacity=".5"/></linearGradient>'+
+ '<radialGradient id="orb"><stop stop-color="#fff" stop-opacity=".55"/><stop offset=".6" stop-color="'+a+'" stop-opacity=".31"/><stop offset="1" stop-color="'+b+'" stop-opacity=".07"/></radialGradient></defs>'+
+ frame+(scenes[type]||streaks)+'</svg>';
+ return {url:'data:image/svg+xml,'+encodeURIComponent(svg),layout,finish,type};
+}
+
 const cache={};
 function art(p){
  const cacheKey=p.id+'|'+p.accent+'|'+p.secondary;
  if(cache[cacheKey])return cache[cacheKey];
+ const exclusive=extremeArt(p);
+ if(exclusive){cache[cacheKey]=exclusive;return exclusive}
  const prof=profiles[p.id]||['ribbon','sidebar','neon'];
  const [type,layout,finish]=prof;
  const bright=p.light,ac=p.accent,sc=p.secondary,bg=p.bg,mid=p.bg2;
