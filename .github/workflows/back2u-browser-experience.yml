@@ -27,3 +27,11 @@ jobs:
           npx playwright install --with-deps chromium
       - name: Test full responsive UI interactions without private APIs
         run: node tests/v801-browser-smoke.mjs
+      - name: Save non-sensitive offline theme screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: back2u-v809-theme-previews
+          path: artifacts/v809/*.png
+          retention-days: 2
+          if-no-files-found: ignore
