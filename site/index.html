@@ -397,7 +397,7 @@ const metricDesc=p=>p==='yt'?(state.live?.platforms?.yt?.videos?.length?'YouTube
 function tagPlatform(p){return `<span class="platform-dot ${p}dot"></span>${esc(NAMES[p])}`}
 function image(v){const u=cleanUrl(v.thumb);return u?`<img src="${esc(u)}" alt="Vorschau" loading="lazy" decoding="async" fetchpriority="low" onerror="this.parentElement.innerHTML='<div class=poster-fallback>BACK2U</div>'">`:`<div class="poster-fallback">${esc((v.format||'B2U').slice(0,1))}</div>`}
 function toast(s){const el=$('#toast');el.textContent=s;el.classList.add('visible');clearTimeout(toast.h);toast.h=setTimeout(()=>el.classList.remove('visible'),2800)}
-function glassSet(value){state.glass=Math.min(100,Math.max(0,Number(value)||0));const alpha=.12+state.glass/100*.79,blur=9+state.glass/100*51,shine=.06+state.glass/100*.22;
+function glassSet(value){state.glass=Math.min(100,Math.max(0,Number(value)||0));const alpha=.12+state.glass/100*.79,blur=6+state.glass/100*16,shine=.06+state.glass/100*.22;
  document.documentElement.style.setProperty('--glass',`rgba(25,38,63,${alpha.toFixed(3)})`);document.documentElement.style.setProperty('--glass-blur',`${blur.toFixed(1)}px`);document.documentElement.style.setProperty('--shine',shine.toFixed(3));
  $('#glassSlider').value=state.glass;$('#glassValue').textContent=state.glass+'%';$$('[data-glass-preset]').forEach(b=>b.classList.toggle('selected',Number(b.dataset.glassPreset)===state.glass));
  try{localStorage.setItem('back2u_glass',state.glass)}catch{}
@@ -819,7 +819,7 @@ function renderGroupedVideos(){
  let groups=all;
  if(state.query){const q=state.query.toLowerCase().trim();groups=groups.filter(g=>g.members.some(v=>matchesVideoSearch(v,q))||String(g.format||'').toLowerCase().includes(q));}
  if(state.fmt!=='all')groups=groups.filter(g=>g.members.some(v=>v.format===state.fmt)||g.format===state.fmt);
- groups=groups.sort((a,b)=>state.sort==='recent'?String(b.date).localeCompare(String(a.date)):(Number(b[state.sort])||0)-(Number(a[state.sort])||0)||String(b.date).localeCompare(String(a.date)));
+ groups=groups.slice().sort((a,b)=>state.sort==='recent'?String(b.date).localeCompare(String(a.date)):(Number(b[state.sort])||0)-(Number(a[state.sort])||0)||String(b.date).localeCompare(String(a.date)));
  $('#videoCount').textContent=fmt(groups.length)+' Video-Gruppen';
  $('#listCount').textContent=fmt(groups.length)+' Gruppen · '+fmt(mergedVideos().length)+' Plattformvideos';
  $('#videoPeriodInfo').classList.remove('warn');
@@ -904,13 +904,22 @@ function topSevenVideoUrl(v){
   return allowed[v.platform].includes(host)?link:null;
  }catch{return null}
 }
+let topSevenRendered=null;
 function renderTopSeven(){
  const root=$('#topSevenList'),info=$('#topSevenStatus'),rangeLabel=$('#topSevenRange');
  const button=$('#topSevenRefresh');button.disabled=!!state.loading;
  const today=new Date().toLocaleDateString('sv-SE',{timeZone:'Europe/Berlin'});
+ // Skip costly ranking and image DOM replacement while only the search/filter changes.
+ // Source identity changes on every real video snapshot/manual-link merge.
+ const groups=crossPlatformVideoGroups();
+ const key={groups,mode:state.topSevenMode,today,expanded:state.topSevenExpanded,editing:state.manualCanEdit};
+ if(topSevenRendered&&topSevenRendered.groups===key.groups&&
+    topSevenRendered.mode===key.mode&&topSevenRendered.today===key.today&&
+    topSevenRendered.expanded===key.expanded&&topSevenRendered.editing===key.editing)return;
+ topSevenRendered=key;
  // This leaderboard is always about the VIDEO on all connected platforms,
  // not a single-platform upload. The general toolbar filter does not split it.
- const result=topSevenRanking(crossPlatformVideoGroups(),state.topSevenMode,today,
+ const result=topSevenRanking(groups,state.topSevenMode,today,
   ['yt','ig','tt']);
  const period=result.mode==='period',time=result.start?
   result.start.split('-').reverse().join('.')+' – '+result.end.split('-').reverse().join('.'):'Noch kein bestätigter Zeitraum';
