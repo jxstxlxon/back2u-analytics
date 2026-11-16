@@ -102,40 +102,6 @@ try{
  assert.equal(await phone.locator('#themeGrid .theme-option').count(),0,
   'Closed Theme Studio must not build 56 unseen preview cards');
 
- // V8.3.1: real mobile world + useful inline controls. No screenshot-only test.
- const integratedWorld=await phone.evaluate(()=>{
-  const mast=document.querySelector('.masthead'),stage=mast.querySelector(':scope>.theme-world-stage');
-  const img=stage?.querySelector('img'),dock=mast.querySelector('.v831-world-actions');
-  return {stageOpacity:stage?Number(getComputedStyle(stage).opacity):0,
-   imageOpacity:img?Number(getComputedStyle(img).opacity):0,
-   dockVisible:!!dock?.getClientRects().length,
-   name:document.querySelector('#themeWorldName')?.textContent,
-   width:document.documentElement.clientWidth,
-   overflow:document.documentElement.scrollWidth>document.documentElement.clientWidth+20};
- });
- assert.ok(integratedWorld.stageOpacity>=.95&&integratedWorld.imageOpacity>=.85&&integratedWorld.dockVisible&&
-  integratedWorld.name&&!integratedWorld.overflow,
-  'iPhone should show actual world art and controls, not 35%-opacity wallpaper: '+JSON.stringify(integratedWorld));
- assert.ok(await phone.locator('.masthead .mast-right').isHidden(),
-  'Glass tuning must not cover art by default on iPhone');
- await phone.locator('#v831GlassToggle').click();
- assert.equal(await phone.locator('#v831GlassToggle').getAttribute('aria-expanded'),'true');
- assert.ok(await phone.locator('.masthead .mast-right').isVisible()&&await phone.locator('#glassSlider').isVisible(),
-  'Glass tuner must open with its original accessible range input');
- await phone.locator('#v831GlassToggle').click();
- assert.equal(await phone.locator('#v831GlassToggle').getAttribute('aria-expanded'),'false');
- assert.ok(await phone.locator('.masthead .mast-right').isHidden());
- await phone.locator('#v831OpenStudio').click();
- assert.ok(await phone.locator('#themeStudioPanel').isVisible(),
-  'Header world action must open the actual Theme Studio');
- await phone.locator('#themeClose').click();
-
- await phone.locator('#themeStudioToggle').click();
- assert.ok(await phone.locator('#themeStudioPanel').isVisible());
- assert.equal(await phone.locator('#themeGrid .theme-option').count(),56,
-  'Opening Theme Studio must show the full theme collection');
-
-
  // V8.4 acceptance: actual cover geometry, compact header and theme navigation.
  const initialCinematicTheme=await phone.evaluate(()=>window.BACK2U_THEMES.current());
  const cinematic=await phone.evaluate(()=>{
@@ -176,6 +142,40 @@ try{
    'Cinematic composition must fit narrow phones without clipping: '+JSON.stringify(layout));
  }
  await phone.setViewportSize({width:390,height:844});
+
+ // V8.3.1: real mobile world + useful inline controls. No screenshot-only test.
+ const integratedWorld=await phone.evaluate(()=>{
+  const mast=document.querySelector('.masthead'),stage=mast.querySelector(':scope>.theme-world-stage');
+  const img=stage?.querySelector('img'),dock=mast.querySelector('.v831-world-actions');
+  return {stageOpacity:stage?Number(getComputedStyle(stage).opacity):0,
+   imageOpacity:img?Number(getComputedStyle(img).opacity):0,
+   dockVisible:!!dock?.getClientRects().length,
+   name:document.querySelector('#themeWorldName')?.textContent,
+   width:document.documentElement.clientWidth,
+   overflow:document.documentElement.scrollWidth>document.documentElement.clientWidth+20};
+ });
+ assert.ok(integratedWorld.stageOpacity>=.95&&integratedWorld.imageOpacity>=.85&&integratedWorld.dockVisible&&
+  integratedWorld.name&&!integratedWorld.overflow,
+  'iPhone should show actual world art and controls, not 35%-opacity wallpaper: '+JSON.stringify(integratedWorld));
+ assert.ok(await phone.locator('.masthead .mast-right').isHidden(),
+  'Glass tuning must not cover art by default on iPhone');
+ await phone.locator('#v831GlassToggle').click();
+ assert.equal(await phone.locator('#v831GlassToggle').getAttribute('aria-expanded'),'true');
+ assert.ok(await phone.locator('.masthead .mast-right').isVisible()&&await phone.locator('#glassSlider').isVisible(),
+  'Glass tuner must open with its original accessible range input');
+ await phone.locator('#v831GlassToggle').click();
+ assert.equal(await phone.locator('#v831GlassToggle').getAttribute('aria-expanded'),'false');
+ assert.ok(await phone.locator('.masthead .mast-right').isHidden());
+ await phone.locator('#v831OpenStudio').click();
+ assert.ok(await phone.locator('#themeStudioPanel').isVisible(),
+  'Header world action must open the actual Theme Studio');
+ await phone.locator('#themeClose').click();
+
+ await phone.locator('#themeStudioToggle').click();
+ assert.ok(await phone.locator('#themeStudioPanel').isVisible());
+ assert.equal(await phone.locator('#themeGrid .theme-option').count(),56,
+  'Opening Theme Studio must show the full theme collection');
+
 
  // V8.2.1 mobile gallery regression: real card geometry and usable filter tabs,
  // Preserve the existing selected theme for all later, independent tests.
