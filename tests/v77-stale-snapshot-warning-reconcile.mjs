@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import vm from 'node:vm';
 import {
- hasVerifiedTikTokSync,reconcileSnapshotWarnings
+ hasVerifiedTikTokSync,reconcileSnapshotWarnings,publicSnapshotWarningDiagnosis
 } from '../cloudflare/snapshot-warning-reconcile.js';
 
 const validTT={
@@ -90,4 +90,32 @@ assert.match(hint({errors:[external]}),/Einzelne Zusatzwerte/);
 assert.ok(html.includes("button.textContent=unfinishedTikTok?'TikTok weiter synchronisieren':'Erneut prüfen'"));
 assert.ok(html.includes("document.body.dataset.back2uAccessRole==='admin'"),
  'Guest sessions must never be offered owner-only direct import');
+
+// Public health exposes ONLY allowlisted operational categories; the
+// persisted account/video statistics and raw warning details stay private.
+const warningData={tiktokOrganic:validTT,tiktokSync:success};
+assert.deepEqual(publicSnapshotWarningDiagnosis(snapshot([oldFeed]),warningData),{
+ category:'none',legacyTikTokRecovered:true
+});
+assert.deepEqual(publicSnapshotWarningDiagnosis(snapshot([oldFeed,oldScan]),warningData),{
+ category:'tiktok-pagination',legacyTikTokRecovered:true
+});
+assert.equal(publicSnapshotWarningDiagnosis(snapshot([oldScan]),warningData).category,'tiktok-pagination');
+assert.equal(publicSnapshotWarningDiagnosis(snapshot([external]),warningData).category,'other');
+assert.equal(publicSnapshotWarningDiagnosis(snapshot([oldScan,external]),warningData).category,'multiple');
+assert.equal(publicSnapshotWarningDiagnosis(snapshot([oldFeed]),{
+ tiktokOrganic:{...validTT,daily:[]},tiktokSync:success
+}).category,'tiktok-bootstrap');
+assert.equal(publicSnapshotWarningDiagnosis(snapshot([oldFeed],[]),warningData).category,'none',
+ 'Separately saved verified TikTok Organic video data must count for readiness');
+assert.equal(publicSnapshotWarningDiagnosis(null,warningData).category,'unknown');
+const serialized=JSON.stringify(publicSnapshotWarningDiagnosis(snapshot([oldFeed,oldScan]),warningData));
+for(const secret of ['tt-verified-account','7345678901234567890','TikTok has more videos','2026-11-15']){
+ assert.ok(!serialized.includes(secret),'Public diagnostic must never expose data: '+secret);
+}
+assert.ok(worker.includes('health.snapshotNotice=publicSnapshotWarningDiagnosis('));
+const healthWorkflow=readFileSync(new URL('../.github/workflows/production-windsor-health.yml',import.meta.url),'utf8');
+assert.ok(healthWorkflow.includes('SNAPSHOT_NOTICE='));
+assert.ok(healthWorkflow.includes('SNAPSHOT_LEGACY_TIKTOK_RECOVERED='));
+
 console.log('OK authenticated warning reconciliation: remove stale TT bootstrap only with verified day/video source; retain genuine errors, fallback, pagination and guest safety');
