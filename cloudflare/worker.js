@@ -865,7 +865,6 @@ async function route(req,env,ctx){
      v80css.includes('.mobile-more-sheet .v80-more-actions')
    };
    return json({release:'V8.0',ready:Object.values(checks).every(Boolean),checks});
-  }
   }catch{
    // Never print, return, or log the protected HTML or any raw body.
    return json(unavailable);
