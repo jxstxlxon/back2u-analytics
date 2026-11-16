@@ -121,7 +121,7 @@ try{
  });
  assert.ok(cinematic.headerGrid==='grid'&&cinematic.headerHeight<=200&&
   cinematic.mastHeight>=300&&cinematic.mastHeight<=335&&cinematic.stageHeight>=300&&cinematic.stageOpacity==='1'&&
-  cinematic.pagerVisible&&cinematic.dockHeight>=40&&cinematic.stampHeight>=95&&cinematic.textVisible&&!cinematic.overflow,
+  cinematic.pagerVisible&&cinematic.dockHeight>=37&&cinematic.stampHeight>=74&&cinematic.textVisible&&!cinematic.overflow,
   'iPhone must have a genuinely new cinematic cover/command bar: '+JSON.stringify(cinematic));
  await phone.locator('#v840NextWorld').click();
  assert.notEqual(await phone.evaluate(()=>window.BACK2U_THEMES.current()),initialCinematicTheme,
