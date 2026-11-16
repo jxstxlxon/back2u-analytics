@@ -5,13 +5,26 @@ import vm from 'node:vm';
 const html=readFileSync(new URL('../site/index.html',import.meta.url),'utf8');
 const ux=readFileSync(new URL('../site/workspace-v80.js',import.meta.url),'utf8');
 const css=readFileSync(new URL('../site/workspace-v80.css',import.meta.url),'utf8');
+const themeSource=readFileSync(new URL('../site/theme-studio.js',import.meta.url),'utf8');
+const artSource=readFileSync(new URL('../site/reference-theme-art.js',import.meta.url),'utf8');
+const catalog=themeSource.match(/'((?:ex|fa|n)\\d{2})\\|/g)||[];
+assert.equal(catalog.length,56,'Original 36 plus 20 Extreme themes');
+for(let i=13;i<=20;i++){
+ const id='ex'+i;
+ assert.ok(themeSource.includes("'"+id+"|"),'Missing new preset '+id);
+ assert.ok(artSource.includes(' '+id+':['),'Missing custom artwork '+id);
+}
+assert.ok(css.includes('Legacy Theme Remaster'));
+assert.ok(artSource.includes('Remastered legacy artwork'));
+assert.ok(!css.includes('filter:blur(90px)'));
+
 const stories=readFileSync(new URL('../site/story-composer-v3.js',import.meta.url),'utf8');
 const themes=readFileSync(new URL('../site/theme-studio.js',import.meta.url),'utf8');
 const v78=readFileSync(new URL('../site/workspace-v78.css',import.meta.url),'utf8');
 
 new vm.Script(ux,{filename:'workspace-v80.js'});
 new vm.Script(stories,{filename:'story-composer-v3.js'});
-assert.ok(html.includes('href="/workspace-v80.css?v=4"'),'Current workspace CSS must be cache-busted after scroll fixes');
+assert.ok(html.includes('href="/workspace-v80.css?v=5"'),'Current workspace CSS must be cache-busted after scroll fixes');
 assert.ok(html.includes('src="/workspace-v80.js?v=2" defer'));
 assert.ok(html.includes('src="/story-composer-v3.js?v=7" defer'));
 assert.ok(html.indexOf('src="/workspace-v80.js?v=2"')>html.indexOf('src="/audience-import.js?v=4"'),
