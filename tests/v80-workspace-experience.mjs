@@ -403,3 +403,19 @@ for(const token of ['v850-spotlight','v850ThemeTools','v850Star','v850Shuffle','
 }
 assert.ok(!visual850.includes('filter:blur(')&&!visual850.includes('backdrop-filter:blur('),
  'Visual polish should remain performant without adding heavy GPU filters');
+
+/* BACK2U V8.6: actual architecture surface & data-safe A/B comparison */
+const v860Css=readFileSync(new URL('../site/world-architectures-v860.css',import.meta.url),'utf8');
+const v860Js=readFileSync(new URL('../site/world-lab-v860.js',import.meta.url),'utf8');
+new vm.Script(v860Js,{filename:'world-lab-v860.js'});
+assert.ok(html.includes('href="/world-architectures-v860.css?v=1"'));
+assert.ok(html.indexOf('/world-architectures-v860.css')>html.indexOf('/visual-system-v850.css'));
+assert.ok(html.includes('src="/world-lab-v860.js?v=1" defer'));
+assert.ok(html.indexOf('/world-lab-v860.js')>html.indexOf('/dashboard-tools-v850.js'));
+for(const w of ['velocity','aero','liminal','cathedral','frost','cosmos','garden','inferno','ocean']){
+ assert.ok(v860Css.includes('data-v860-world="'+w+'"'),'Missing actual visual world: '+w);
+ assert.ok(v860Js.includes(w+':"'),'Missing explicit ID grouping for world '+w);
+}
+assert.ok(v860Js.includes("['#heroValue','#v860PulseValue']")&&v860Js.includes('new MutationObserver(paint)'));
+assert.ok(v860Js.includes('event.stopImmediatePropagation()')&&v860Js.includes('themes().use(target);setCompare(false)'));
+assert.ok(!v860Css.includes('filter:blur(')&&!v860Css.includes('backdrop-filter:blur('));

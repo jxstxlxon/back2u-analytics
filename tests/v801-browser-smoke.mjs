@@ -194,10 +194,46 @@ try{
   'Header world action must open the actual Theme Studio');
  await phone.locator('#themeClose').click();
 
+
+ // V8.6: world art is useful, showing a live copy of the REAL KPI.
+ await phone.waitForFunction(()=>document.querySelector('#v860PulseValue')?.textContent.trim()===
+  document.querySelector('#heroValue')?.textContent.trim());
+ const snapshotPulse=await phone.evaluate(()=>{
+  const n=document.querySelector('#v860LivePulse'),p=n.getBoundingClientRect();
+  const headline=document.querySelector('.masthead h1').getBoundingClientRect();
+  return {visible:!!n.getClientRects().length,
+   value:n.querySelector('#v860PulseValue')?.textContent,
+   real:document.querySelector('#heroValue')?.textContent,
+   label:n.querySelector('#v860PulseLabel')?.textContent,
+   bottom:p.bottom,headlineTop:headline.top};
+ });
+ assert.ok(snapshotPulse.visible&&snapshotPulse.value===snapshotPulse.real&&
+  snapshotPulse.bottom<snapshotPulse.headlineTop+6,
+  'Actual current KPI must be visible in the world without covering title '+JSON.stringify(snapshotPulse));
+
  await phone.locator('#themeStudioToggle').click();
  assert.ok(await phone.locator('#themeStudioPanel').isVisible());
  assert.equal(await phone.locator('#themeGrid .theme-option').count(),56,
   'Opening Theme Studio must show the full theme collection');
+
+ // V8.6: A/B compare must not silently change the active theme.
+ assert.ok(await phone.locator('#v860WorldLab').isVisible());
+ const initialStyle=await phone.evaluate(()=>window.BACK2U_THEMES.current());
+ await phone.locator('#v860Architecture').selectOption('velocity');
+ assert.equal(await phone.evaluate(()=>document.body.dataset.v860World),'velocity');
+ assert.equal(await phone.evaluate(()=>JSON.parse(localStorage.getItem('back2u-world-architect-v860')).overrides[window.BACK2U_THEMES.current()]),'velocity');
+ await phone.locator('#v860Architecture').selectOption('auto');
+ await phone.locator('#v860CompareToggle').click();
+ assert.equal(await phone.locator('#v860CompareToggle').getAttribute('aria-pressed'),'true');
+ await phone.locator('#themeGrid .theme-option[data-preset="ex05"]').click();
+ assert.equal(await phone.evaluate(()=>window.BACK2U_THEMES.current()),initialStyle);
+ assert.equal(await phone.evaluate(()=>window.BACK2U_WORLD_LAB.comparison()),'ex05');
+ assert.ok(await phone.locator('#v860CompareOther .theme-option-preview').isVisible());
+ await phone.locator('#v860CompareUse').click();
+ assert.equal(await phone.evaluate(()=>window.BACK2U_THEMES.current()),'ex05');
+ assert.equal(await phone.evaluate(()=>document.body.dataset.v860World),'liminal');
+ await phone.evaluate(id=>window.BACK2U_THEMES.use(id),initialStyle);
+
 
  // V8.5 Studio: hero art, favourites persistence, recent and search-compatible filtering.
  assert.ok(await phone.locator('#v850Star').isVisible());
@@ -519,6 +555,23 @@ try{
 
  const {page:desktop,errors:desktopErrors}=await createPage('Desktop 1440×900',{width:1440,height:900});
 
+
+
+ // V8.6: 56 old themes are distributed among nine genuinely distinct skins.
+ const worldSweep=await desktop.evaluate(()=>{
+  const t=window.BACK2U_THEMES,lab=window.BACK2U_WORLD_LAB;
+  const saved=t.current(),worlds=new Set(),errors=[];
+  for(const preset of t.list()){
+   t.use(preset.id);
+   const world=document.body.dataset.v860World;
+   if(world!==lab.world(preset.id))errors.push(preset.id+':world mismatch '+world);
+   worlds.add(world);
+  }
+  t.use(saved);return {count:t.list().length,worlds:worlds.size,errors};
+ });
+ assert.equal(worldSweep.count,56);
+ assert.equal(worldSweep.worlds,9);
+ assert.deepEqual(worldSweep.errors,[]);
 
  // V8.5: all original vector worlds have distinct new stage art, photos remain.
  const v850Art=await desktop.evaluate(()=>{
