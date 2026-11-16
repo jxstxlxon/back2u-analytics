@@ -278,3 +278,18 @@ assert.ok(v820Css.includes('[data-theme-family="aero"]')&&v820Css.includes('[dat
  'Theme families and special worlds must have distinct material treatments');
 assert.ok(!v820Css.includes('backdrop-filter:blur(')&&!v820Css.includes('filter:blur('),
  'Theme enhancement must avoid introducing costly Gaussian blur');
+
+
+const galleryCss=readFileSync(new URL('../site/theme-gallery-v821.css',import.meta.url),'utf8');
+assert.ok(html.includes('href="/theme-gallery-v821.css?v=1"'),'V8.2.1 mobile gallery CSS must load');
+assert.ok(html.indexOf('/theme-gallery-v821.css')>html.indexOf('/theme-panels-v820.css'),
+ 'V8.2.1 must override earlier theme gallery dimensions');
+assert.ok(galleryCss.includes('max-height:none!important')&&galleryCss.includes('grid-auto-rows:minmax(180px,max-content)'),
+ 'Theme cards must never be squeezed into a 340px high 56-card grid');
+assert.ok(galleryCss.includes('scroll-snap-type:x mandatory')&&galleryCss.includes('grid-auto-flow:column'),
+ 'Quick picks should be horizontal and touch-friendly on phones');
+assert.ok(galleryCss.includes('background-image:url("/theme-worlds-v815.jpg")'),
+ 'Existing cinematic image atlases must appear in mobile featured themes');
+assert.ok(!galleryCss.includes('filter:blur('),'New gallery must avoid costly blur');
+assert.ok(themeSource.includes("b.addEventListener('click',()=>{state.id=p.id;save();apply()});"),
+ 'Theme switching must not rebuild the gallery and lose user scroll/focus');

@@ -45,7 +45,7 @@
   wrap.setAttribute('aria-label','Theme-Schnellauswahl');
   const intro=create('div','v80-theme-heading');
   intro.append(create('strong','', 'Schnell deinen Look wechseln'),
-   create('small','','Neue Extreme Collection – sechs spektakuläre Looks direkt testen. Alle bisherigen Themes bleiben darunter.'));
+   create('small','','Acht ausgewählte Designwelten. Weitere Looks findest du direkt darunter in der Galerie.'));
   wrap.append(intro);
   const grid=create('div','v80-theme-favorite-grid');
   const presets=['ex01','ex02','ex03','ex04','ex05','ex06','n24','n04'];
