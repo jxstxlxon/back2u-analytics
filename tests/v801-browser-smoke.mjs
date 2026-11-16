@@ -122,7 +122,14 @@ try{
  assert.ok(legacyPhotoPreviews.every(x=>x.exists&&!x.vectorGenerated&&x.background.includes('theme-worlds-v815.jpg')),
   'iPhone legacy photo thumbnails must use the local atlas rather than SVG: '+JSON.stringify(legacyPhotoPreviews));
 
- // V8.2.0 regression: count values must remain in one line on small iPhones.
+ // V8.2.0 regression: temporarily expose the overview without mutating app state.
+ // The preceding workflow intentionally left the Experiments view active.
+ const originalActiveView=await phone.evaluate(()=>{
+  const active=document.querySelector('#dashboardWorkspace>.view.active');
+  document.querySelectorAll('#dashboardWorkspace>.view.active').forEach(e=>e.classList.remove('active'));
+  document.querySelector('#overview').classList.add('active');
+  return active?.id||null;
+ });
  const originalPhoneViewport=phone.viewportSize();
  const mobileKpiQA=[];
  for(const width of [320,375,390,430]){
@@ -160,6 +167,10 @@ try{
   assert.ok(!snapshot.horizontalOverflow,'Mobile layout must not scroll sideways at '+width+': '+JSON.stringify(snapshot));
  }
  if(originalPhoneViewport)await phone.setViewportSize(originalPhoneViewport);
+ await phone.evaluate(id=>{
+  document.getElementById('overview').classList.remove('active');
+  if(id)document.getElementById(id)?.classList.add('active');
+ },originalActiveView);
 
  const firstVector=phone.locator('#themeGrid .theme-option[data-preset="n01"]');
  await firstVector.scrollIntoViewIfNeeded();
