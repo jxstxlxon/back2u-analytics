@@ -863,10 +863,10 @@ async function route(req,env,ctx){
     desktopRail:css.includes('position:sticky;top:16px'),
     mobileSafeArea:css.includes('env(safe-area-inset-bottom,0px)'),
     topVideoExpand:html.includes('id="topSevenExpand"'),
-    themeQuick:html.includes('/workspace-v80.js?v=1')&&
+    themeQuick:html.includes('/workspace-v80.js?v=')&&
      v80js.includes('v80-theme-favorites')&&
      v80css.includes('.v80-theme-favorite-grid'),
-    storyTemplates:html.includes('/story-composer-v3.js?v=7')&&
+    storyTemplates:html.includes('/story-composer-v3.js?v=')&&
      storyJs.includes('const QUICK_TEMPLATES=')&&
      storyJs.includes('data-story-template'),
     videoWorkspace:v80js.includes('function videoWorkspace()')&&
