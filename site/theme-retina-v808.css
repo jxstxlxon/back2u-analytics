@@ -477,3 +477,22 @@ body[data-theme-artwork="on"] #overview .hero-main > .theme-hero-stage img{
  max-width:none!important;
  object-fit:cover!important;
 }
+
+
+/* Desktop legacy sidebar reserves a fixed rail outside the shell.
+ * The global wider shell must respect that reservation to avoid overflow. */
+@media(min-width:1060px){
+ body[data-theme-artwork="on"][data-reference-layout="sidebar"] .shell{
+  width:calc(100% - 264px)!important;
+  max-width:calc(1600px - 264px)!important;
+  margin-left:248px!important;
+  margin-right:16px!important;
+ }
+}
+@media(min-width:1060px) and (max-width:1180px){
+ body[data-theme-artwork="on"][data-reference-layout="sidebar"] .shell{
+  width:calc(100% - 232px)!important;
+  margin-left:220px!important;
+  margin-right:12px!important;
+ }
+}
