@@ -128,7 +128,13 @@ try{
  await ipad.close();
 
  const {page:desktop,errors:desktopErrors}=await createPage('Desktop 1440×900',{width:1440,height:900});
- assert.equal(await desktop.locator('#dashboardWorkspace>.section-nav').evaluate(x=>getComputedStyle(x).position),'sticky');
+ const railLayout=await desktop.locator('#dashboardWorkspace>.section-nav').evaluate(x=>({
+  position:getComputedStyle(x).position,referenceLayout:document.body.dataset.referenceLayout||''
+ }));
+ assert.ok(['fixed','sticky'].includes(railLayout.position),
+  'Desktop has accessible sticky rail or explicitly selected fixed sidebar theme: '+JSON.stringify(railLayout));
+ if(railLayout.position==='fixed')assert.equal(railLayout.referenceLayout,'sidebar',
+  'Only an explicitly selected sidebar design may keep the legacy fixed nav');
  const rail=await desktop.locator('#dashboardWorkspace>.section-nav').boundingBox();
  const main=await desktop.locator('#dashboardWorkspace>main').boundingBox();
  assert.ok(rail&&main&&rail.x+rail.width<=main.x+4,'Desktop left rail must not overlap content');
