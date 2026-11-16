@@ -472,3 +472,32 @@ body[data-v860-world="ocean"] .platform-stack>.platform-card:nth-child(odd){
   animation-duration:0s!important;transition-duration:0s!important;
  }
 }
+/* Mobile composition correction: real metrics, title and actual Theme
+ * actions occupy separate layout rows — they must NEVER overlap. */
+@media(max-width:760px){
+ body[data-v860-world] .masthead>div:first-child{
+  justify-content:space-between!important;
+  gap:5px!important;
+ }
+ body[data-v860-world] .v860-live-pulse{
+  position:relative!important;
+  top:auto!important;right:auto!important;bottom:auto!important;left:auto!important;
+  order:1!important;
+  align-self:flex-end!important;
+  flex:0 0 auto!important;
+  width:min(71%,265px)!important;
+  min-height:68px!important;
+  margin:3px 0 3px auto!important;
+ }
+ body[data-v860-world] .masthead h1{
+  order:2!important;
+  flex:0 0 auto!important;
+  margin:0 0 5px!important;
+  font-size:clamp(26px,7.1vw,34px)!important;
+  line-height:1.045!important;
+ }
+ body[data-v860-world] .masthead .theme-world-stamp{
+  order:3!important;
+  flex:none!important;
+ }
+}
