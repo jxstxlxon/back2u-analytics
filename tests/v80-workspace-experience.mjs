@@ -27,6 +27,14 @@ assert.ok(universe.includes('background-attachment:scroll!important'),'Universe 
 assert.ok(!universe.includes('filter:blur('),'Universe effect should not reintroduce heavy blur');
 
 
+const visualRescue=readFileSync(new URL('../site/theme-art-direction-v809.css',import.meta.url),'utf8');
+assert.ok(html.includes('href="/theme-art-direction-v809.css?v=1"'),'visual rescue stylesheet must load');
+assert.ok(html.indexOf('/theme-art-direction-v809.css')>html.indexOf('/theme-retina-v808.css'),'visual rescue must be last');
+assert.ok(visualRescue.includes('display:none!important'),'KPI hero wallpaper must be removed');
+assert.ok(visualRescue.includes('data-reference-layout="sidebar"'),'high-specificity fixed sidebar scene must be disabled');
+assert.ok(visualRescue.includes('background-attachment:scroll!important'),'wallpaper must not be fixed');
+assert.ok(!visualRescue.includes('filter:blur('),'must not reintroduce scroll-time blur');
+
 const retinaCss=readFileSync(new URL('../site/theme-retina-v808.css',import.meta.url),'utf8');
 const retinaArt=readFileSync(new URL('../site/theme-worlds-v808.js',import.meta.url),'utf8');
 const retinaStage=readFileSync(new URL('../site/theme-stage-v808.js',import.meta.url),'utf8');
