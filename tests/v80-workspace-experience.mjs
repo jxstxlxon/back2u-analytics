@@ -264,3 +264,17 @@ assert.ok(css.includes('@media(max-width:375px)'));
 assert.ok(css.includes('@media(prefers-reduced-motion:reduce)'));
 assert.ok(css.includes('var(--t-accent'));
 console.log('OK V8.0 UX: no data scope changes, 36 existing themes, 4 safe story presets, mobile-first sections, owner-safe video controls, actual creator/audience/system anchors and no new API access');
+
+
+const v820Css=readFileSync(new URL('../site/theme-panels-v820.css',import.meta.url),'utf8');
+assert.ok(html.includes('href="/theme-panels-v820.css?v=1"'),'New mobile KPI and world material CSS loaded');
+assert.ok(html.indexOf('/theme-panels-v820.css')>html.indexOf('/theme-chrome-v816.css'),
+ 'V820 must override oversized V816 mobile numbers, not the reverse');
+assert.ok(v820Css.includes('grid-template-columns:minmax(0,1fr)!important;'),
+ 'Mobile platform KPI cards must use one full-width column');
+assert.ok(v820Css.includes('.platform-number')&&v820Css.includes('white-space:nowrap!important'),
+ 'Mobile numerical values must not split into two lines');
+assert.ok(v820Css.includes('[data-theme-family="aero"]')&&v820Css.includes('[data-theme-id="ex19"]'),
+ 'Theme families and special worlds must have distinct material treatments');
+assert.ok(!v820Css.includes('backdrop-filter:blur(')&&!v820Css.includes('filter:blur('),
+ 'Theme enhancement must avoid introducing costly Gaussian blur');

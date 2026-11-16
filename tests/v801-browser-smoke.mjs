@@ -121,6 +121,46 @@ try{
  }));
  assert.ok(legacyPhotoPreviews.every(x=>x.exists&&!x.vectorGenerated&&x.background.includes('theme-worlds-v815.jpg')),
   'iPhone legacy photo thumbnails must use the local atlas rather than SVG: '+JSON.stringify(legacyPhotoPreviews));
+
+ // V8.2.0 regression: count values must remain in one line on small iPhones.
+ const originalPhoneViewport=phone.viewportSize();
+ const mobileKpiQA=[];
+ for(const width of [320,375,390,430]){
+  await phone.setViewportSize({width,height:844});
+  const snapshot=await phone.evaluate(()=>{
+   const samples=[
+    ['hero','#heroValue','1.234.567.890'],
+    ['lifetime','#lifetimeViewsTotal','1.234.567.890'],
+    ['platform','.platform-number','1.234.567.890'],
+    ['follower','.follower-aggregate-total','1.234.567.890']
+   ];
+   const findings=[];
+   for(const [label,selector,value] of samples){
+    const el=document.querySelector(selector);
+    if(!el)continue;
+    const original=el.textContent;
+    el.textContent=value;
+    const style=getComputedStyle(el),range=document.createRange();
+    range.selectNodeContents(el);
+    findings.push({label,displayed:!!el.getClientRects().length,
+     wraps:range.getClientRects().length>1,
+     overflows:el.scrollWidth>el.clientWidth+3,
+     nowrap:style.whiteSpace==='nowrap'});
+    el.textContent=original;
+   }
+   const cards=[...document.querySelectorAll('#overview .platform-card')];
+   return {width:innerWidth,findings,cardCount:cards.length,
+    platformColumns:getComputedStyle(document.querySelector('#overview .platform-stack')).gridTemplateColumns.split(' ').length,
+    horizontalOverflow:document.documentElement.scrollWidth>document.documentElement.clientWidth+20};
+  });
+  mobileKpiQA.push(snapshot);
+  assert.ok(snapshot.findings.every(x=>x.displayed&&!x.wraps&&!x.overflows&&x.nowrap),
+   'All genuine-size KPI values must remain single-line at '+width+': '+JSON.stringify(snapshot));
+  assert.equal(snapshot.platformColumns,1,'Mobile platform metrics must be full-width on '+width+'px iPhones');
+  assert.ok(!snapshot.horizontalOverflow,'Mobile layout must not scroll sideways at '+width+': '+JSON.stringify(snapshot));
+ }
+ if(originalPhoneViewport)await phone.setViewportSize(originalPhoneViewport);
+
  const firstVector=phone.locator('#themeGrid .theme-option[data-preset="n01"]');
  await firstVector.scrollIntoViewIfNeeded();
  await phone.waitForFunction(()=>!!document.querySelector('#themeGrid .theme-option[data-preset="n01"]')?.style.getPropertyValue('--ref-preview'),
