@@ -120,7 +120,7 @@ try{
    overflow:document.documentElement.scrollWidth>document.documentElement.clientWidth+20};
  });
  assert.ok(cinematic.headerGrid==='grid'&&cinematic.headerHeight<=200&&
-  cinematic.mastHeight>=420&&cinematic.stageHeight>=420&&cinematic.stageOpacity==='1'&&
+  cinematic.mastHeight>=300&&cinematic.mastHeight<=335&&cinematic.stageHeight>=300&&cinematic.stageOpacity==='1'&&
   cinematic.pagerVisible&&cinematic.dockHeight>=40&&cinematic.stampHeight>=95&&cinematic.textVisible&&!cinematic.overflow,
   'iPhone must have a genuinely new cinematic cover/command bar: '+JSON.stringify(cinematic));
  await phone.locator('#v840NextWorld').click();
@@ -138,8 +138,31 @@ try{
    return {width:innerWidth,cover:h.height,prev:p.width,next:n.width,
     overflow:document.documentElement.scrollWidth>document.documentElement.clientWidth+20};
   });
-  assert.ok(layout.cover>=415&&layout.prev>=35&&layout.next>=35&&!layout.overflow,
+  assert.ok(layout.cover>=280&&layout.cover<=338&&layout.prev>=35&&layout.next>=35&&!layout.overflow,
    'Cinematic composition must fit narrow phones without clipping: '+JSON.stringify(layout));
+ }
+ await phone.setViewportSize({width:390,height:844});
+
+
+ // V8.4.1 user-supplied Safari screenshot bug regression:
+ // eyebrow must not overlap headline; hero must no longer consume 443px.
+ for(const width of [320,353,375,390,430]){
+  await phone.setViewportSize({width,height:844});
+  const visual=await phone.evaluate(()=>{
+   const mast=document.querySelector('.masthead'),
+     title=mast.querySelector('h1'),eyebrow=mast.querySelector('.eyebrow');
+   const t=title.getBoundingClientRect(),e=eyebrow.getBoundingClientRect();
+   const control=document.querySelector('.controlbar').getBoundingClientRect();
+   return {width:innerWidth,heroHeight:mast.getBoundingClientRect().height,
+    labelBottom:e.bottom,titleTop:t.top,titleBottom:t.bottom,
+    controlsBottom:control.bottom,headlineVisible:t.height>=52,
+    overflow:document.documentElement.scrollWidth>document.documentElement.clientWidth+18};
+  });
+  assert.ok(visual.labelBottom<=visual.titleTop-3,
+   'Eyebrow/headline collision like user screenshot: '+JSON.stringify(visual));
+  assert.ok(visual.heroHeight<=340&&visual.heroHeight>=277&&visual.controlsBottom<740&&
+   visual.headlineVisible&&!visual.overflow,
+   'Cinematic artwork must fit a realistic phone and reveal data faster: '+JSON.stringify(visual));
  }
  await phone.setViewportSize({width:390,height:844});
 
