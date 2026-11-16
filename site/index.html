@@ -1310,7 +1310,7 @@ async function syncTiktokNow(){
   if(!response.ok||!data.ok)throw Error(String(data.error||('API-Fehler '+response.status)));
   if(!data.connected)throw Error('TikTok-Konto nicht verbunden');
   if(data.pending)throw Error(String(data.pending));
-  const msg='TikTok: '+fmt(data.total)+' API-Videos synchronisiert'+(data.hasMore?' · weitere Seiten noch offen':'');
+  const msg='TikTok: '+fmt(data.total)+' bekannte Videos synchronisiert'+(data.hasMore?' · Scan wird bei weiteren Synchronisierungen fortgesetzt':' · offizieller Videoscan abgeschlossen');
   hint.textContent=msg;toast(msg);
   await loadLive(true);
  }catch(e){hint.textContent='TikTok-Import: '+String(e.message||e);toast('TikTok-Import nicht abgeschlossen')}
