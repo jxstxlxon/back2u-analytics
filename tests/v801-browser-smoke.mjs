@@ -111,6 +111,16 @@ try{
     photoLoaded:getComputedStyle(card.querySelector('.theme-option-preview')).backgroundImage.includes(urls[i])};
   });
  });
+
+ const legacyPreviewStates=await phone.evaluate(()=>{
+  return ['n24','n04','n15','n23'].map(id=>{
+   const card=document.querySelector('#themeGrid .theme-option[data-preset="'+id+'"]');
+   return {id,vector:!!card?.style.getPropertyValue('--ref-preview'),
+     image:getComputedStyle(card.querySelector('.theme-option-preview')).backgroundImage};
+  });
+ });
+ assert.ok(legacyPreviewStates.every(p=>!p.vector&&p.image.includes('theme-worlds-v815.jpg')),
+  'Remastered legacy thumbnails use JPG atlas, not heavy SVG: '+JSON.stringify(legacyPreviewStates));
  assert.ok(photoPreviews.every(x=>x.photoLoaded&&!x.vectorGenerated),
   'Photographic themes should use atlas imagery without generating redundant SVGs: '+JSON.stringify(photoPreviews));
  const firstVector=phone.locator('#themeGrid .theme-option[data-preset="n01"]');
@@ -332,6 +342,28 @@ try{
   assert.ok(art.w>=550&&art.image.includes('theme-world-v814-'+asset+'.jpg'),
    'Cinematic photo must load '+id+' '+JSON.stringify(art));
   assert.ok(!art.legacySvg&&art.heading&&!art.overflow,'Photo hero must remain usable '+id+' '+JSON.stringify(art));
+  await shot(desktop,'desktop-'+id);
+ }
+
+ for(const id of ['n24','n04','n15','n23']){
+  assert.ok(await desktop.evaluate(id=>window.BACK2U_THEMES.use(id),id),'Legacy theme selection failed '+id);
+  await desktop.waitForFunction(id=>document.body.dataset.themeId===id,id);
+  const scene=await desktop.evaluate(async()=>{
+   const photo=new Image();photo.src='/theme-worlds-v815.jpg';await photo.decode();
+   const mast=document.querySelector('.masthead'),stage=mast.querySelector('.theme-world-stage');
+   const h=mast.querySelector('h1'),rect=h.getBoundingClientRect();
+   const computed=getComputedStyle(mast);
+   return {width:photo.naturalWidth,
+    scene:getComputedStyle(stage).backgroundImage,
+    vector:computed.backgroundImage.includes('data:image/svg+xml'),
+    heading:rect.height>=50&&getComputedStyle(h).display!=='none',
+    overflow:document.documentElement.scrollWidth>document.documentElement.clientWidth+24,
+    title:document.getElementById('themeWorldName')?.textContent};
+  });
+  assert.ok(scene.width>=1200&&scene.scene.includes('theme-worlds-v815.jpg'),
+   'Legacy photo world must decode and display '+id+' '+JSON.stringify(scene));
+  assert.ok(!scene.vector&&scene.heading&&!scene.overflow,
+   'Legacy cinematic hero must remain usable '+id+' '+JSON.stringify(scene));
   await shot(desktop,'desktop-'+id);
  }
  const railLayout=await desktop.locator('#dashboardWorkspace>.section-nav').evaluate(x=>({
