@@ -720,7 +720,7 @@ async function route(req,env,ctx){
  if(path==='/api/health'){
   // Temporary deployment diagnostic: expose only generic health categories,
   // never authentication, content counts, private dates or raw error messages.
-  const health={service:'BACK2U Cloud',
+  const health={service:'BACK2U Cloud',release:'V7.9',
    configured:!!(env.DB&&env.DASHBOARD_PASSWORD&&env.SESSION_SECRET),
    dbReady:!!env.DB,loginReady:!!env.DASHBOARD_PASSWORD,
    sourceReady:!!env.BACK2U_GOOGLE_FEED_SECRET,

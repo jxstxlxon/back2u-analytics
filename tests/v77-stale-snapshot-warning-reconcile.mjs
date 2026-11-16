@@ -114,8 +114,10 @@ for(const secret of ['tt-verified-account','7345678901234567890','TikTok has mor
  assert.ok(!serialized.includes(secret),'Public diagnostic must never expose data: '+secret);
 }
 assert.ok(worker.includes('health.snapshotNotice=publicSnapshotWarningDiagnosis('));
+assert.ok(worker.includes("release:'V7.9'"),'Public health identifies current Worker release without private metadata');
 const healthWorkflow=readFileSync(new URL('../.github/workflows/production-windsor-health.yml',import.meta.url),'utf8');
 assert.ok(healthWorkflow.includes('SNAPSHOT_NOTICE='));
+assert.ok(healthWorkflow.includes('PRODUCTION_RELEASE='),'GitHub health diagnostics expose deploy status without tokens');
 assert.ok(healthWorkflow.includes('SNAPSHOT_LEGACY_TIKTOK_RECOVERED='));
 
 console.log('OK authenticated warning reconciliation: remove stale TT bootstrap only with verified day/video source; retain genuine errors, fallback, pagination and guest safety');
