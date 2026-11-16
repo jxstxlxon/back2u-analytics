@@ -10,7 +10,7 @@ for(const id of ['dashboardWorkspace','mobileBottomNav','mobileMoreToggle','mobi
  'mobileMoreBackdrop','mobileMoreClose','mobileMoreTheme','topSevenExpand','topSevenList']){
  assert.equal(idMatches(id),1,'New control must have exactly one id='+id);
 }
-assert.ok(html.includes('<link rel="stylesheet" href="/workspace-v78.css?v=1">'));
+assert.ok(html.includes('<link rel="stylesheet" href="/workspace-v78.css?v=2">'));
 assert.ok(html.indexOf('<div class="dashboard-workspace"')<html.indexOf('<nav class="section-nav"'));
 assert.ok(html.indexOf('</div><!-- /dashboard-workspace -->')>html.indexOf('</main>'));
 assert.ok(html.indexOf('id="mobileBottomNav"')>html.indexOf('</div><!-- /dashboard-workspace -->'));

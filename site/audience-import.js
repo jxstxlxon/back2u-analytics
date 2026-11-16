@@ -42,6 +42,65 @@
   if(a.status==='running'){node.textContent='Automatischer Abgleich läuft seit '+formatTime(a.lastAttemptAt)+'.';return}
   node.textContent='Automatik eingerichtet · erster Abgleich noch ausstehend. Du kannst ihn jetzt starten.';
  }
+ function renderDirectParity(audit){
+  const node=$('directParityStatus');if(!node)return;
+  node.replaceChildren();
+  const checks=Array.isArray(audit?.checks)?audit.checks:[];
+  const passed=checks.filter(x=>x?.pass===true).length;
+  const all=checks.length;
+  const summary=document.createElement('div');summary.className='direct-coverage-summary';
+  const label=document.createElement('strong');
+  label.textContent=all?passed+'/'+all+' Direktdaten-Prüfungen bestanden':'Noch kein überprüfbarer Direktdaten-Bericht';
+  const detail=document.createElement('p');
+  detail.textContent=all===0?'Noch keine gültige Prüfantwort verfügbar. Windsor.ai bleibt aktiv.':
+   passed===all?'Alle Datenquellen haben die Abdeckungsprüfung bestanden. Ein echter Quellvergleich und D1-Backup sind zusätzlich erforderlich.':
+    (all-passed)+' Prüfungen offen. Fehlende Daten werden nicht als 0 ausgewiesen. Windsor.ai bleibt aktiv.';
+  const track=document.createElement('div');track.className='direct-coverage-track';
+  track.setAttribute('role','progressbar');track.setAttribute('aria-label','Abdeckung offizieller Direktberichte');
+  track.setAttribute('aria-valuemin','0');track.setAttribute('aria-valuemax',String(all||12));
+  track.setAttribute('aria-valuenow',String(passed));
+  const fill=document.createElement('span');fill.style.width=all?Math.round(100*passed/all)+'%':'0%';
+  track.append(fill);summary.append(label,detail,track);node.append(summary);
+  if(!all)return;
+  const details=document.createElement('details');details.className='direct-coverage-details';
+  const open=document.createElement('summary');
+  open.textContent='Alle '+all+' Prüfkriterien anzeigen ('+(all-passed)+' offen)';
+  details.append(open);
+  const groups=document.createElement('div');groups.className='direct-coverage-groups';
+  for(const [code,name] of [['yt_','YouTube'],['ig_','Instagram']]){
+   const group=document.createElement('section');group.className='direct-coverage-group';
+   const header=document.createElement('h5');header.textContent=name;group.append(header);
+   for(const c of checks.filter(x=>String(x?.id||'').startsWith(code))){
+    const row=document.createElement('div');
+    row.className='direct-coverage-row '+(c.pass===true?'is-complete':'is-pending');
+    const mark=document.createElement('span');mark.setAttribute('aria-hidden','true');
+    mark.textContent=c.pass===true?'✓':'○';
+    const body=document.createElement('div');
+    const title=document.createElement('strong');title.textContent=String(c.label||'Nicht benannt');
+    const caption=document.createElement('small');caption.textContent=String(c.details||'Noch kein Bericht');
+    body.append(title,caption);row.append(mark,body);group.append(row);
+   }
+   groups.append(group);
+  }
+  details.append(groups);node.append(details);
+  const note=document.createElement('p');note.className='direct-coverage-method';
+  note.textContent='Datenabdeckung bedeutet nicht automatisch gleiche Kennzahlendefinitionen. Kein automatischer Wechsel von Windsor.ai.';
+  node.append(note);
+ }
+ async function refreshDirectParity(){
+  const node=$('directParityStatus');
+  if(!node)return;
+  const btn=$('directParityRefresh');if(btn)btn.disabled=true;
+  try{
+   const audit=await api('/api/direct-parity');
+   renderDirectParity(audit);
+  }catch(e){
+   node.replaceChildren();
+   const info=document.createElement('p');info.className='direct-coverage-error';
+   info.textContent='Offizielle Direktdaten-Prüfung nicht erreichbar. Windsor.ai bleibt aktiv. '+String(e.message||'');
+   node.append(info);
+  }finally{if(btn)btn.disabled=false}
+ }
  async function init(){
   if(initialized||location.protocol==='file:')return;
   const panel=$('audienceImportPanel');if(!panel)return;
@@ -73,20 +132,8 @@
     const node=$('directInsightsStatus');
     if(node)node.textContent='Zusatzstatistiken: Noch kein Direktbericht verfügbar.';
    }
-   try{
-    const audit=await api('/api/direct-parity');
-    const node=$('directParityStatus');
-    if(node){
-     const missing=(audit.checks||[]).filter(x=>!x.pass);
-     node.textContent='Direktquellen-Datenprüfung: '+audit.summary.passed+'/'+audit.summary.total+' erfüllt. '+
-      (missing.length?'Offen: '+missing.map(x=>x.label+' ('+x.details+')').join(' · '):
-       'Datenabdeckung vollständig; echter 7-Tage-Parallelvergleich und D1-Backup bleiben Pflicht.')+
-      ' Keine automatische Windsor-Abschaltung.';
-    }
-   }catch{
-    const node=$('directParityStatus');
-    if(node)node.textContent='Datenqualitätsprüfung nicht erreichbar; Windsor bleibt aktiv.';
-   }
+   await refreshDirectParity();
+   $('directParityRefresh')?.addEventListener('click',refreshDirectParity);
    status(existing?'Private Zielgruppendaten vorhanden · Stand '+String(state.snapshotDate||'unbekannt')+'.':'Noch keine privaten Zielgruppendaten importiert.');
   }catch(e){status('Importstatus konnte nicht geladen werden: '+e.message)}
   $('audienceSyncNow').addEventListener('click',async()=>{
