@@ -948,7 +948,7 @@ function renderTopSeven(){
  topSevenRendered=key;
  // This leaderboard is always about the VIDEO on all connected platforms,
  // not a single-platform upload. The general toolbar filter does not split it.
- const result=topSevenRanking(groups,state.topSevenMode,today,
+ const result=topSevenRanking(crossPlatformVideoGroups(),state.topSevenMode,today,
   ['yt','ig','tt']);
  const period=result.mode==='period',time=result.start?
   result.start.split('-').reverse().join('.')+' – '+result.end.split('-').reverse().join('.'):'Noch kein bestätigter Zeitraum';
