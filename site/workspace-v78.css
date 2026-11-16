@@ -51,9 +51,9 @@
  #creator>.section-heading{order:0}
  #creator>#creatorKpis{order:1}
  #creator>.creator-panel{order:2}
- #creator>.creator-two-col:first-of-type{order:3}
+ #creator>.creator-highlights-row{order:3}
  #creator>.creator-two-col.v7-creator-tools{order:4}
- #creator>.creator-two-col:not(.v7-creator-tools):last-of-type{order:5}
+ #creator>.creator-notes-row{order:5}
  #creator>#creatorMethodNote{order:6}
 }
 /* Two-column creator layout on tablets is preserved by the existing themes. */
@@ -185,9 +185,9 @@
  #creator>.section-heading{order:0}
  #creator>#creatorKpis{order:1}
  #creator>.creator-panel{order:2}
- #creator>.creator-two-col:first-of-type{order:3}
+ #creator>.creator-highlights-row{order:3}
  #creator>.creator-two-col.v7-creator-tools{order:4}
- #creator>.creator-two-col:not(.v7-creator-tools):last-of-type{order:5}
+ #creator>.creator-notes-row{order:5}
  #creator>#creatorMethodNote{order:6}
  /* System/source warnings don't spread into a full-screen red box. */
  #notice.live-partial{margin-top:0}
