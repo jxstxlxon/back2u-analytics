@@ -821,6 +821,38 @@ async function route(req,env,ctx){
   }catch(_){health.scheduler={cadence:'unknown',lastPhase:'unknown',recent:false};}
   return json(health);
  }
+ // Public, privacy-safe asset validation: the dashboard HTML is protected
+ // by login, so anonymous GitHub CI cannot inspect '/' or static CSS. Check
+ // the actual bundled assets inside the Worker, but return ONLY booleans.
+ if(path==='/api/layout-verify'){
+  if(req.method!=='GET')return json({error:'GET only'},405);
+  const unavailable={release:'V7.9',ready:false,checks:{html:false,css:false,
+   bottomNavigation:false,desktopRail:false,mobileSafeArea:false,topVideoExpand:false}};
+  if(!env.ASSETS)return json(unavailable);
+  try{
+   const [page,stylesheet]=await Promise.all([
+    env.ASSETS.fetch(new Request(new URL('/index.html',req.url))),
+    env.ASSETS.fetch(new Request(new URL('/workspace-v78.css',req.url)))
+   ]);
+   if(!page.ok||!stylesheet.ok)return json(unavailable);
+   const [html,css]=await Promise.all([page.text(),stylesheet.text()]);
+   const checks={
+    html:html.includes('id="dashboardWorkspace"')&&
+     ['overview','videos','creator','experiments','audience','system']
+      .every(id=>html.includes('id="'+id+'" class="view')),
+    css:css.includes('grid-template-areas:"side notice" "side content"'),
+    bottomNavigation:html.includes('id="mobileBottomNav"')&&
+     html.includes('id="mobileMoreDrawer"'),
+    desktopRail:css.includes('position:sticky;top:16px'),
+    mobileSafeArea:css.includes('env(safe-area-inset-bottom,0px)'),
+    topVideoExpand:html.includes('id="topSevenExpand"')
+   };
+   return json({release:'V7.9',ready:Object.values(checks).every(Boolean),checks});
+  }catch{
+   // Never print, return, or log the protected HTML or any raw body.
+   return json(unavailable);
+  }
+ }
  if(path==='/api/login')return req.method==='POST'?issueToken(req,env):json({error:'POST only'},405);
  if(path==='/api/guest/redeem')return redeemGuest(req,env);
  if(path==='/api/youtube-daily/ingest')return ingestYoutubeDaily(req,env);
