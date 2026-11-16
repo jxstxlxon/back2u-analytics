@@ -28,6 +28,15 @@ const end=worker.indexOf("if(path==='/api/login')",start);
 assert.ok(start>0&&end>start,'Public layout verifier must precede login guard');
 const route=worker.slice(start,end);
 assert.ok(route.includes('env.ASSETS.fetch('),'Check actual deployed Worker static bundle');
+
+assert.ok(html.includes('/workspace-v80.js?v=2'),'Current dashboard ships the newer workspace JS cache version');
+assert.ok(route.includes("themeQuick:html.includes('/workspace-v80.js?v=')"),
+ 'Layout verification must accept future workspace script versions');
+assert.ok(route.includes("storyTemplates:html.includes('/story-composer-v3.js?v=')"),
+ 'Layout verification must accept future Story Composer script versions');
+assert.ok(!route.includes("themeQuick:html.includes('/workspace-v80.js?v=1')"),
+ 'Do not pin live layout verification to an obsolete query version');
+
 assert.ok(route.includes("const paths=['/index.html','/workspace-v78.css','/workspace-v80.css'"));
 assert.ok(route.includes("'/workspace-v80.js','/story-composer-v3.js'"));
 assert.ok(route.includes("assets.some(r=>!r.ok)"));
