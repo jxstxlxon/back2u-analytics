@@ -11,7 +11,7 @@ const v78=readFileSync(new URL('../site/workspace-v78.css',import.meta.url),'utf
 
 new vm.Script(ux,{filename:'workspace-v80.js'});
 new vm.Script(stories,{filename:'story-composer-v3.js'});
-assert.ok(html.includes('href="/workspace-v80.css?v=1"'));
+assert.ok(html.includes('href="/workspace-v80.css?v=2"'));
 assert.ok(html.includes('src="/workspace-v80.js?v=1" defer'));
 assert.ok(html.includes('src="/story-composer-v3.js?v=7" defer'));
 assert.ok(html.indexOf('src="/workspace-v80.js?v=1"')>html.indexOf('src="/audience-import.js?v=4"'),
