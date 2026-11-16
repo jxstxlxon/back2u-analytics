@@ -19,6 +19,12 @@ const fmt=n=>typeof n==='number'&&Number.isFinite(n)?new Intl.NumberFormat('de-D
 const rgb=x=>[1,3,5].map(i=>parseInt(x.slice(i,i+2),16)).join(',');
 const P_NAMES={all:'Alle Plattformen',yt:'YouTube',ig:'Instagram',tt:'TikTok'};
 const HEADINGS=['Mein Creator-Update','Meine Zahlen im Überblick','So läuft’s gerade','Mein Wachstum'];
+const QUICK_TEMPLATES=[
+ {id:'momentum',name:'Momentum',title:'Mein Creator-Update',days:28,layout:'bold',slots:['views','followers','trend']},
+ {id:'platforms',name:'Plattformen',title:'Mein Plattformvergleich',days:28,layout:'balanced',slots:['splitViews','splitFollowers','videoGroups']},
+ {id:'best',name:'Top-Video',title:'Mein bestes Video',days:28,layout:'bold',slots:['top','views','peak']},
+ {id:'week',name:'7-Tage-Recap',title:'Mein Wochenrückblick',days:7,layout:'compact',slots:['views','average','trend']}
+];
 const defaults=()=>({title:'Mein Creator-Update',theme:'auto',platform:'all',days:28,layout:'balanced',slots:['views','followers','trend']});
 const safeSlide=x=>{
  const d=defaults();if(!x||typeof x!=='object')return d;
@@ -47,6 +53,7 @@ const root=document.createElement('div');root.id='storyEditorRoot';root.classNam
 root.innerHTML='<section class="story-editor-controls" aria-label="Story-Bilder bearbeiten">'
  +'<h2>Story Studio <span style="opacity:.65">/ 9:16</span></h2>'
  +'<p>Jedes Bild erhält eigene Inhalte, Zeitraum, Plattform und ein frei wählbares Liquid-Glass-Theme. Nur vorhandene Werte werden angezeigt.</p>'
+ +'<div class="v80-story-presets" role="group" aria-label="Schnellvorlagen für das ausgewählte Story-Bild"><strong>Mit Vorlage starten</strong><div id="scQuickTemplates" class="v80-story-template-grid">'+QUICK_TEMPLATES.map(t=>'<button type="button" data-story-template="'+t.id+'">'+esc(t.name)+'</button>').join('')+'</div><small>Ändert nur dieses Bild. Themen und vorhandene Seiten bleiben erhalten.</small></div>'
  +'<div class="story-tabs" id="scTabs" role="group" aria-label="Story-Seite auswählen"></div>'
  +'<div class="story-active-theme" id="scThemeNow" aria-live="polite">Aktuelles Theme wird geladen …</div>'
  +'<div class="story-input-grid">'
@@ -60,7 +67,7 @@ root.innerHTML='<section class="story-editor-controls" aria-label="Story-Bilder 
  +'<label>Obere Karte<select id="scSlot0">'+typeOptions('views')+'</select></label>'
  +'<label>Mittlere Karte<select id="scSlot1">'+typeOptions('followers')+'</select></label>'
  +'<label>Untere Karte<select id="scSlot2">'+typeOptions('trend')+'</select></label>'
- +'<div class="story-editor-foot"><button id="scAdd" type="button">+ Story-Bild</button><button id="scRemove" type="button">Bild entfernen</button></div>'
+ +'<div class="story-editor-foot"><button id="scAdd" type="button">+ Seite duplizieren</button><button id="scRemove" type="button">Seite entfernen</button></div>'
  +'<p class="story-editor-note">PNG-Export des ausgewählten Bilds: <strong>1440 × 2560 px</strong>. Fehlende Tagesdaten bleiben „–“. Die Periodenwerte entsprechen der jeweils verfügbaren Berichtsabdeckung.</p>'
  +'</section><div class="story-editor-preview-wrap"><article id="scPreview" class="story-slide" aria-label="9:16 Story Vorschau"></article></div>';
 overlay.appendChild(root);
@@ -208,6 +215,15 @@ function show(){
  root.hidden=false;render();
 }
 function hide(){overlay.classList.remove('story-composer-active');root.hidden=true}
+root.querySelectorAll('[data-story-template]').forEach(btn=>btn.addEventListener('click',()=>{
+ const preset=QUICK_TEMPLATES.find(t=>t.id===btn.dataset.storyTemplate);
+ if(!preset)return;
+ const current=selected();
+ composer.slides[composer.selected]=safeSlide({...current,
+  title:preset.title,days:preset.days,layout:preset.layout,slots:[...preset.slots]});
+ persist();render();
+ root.querySelectorAll('[data-story-template]').forEach(b=>b.setAttribute('aria-pressed',String(b===btn)));
+}));
 $('scAdd').addEventListener('click',()=>{if(composer.slides.length>=MAX)return;composer.slides.push({...safeSlide(selected()),title:'Mein Creator-Update '+(composer.slides.length+1),slots:[...selected().slots]});composer.selected=composer.slides.length-1;persist();render()});
 $('scRemove').addEventListener('click',()=>{if(composer.slides.length<=1)return;composer.slides.splice(composer.selected,1);composer.selected=Math.max(0,Math.min(composer.selected,composer.slides.length-1));persist();render()});
 [['scTheme','theme'],['scPlatform','platform'],['scDays','days'],['scLayout','layout'],['scSlot0','slot0'],['scSlot1','slot1'],['scSlot2','slot2']].forEach(([id,k])=>$(id).addEventListener('change',e=>changed(k,e.target.value)));
