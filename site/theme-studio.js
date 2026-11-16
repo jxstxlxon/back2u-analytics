@@ -49,7 +49,15 @@ const rows=[
 'ex09|Lunar Chrome|dark|#10131e|#30394b|#333e50|#e2f1ff|#8d9ef5',
 'ex10|Sakura Voltage|dark|#190a27|#58305d|#462853|#ff82d2|#9c91ff',
 'ex11|Black Ice|dark|#030b17|#123652|#1a3e52|#8ddaff|#c0f5ff',
-'ex12|Solar Eclipse|dark|#130c0a|#473027|#432720|#ffba50|#ff614f'
+'ex12|Solar Eclipse|dark|#130c0a|#473027|#432720|#ffba50|#ff614f',
+'ex13|Midnight Monsoon|dark|#020e1c|#10446b|#14364f|#56b9ff|#81faff',
+'ex14|Inferno Circuit|dark|#1a0607|#531b12|#401713|#ff6337|#ffc34e',
+'ex15|Vaporwave Mirage|dark|#1c0836|#4b1d6c|#3c2158|#ff78e6|#6be8ff',
+'ex16|Frozen Atlantis|dark|#041b27|#166777|#215c70|#7cf9ff|#9eabff',
+'ex17|Golden Singularity|dark|#171005|#4b3510|#3d2f17|#ffd36b|#fff2b5',
+'ex18|Toxic Biohazard|dark|#07150b|#294624|#1e3e27|#b4ff43|#30ff9c',
+'ex19|Hyperdrive Redline|dark|#08080c|#32131e|#24131c|#ff324e|#ffb058',
+'ex20|Dreamwave Paradise|aero|#a1ddff|#6aaed7|#c9eafa|#9b83ff|#ffb7e6'
 ];
 const presets=rows.map(s=>{const a=s.split('|');return {id:a[0],name:a[1],family:a[2],bg:a[3],bg2:a[4],card:a[5],accent:a[6],secondary:a[7],light:a[2]!=='dark'}});
 const byId=Object.fromEntries(presets.map(p=>[p.id,p]));
@@ -59,7 +67,7 @@ try{let old=JSON.parse(localStorage.getItem(key)||'null');if(old&&byId[old.id]){
 const defaults={tintStrength:14,glow:55,blur:27,sheen:56,radius:25,saturation:130,chartContrast:78,backgroundIntensity:76,outlineStrength:55};
 const ranges={tintStrength:[0,80],glow:[0,100],blur:[0,64],sheen:[0,100],radius:[12,42],saturation:[80,180],chartContrast:[20,100],backgroundIntensity:[0,100],outlineStrength:[0,100]};
 let category='all';
-const extremeIds=new Set(["ex01","ex02","ex03","ex04","ex05","ex06","ex07","ex08","ex09","ex10","ex11","ex12"]);
+const extremeIds=new Set(["ex01","ex02","ex03","ex04","ex05","ex06","ex07","ex08","ex09","ex10","ex11","ex12","ex13","ex14","ex15","ex16","ex17","ex18","ex19","ex20"]);
 const el=id=>document.getElementById(id);
 const color=(c,d)=>typeof c==='string'&&/^#[\da-f]{6}$/i.test(c)?c:d;
 const rgb=x=>{x=color(x,'#000000');return [1,3,5].map(n=>parseInt(x.slice(n,n+2),16)).join(',')};
