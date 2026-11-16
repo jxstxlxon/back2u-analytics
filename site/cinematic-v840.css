@@ -736,3 +736,11 @@ body[data-theme-artwork="on"] :is(.lifetime-views-total,.follower-aggregate-tota
   aspect-ratio:16/10;
  }
 }
+
+/* Specificity repair: prior special-scene CSS for four photoreal worlds can
+   override the generic 100% stage. This ensures ALL 56 use the large cover. */
+body[data-theme-artwork="on"][data-theme-id] .masthead>.theme-world-stage{
+ inset:0!important;
+ width:100%!important;max-width:none!important;height:100%!important;
+ opacity:1!important;
+}
