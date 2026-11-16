@@ -483,6 +483,9 @@ try{
    if(!matchingSvg)issues.push(t.id+':missing unique vector overlay');
    if(!hero.backgroundImage.includes('gradient'))issues.push(t.id+':no material background');
    if(!head||head.getBoundingClientRect().height<30)issues.push(t.id+':hidden headline');
+   const fullStage=document.querySelector('.masthead>.theme-world-stage')?.getBoundingClientRect();
+   const headerBox=document.querySelector('.masthead').getBoundingClientRect();
+   if(!fullStage||fullStage.width<headerBox.width-3)issues.push(t.id+':scene too narrow');
    seen.add(signature);
   }
   themes.use(saved);
@@ -513,7 +516,7 @@ try{
    height:header.getBoundingClientRect().height,
    sharp:decodeURIComponent(img.src.slice('data:image/svg+xml,'.length)).includes('viewBox="0 0 1920 1080"')};
  });
- assert.ok(desktopRetina.width>=650&&desktopRetina.width<=980&&desktopRetina.height>=340&&desktopRetina.sharp,
+ assert.ok(desktopRetina.width>=900&&desktopRetina.width<=1300&&desktopRetina.height>=370&&desktopRetina.sharp,
   'Desktop must render a large true vector illustration: '+JSON.stringify(desktopRetina));
  for(const id of ['ex06','ex05','ex18','ex04']){
   assert.ok(await desktop.evaluate(id=>window.BACK2U_THEMES.use(id),id));
