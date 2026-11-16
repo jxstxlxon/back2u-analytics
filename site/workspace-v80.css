@@ -316,3 +316,145 @@ body[data-theme-tone="light"] #themeStudioPanel .v80-theme-favorite{
 @media(prefers-reduced-motion:reduce){
  .v80-jumps{scroll-behavior:auto}
 }
+
+
+/* V8.0.2 — consistent theme glass on the newly introduced workspaces.
+ * Inherit live theme tokens; no second palette, state, API or script.
+ * Applies across dark, light, Aero and custom theme variants.
+ */
+body[data-theme-tone] {
+ --v802-surface:rgba(var(--t-card,23,48,48),.48);
+ --v802-surface-soft:rgba(var(--t-card,23,48,48),.28);
+ --v802-stroke:rgba(var(--t-accent-rgb,111,200,162),.32);
+ --v802-highlight:rgba(var(--t-accent-rgb,111,200,162),.18);
+ --v802-text:var(--t-ink-strong,var(--ink));
+ --v802-muted:var(--t-ink-muted,var(--muted));
+ --v802-glow:0 9px 32px rgba(var(--t-accent-rgb,111,200,162),.07);
+}
+body[data-theme-tone] :is(
+ .v80-jumps .v80-action,
+ .v80-audience-filter .v80-filter-button,
+ .v80-maintenance,
+ #themeStudioPanel .v80-theme-favorites,
+ #themeStudioPanel .v80-theme-favorite,
+ .mobile-more-sheet .v80-more-actions button
+){
+ color:var(--v802-text);
+ border-color:var(--v802-stroke);
+ background:linear-gradient(135deg,
+  rgba(var(--t-accent-rgb,111,200,162),.10),
+  rgba(var(--t-secondary-rgb,90,150,211),.055) 55%,
+  transparent),var(--v802-surface);
+ box-shadow:inset 0 1px 0 rgba(255,255,255,.10),var(--v802-glow);
+ -webkit-backdrop-filter:blur(clamp(5px,var(--t-blur,12px),16px)) saturate(125%);
+ backdrop-filter:blur(clamp(5px,var(--t-blur,12px),16px)) saturate(125%);
+}
+body[data-theme-tone] :is(
+ .v80-jumps .v80-action:hover,
+ .v80-jumps .v80-action:focus-visible,
+ .v80-audience-filter .v80-filter-button.active,
+ #themeStudioPanel .v80-theme-favorite.is-active,
+ #themeStudioPanel .v80-theme-favorite:hover,
+ .mobile-more-sheet .v80-more-actions button:hover
+){
+ border-color:rgba(var(--t-accent-rgb,111,200,162),.72);
+ background:linear-gradient(140deg,
+  rgba(var(--t-accent-rgb,111,200,162),.26),
+  rgba(var(--t-secondary-rgb,90,150,211),.11)),var(--v802-surface-soft);
+}
+body[data-theme-tone] :is(
+ .v80-audience-info,
+ .direct-coverage-summary,
+ .direct-coverage-details,
+ .direct-coverage-row,
+ .direct-coverage-details>summary,
+ #videos .tools,
+ .mobile-more-sheet,
+ .mobile-bottom-nav
+){
+ border-color:var(--v802-stroke);
+ color:var(--v802-text);
+}
+body[data-theme-tone] :is(
+ .v80-audience-info,
+ .direct-coverage-summary,
+ .direct-coverage-row,
+ .direct-coverage-details>summary
+){
+ background:var(--v802-surface-soft);
+}
+body[data-theme-tone] :is(
+ .v80-audience-info,
+ .direct-coverage-summary>p,
+ .direct-coverage-row small,
+ .v80-theme-heading small,
+ .v80-theme-favorite small
+){color:var(--v802-muted)}
+body[data-theme-tone] :is(
+ #videos .tools input,
+ #videos .tools select,
+ .mobile-more-sheet button
+){
+ color:var(--v802-text);
+ border-color:var(--v802-stroke);
+ accent-color:var(--t-accent);
+}
+body[data-theme-tone] :is(#videos .tools input,#videos .tools select){
+ background:var(--v802-surface);
+}
+body[data-theme-tone] :is(
+ .direct-coverage-track>span,
+ #themeStudioPanel .v80-theme-favorite.is-active .v80-theme-color-preview
+){
+ box-shadow:0 0 15px rgba(var(--t-accent-rgb,111,200,162),.23);
+}
+body[data-theme-tone="light"]{
+ --v802-surface:rgba(255,255,255,.74);
+ --v802-surface-soft:rgba(255,255,255,.52);
+ --v802-stroke:rgba(var(--t-accent-rgb,111,200,162),.36);
+ --v802-glow:0 8px 24px rgba(20,50,70,.055);
+}
+body[data-theme-tone="light"] :is(
+ .v80-jumps .v80-action,
+ #themeStudioPanel .v80-theme-favorite
+){
+ background:linear-gradient(135deg,
+  rgba(var(--t-accent-rgb,111,200,162),.10),
+  rgba(255,255,255,.42)),var(--v802-surface);
+ color:var(--v802-text);
+}
+@media(max-width:760px){
+ body[data-theme-tone] .mobile-bottom-nav{
+  background:var(--v802-surface);
+  -webkit-backdrop-filter:blur(18px) saturate(135%);
+  backdrop-filter:blur(18px) saturate(135%);
+ }
+ body[data-theme-tone] .mobile-more-sheet{
+  background:var(--v802-surface);
+  -webkit-backdrop-filter:blur(18px) saturate(135%);
+  backdrop-filter:blur(18px) saturate(135%);
+ }
+ body[data-theme-tone] .mobile-bottom-nav button.active{
+  color:var(--v802-text);
+  border-color:rgba(var(--t-accent-rgb,111,200,162),.55);
+  background:var(--v802-highlight);
+ }
+}
+@media(prefers-reduced-transparency:reduce){
+ body[data-theme-tone]{
+  --v802-surface:rgb(var(--t-card,23,48,48));
+  --v802-surface-soft:rgb(var(--t-card,23,48,48));
+ }
+ body[data-theme-tone="light"]{
+  --v802-surface:rgb(255,255,255);
+  --v802-surface-soft:rgb(255,255,255);
+ }
+ body[data-theme-tone] :is(
+  .v80-jumps .v80-action,.v80-audience-filter .v80-filter-button,
+  .v80-maintenance,#themeStudioPanel .v80-theme-favorites,
+  #themeStudioPanel .v80-theme-favorite,.mobile-more-sheet
+ ){
+  -webkit-backdrop-filter:none;
+  backdrop-filter:none;
+ }
+}
