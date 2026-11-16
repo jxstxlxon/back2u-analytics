@@ -364,7 +364,9 @@ function anchorDate(){
  return shift(now,-1);
 }
 function targetRange(){let end=anchorDate();return {start:shift(end,-(state.days-1)),end}}
-function snapshotWithinWindow(p){const snap=SEED.snapshots[p];const hasFresh=Boolean(state.live?.platforms?.[p]?.daily?.length);if(!snap||hasFresh||state.live)return false;return state.days===28||state.days===90}
+// The archived snapshots are approximately 28-day reports, NEVER 90-day totals.
+// A 90-day view must aggregate only observed daily rows and mark gaps.
+function snapshotWithinWindow(p){const snap=SEED.snapshots[p];const hasFresh=Boolean(state.live?.platforms?.[p]?.daily?.length);if(!snap||hasFresh||state.live)return false;return state.days===28}
 function series(p){const {start,end}=targetRange();return mergedDaily(p).filter(r=>r.d>=start&&r.d<=end)}
 function sum(xs,k){let a=xs.map(x=>x[k]).filter(x=>typeof x==='number'&&Number.isFinite(x));return a.length? a.reduce((x,y)=>x+y,0):null}
 function platformMetric(p){
@@ -877,7 +879,9 @@ function renderGroupedVideos(){
  }).join(''):'<div class="empty">Keine Treffer für diese Filter.</div>';
  $('#pageLabel').textContent='Seite '+state.page+' von '+numberOfPages;
  $('#prevPage').disabled=state.page===1;$('#nextPage').disabled=state.page===numberOfPages;
- if(!state.selected?.groupKey||!groups.some(g=>g.groupKey===state.selected.groupKey))state.selected=groups[0]||null;
+ // A refreshed snapshot creates new group objects with the same key. Rebind the
+ // open detail to the current group; otherwise its metrics remain stale.
+ state.selected=groups.find(g=>g.groupKey===state.selected?.groupKey)||groups[0]||null;
  renderGroupedVideoDetail(state.selected);
  $$('[data-vid-index]').forEach(el=>el.addEventListener('click',()=>{state.selected=groups[Number(el.dataset.vidIndex)];renderGroupedVideoDetail(state.selected);$$('[data-vid-index]').forEach(e=>e.classList.remove('active'));el.classList.add('active')}));
 }
@@ -1029,7 +1033,14 @@ function renderVideos(){renderTopSeven();if(state.platform==='all'){const hasApi
  updateLibraryExpander(vlist.length);
  $('#videoList').innerHTML=show.length?show.map((v,i)=>`<button class="list-row ${state.selected&&state.selected.platform===v.platform&&state.selected.date===v.date&&state.selected.title===v.title?'active':''}" data-vid-index="${start+i}"><span class="list-num">${start+i+1}</span><span class="list-thumb">${image(v)}</span><span class="list-name">${esc(v.title)}<small>${tagPlatform(v.platform)} · ${esc(v.date)}</small></span><span class="list-number">${fmt(videoMetricValue(v,state.sort==='recent'?'views':state.sort))}<small>${esc(videoMetricLabel(v,state.sort==='recent'?'views':state.sort))}</small></span></button>`).join(''):'<div class="empty">Keine Treffer. Versuche einen anderen Suchbegriff oder Zeitraum.</div>';
  $('#pageLabel').textContent=`Seite ${state.page} von ${pageN}`;$('#prevPage').disabled=state.page===1;$('#nextPage').disabled=state.page===pageN;
- if(!state.selected||!vlist.some(v=>v.title===state.selected.title&&v.date===state.selected.date&&v.platform===state.selected.platform))state.selected=vlist[0]||null;
+ // Rebind selected video after an API refresh. Stable IDs/URLs distinguish
+ // same-title uploads, and fallback title/date retains historical archive rows.
+ const selected=state.selected;
+ state.selected=vlist.find(v=>v.platform===selected?.platform&&(
+  v.id&&selected.id?String(v.id)===String(selected.id):
+  v.url&&selected.url?String(v.url).split('?')[0].replace(/[/]$/,'')===String(selected.url).split('?')[0].replace(/[/]$/,''):
+  v.title===selected.title&&v.date===selected.date
+ ))||vlist[0]||null;
  renderDetail();$$('[data-vid-index]').forEach(b=>b.addEventListener('click',()=>{state.selected=vlist[Number(b.dataset.vidIndex)];renderDetail();$$('[data-vid-index]').forEach(e=>e.classList.remove('active'));b.classList.add('active')}));
 }
 function renderDetail(){const v=state.selected;if(!v){$('#detailPanel').innerHTML='<div class="empty">Wähle links ein Video aus.</div>';return}const mm=matches(v),kpi=[['Aufrufe',videoMetricValue(v,'views')],['Likes',videoMetricValue(v,'likes')],['Kommentare',videoMetricValue(v,'comments')],['Follows',videoMetricValue(v,'follows')],['Shares',v.shares]];
