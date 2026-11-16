@@ -45,7 +45,7 @@ assert.ok(ux.includes("node.hidden=!visible"),'Audience filters must change pres
 assert.ok(ux.includes("selected==='all'||title.includes(labels[selected])"));
 assert.ok(ux.includes("const themes=window.BACK2U_THEMES"));
 assert.ok(ux.includes("themes.use(id)"),'Quick palette choice must persist through official theme API');
-for(const id of ['n24','n04','n23','n15'])assert.ok(ux.includes("'"+id+"'"));
+for(const id of ['ex01','ex02','ex03','ex04','ex05','ex06','n24','n04'])assert.ok(ux.includes("'"+id+"'"));
 assert.ok(ux.includes("original")===false||!ux.includes("state.edits={}"),
  'Theme quick picks must not wipe saved customizations');
 assert.ok(ux.includes("const maintenance=section.querySelector('.video-sync-row')"));
