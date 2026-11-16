@@ -316,6 +316,24 @@ try{
    'Header must stay functional and avoid old SVG wallpaper: '+id+' '+JSON.stringify(imageTest));
   await shot(desktop,'desktop-'+id);
  }
+
+ for(const [id,asset] of [['ex09','lunar'],['ex10','sakura'],['ex11','ice'],['ex12','eclipse']]){
+  assert.ok(await desktop.evaluate(id=>window.BACK2U_THEMES.use(id),id),'Theme selection failed '+id);
+  await desktop.waitForFunction(id=>document.body.dataset.themeId===id,id);
+  const art=await desktop.evaluate(async(asset)=>{
+   const img=new Image();img.src='/theme-world-v814-'+asset+'.jpg';await img.decode();
+   const stage=document.querySelector('.masthead>.theme-world-stage');
+   const mast=document.querySelector('.masthead'),h=mast.querySelector('h1'),rect=h.getBoundingClientRect();
+   return {w:img.naturalWidth,image:getComputedStyle(stage).backgroundImage,
+    legacySvg:getComputedStyle(mast).backgroundImage.includes('data:image/svg+xml'),
+    heading:rect.height>50&&getComputedStyle(h).display!=='none',
+    overflow:document.documentElement.scrollWidth>document.documentElement.clientWidth+24};
+  },asset);
+  assert.ok(art.w>=550&&art.image.includes('theme-world-v814-'+asset+'.jpg'),
+   'Cinematic photo must load '+id+' '+JSON.stringify(art));
+  assert.ok(!art.legacySvg&&art.heading&&!art.overflow,'Photo hero must remain usable '+id+' '+JSON.stringify(art));
+  await shot(desktop,'desktop-'+id);
+ }
  const railLayout=await desktop.locator('#dashboardWorkspace>.section-nav').evaluate(x=>({
   position:getComputedStyle(x).position,referenceLayout:document.body.dataset.referenceLayout||''
  }));
