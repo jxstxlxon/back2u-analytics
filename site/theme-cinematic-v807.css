@@ -232,3 +232,32 @@ body[data-theme-family="aero"][data-theme-artwork="on"] :is(.platform-card,.metr
 @media(prefers-reduced-motion:reduce){
  body[data-theme-artwork="on"] :is(.masthead,.hero-main,.platform-card,.metric-box,.chart-kpi){transition:none!important}
 }
+
+/* Specificity guard: historical sidebar stylesheet uses a two-attribute body
+ * selector and !important. The actual illustrated hero must win in all layouts. */
+body[data-theme-artwork="on"][data-reference-layout="sidebar"] .masthead,
+body[data-theme-artwork="on"][data-reference-layout="wide"] .masthead{
+ background:
+  linear-gradient(90deg,rgba(var(--t-card),.94) 0%,rgba(var(--t-card),.75) 35%,rgba(var(--t-card),.12) 74%,rgba(var(--t-card),.32) 100%),
+  var(--t-scene-url)!important;
+ background-position:center,center 40%!important;
+ background-size:cover!important;
+ background-repeat:no-repeat!important;
+}
+body[data-theme-artwork="on"][data-reference-layout="sidebar"][data-theme-id="ex06"] .masthead,
+body[data-theme-artwork="on"][data-reference-layout="sidebar"][data-theme-id="ex19"] .masthead,
+body[data-theme-artwork="on"][data-reference-layout="wide"][data-theme-id="ex06"] .masthead,
+body[data-theme-artwork="on"][data-reference-layout="wide"][data-theme-id="ex19"] .masthead{
+ background-image:linear-gradient(90deg,rgba(5,6,9,.98),rgba(8,9,13,.71) 34%,rgba(6,6,10,.03) 76%),var(--t-scene-url)!important;
+ background-position:center,center 65%!important;
+}
+body[data-theme-artwork="on"][data-reference-layout="sidebar"][data-theme-id="ex05"] .masthead,
+body[data-theme-artwork="on"][data-reference-layout="wide"][data-theme-id="ex05"] .masthead{
+ background-image:linear-gradient(90deg,rgba(43,37,12,.92),rgba(45,39,13,.62) 40%,rgba(40,32,7,.08) 80%),var(--t-scene-url)!important;
+}
+body[data-theme-artwork="on"][data-reference-layout="sidebar"][data-theme-tone="light"] .masthead,
+body[data-theme-artwork="on"][data-reference-layout="wide"][data-theme-tone="light"] .masthead,
+body[data-theme-artwork="on"][data-reference-layout="sidebar"][data-theme-family="aero"] .masthead,
+body[data-theme-artwork="on"][data-reference-layout="wide"][data-theme-family="aero"] .masthead{
+ background-image:linear-gradient(90deg,rgba(236,250,255,.94) 0%,rgba(238,252,255,.79) 36%,rgba(238,252,255,.06) 80%),var(--t-scene-url)!important;
+}
