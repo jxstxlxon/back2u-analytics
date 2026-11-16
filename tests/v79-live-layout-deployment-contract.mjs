@@ -28,8 +28,13 @@ const end=worker.indexOf("if(path==='/api/login')",start);
 assert.ok(start>0&&end>start,'Public layout verifier must precede login guard');
 const route=worker.slice(start,end);
 assert.ok(route.includes('env.ASSETS.fetch('),'Check actual deployed Worker static bundle');
-assert.ok(route.includes("env.ASSETS.fetch(new Request(new URL('/index.html',req.url)))"));
-assert.ok(route.includes("env.ASSETS.fetch(new Request(new URL('/workspace-v78.css',req.url)))"));
+assert.ok(route.includes("const paths=['/index.html','/workspace-v78.css','/workspace-v80.css'"));
+assert.ok(route.includes("'/workspace-v80.js','/story-composer-v3.js'"));
+assert.ok(route.includes("assets.some(r=>!r.ok)"));
+for(const marker of ['themeQuick','storyTemplates','videoWorkspace','creatorAudience','moreActions'])
+ assert.ok(route.includes(marker+':'),'V8 release must verify '+marker);
+assert.ok(workflow.includes("'themeQuick','storyTemplates','videoWorkspace','creatorAudience','moreActions'"));
+assert.ok(workflow.includes("response.release!=='V8.0'"));
 assert.ok(route.includes("return json({release:'V8.0',ready:Object.values(checks).every(Boolean),checks})"));
 assert.ok(route.includes('Never print, return, or log the protected HTML'));
 assert.ok(!/console\.(log|warn|error)/.test(route),'No private HTML or error logs');
