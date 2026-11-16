@@ -1,0 +1,307 @@
+/* BACK2U V8.3.0 / all 56 ORIGINAL theme worlds individually art-directed.
+ * 56 explicit profile rules below. No new theme IDs, no fake charts/data.
+ * Photo hero atlases stay untouched; 32 vector worlds gain unique signatures
+ * from theme-signatures-v830.js. All decoration is static; no CSS filters,
+ * fixed parallax, backdrop sampling or scroll-time JS.
+ */
+body[data-theme-artwork="on"]{
+ --v830-plate:var(--v809-card,var(--t-card));
+ --v830-ink:var(--t-ink-strong,var(--ink));
+ --v830-glint:rgba(255,255,255,.90);
+ --v830-deep:rgba(var(--v830-plate),.96);
+ --v830-skin-ion:linear-gradient(170deg,rgba(255,255,255,0.19),transparent 21%,rgba(var(--t-accent-rgb),0.05) 51%,transparent 72%,rgba(var(--t-secondary-rgb),0.19)),linear-gradient(22deg,transparent 25%,rgba(255,255,255,0.05) 51%,transparent 59%);
+ --v830-skin-titanium:linear-gradient(115deg,rgba(255,255,255,0.09),transparent 21%,rgba(var(--t-accent-rgb),0.04) 51%,transparent 72%,rgba(var(--t-secondary-rgb),0.09)),linear-gradient(22deg,transparent 25%,rgba(255,255,255,0.04) 51%,transparent 59%);
+ --v830-skin-molten:linear-gradient(147deg,rgba(255,255,255,0.23),transparent 21%,rgba(var(--t-accent-rgb),0.10) 51%,transparent 72%,rgba(var(--t-secondary-rgb),0.23)),linear-gradient(22deg,transparent 25%,rgba(255,255,255,0.10) 51%,transparent 59%);
+ --v830-skin-emerald:linear-gradient(132deg,rgba(255,255,255,0.14),transparent 21%,rgba(var(--t-accent-rgb),0.08) 51%,transparent 72%,rgba(var(--t-secondary-rgb),0.14)),linear-gradient(22deg,transparent 25%,rgba(255,255,255,0.08) 51%,transparent 59%);
+ --v830-skin-aqua:linear-gradient(112deg,rgba(255,255,255,0.14),transparent 21%,rgba(var(--t-accent-rgb),0.07) 51%,transparent 72%,rgba(var(--t-secondary-rgb),0.14)),linear-gradient(22deg,transparent 25%,rgba(255,255,255,0.07) 51%,transparent 59%);
+ --v830-skin-crystal:linear-gradient(157deg,rgba(255,255,255,0.21),transparent 21%,rgba(var(--t-accent-rgb),0.08) 51%,transparent 72%,rgba(var(--t-secondary-rgb),0.21)),linear-gradient(22deg,transparent 25%,rgba(255,255,255,0.08) 51%,transparent 59%);
+ --v830-skin-obsidian:linear-gradient(128deg,rgba(255,255,255,0.08),transparent 21%,rgba(var(--t-accent-rgb),0.04) 51%,transparent 72%,rgba(var(--t-secondary-rgb),0.08)),linear-gradient(22deg,transparent 25%,rgba(255,255,255,0.04) 51%,transparent 59%);
+ --v830-skin-aurora:linear-gradient(108deg,rgba(255,255,255,0.18),transparent 21%,rgba(var(--t-accent-rgb),0.09) 51%,transparent 72%,rgba(var(--t-secondary-rgb),0.18)),linear-gradient(22deg,transparent 25%,rgba(255,255,255,0.09) 51%,transparent 59%);
+ --v830-skin-ice:linear-gradient(143deg,rgba(255,255,255,0.24),transparent 21%,rgba(var(--t-accent-rgb),0.06) 51%,transparent 72%,rgba(var(--t-secondary-rgb),0.24)),linear-gradient(22deg,transparent 25%,rgba(255,255,255,0.06) 51%,transparent 59%);
+ --v830-skin-rose:linear-gradient(139deg,rgba(255,255,255,0.18),transparent 21%,rgba(var(--t-accent-rgb),0.08) 51%,transparent 72%,rgba(var(--t-secondary-rgb),0.18)),linear-gradient(22deg,transparent 25%,rgba(255,255,255,0.08) 51%,transparent 59%);
+ --v830-skin-hologram:linear-gradient(74deg,rgba(255,255,255,0.16),transparent 21%,rgba(var(--t-accent-rgb),0.12) 51%,transparent 72%,rgba(var(--t-secondary-rgb),0.16)),linear-gradient(22deg,transparent 25%,rgba(255,255,255,0.12) 51%,transparent 59%);
+ --v830-skin-reactor:linear-gradient(133deg,rgba(255,255,255,0.26),transparent 21%,rgba(var(--t-accent-rgb),0.09) 51%,transparent 72%,rgba(var(--t-secondary-rgb),0.26)),linear-gradient(22deg,transparent 25%,rgba(255,255,255,0.09) 51%,transparent 59%);
+ --v830-skin-cyber:linear-gradient(161deg,rgba(255,255,255,0.15),transparent 21%,rgba(var(--t-accent-rgb),0.06) 51%,transparent 72%,rgba(var(--t-secondary-rgb),0.15)),linear-gradient(22deg,transparent 25%,rgba(255,255,255,0.06) 51%,transparent 59%);
+ --v830-skin-pearl:linear-gradient(107deg,rgba(255,255,255,0.18),transparent 21%,rgba(var(--t-accent-rgb),0.07) 51%,transparent 72%,rgba(var(--t-secondary-rgb),0.18)),linear-gradient(22deg,transparent 25%,rgba(255,255,255,0.07) 51%,transparent 59%);
+ --v830-skin-bubble:linear-gradient(116deg,rgba(255,255,255,0.18),transparent 21%,rgba(var(--t-accent-rgb),0.06) 51%,transparent 72%,rgba(var(--t-secondary-rgb),0.18)),linear-gradient(22deg,transparent 25%,rgba(255,255,255,0.06) 51%,transparent 59%);
+ --v830-skin-meadow:linear-gradient(139deg,rgba(255,255,255,0.11),transparent 21%,rgba(var(--t-accent-rgb),0.05) 51%,transparent 72%,rgba(var(--t-secondary-rgb),0.11)),linear-gradient(22deg,transparent 25%,rgba(255,255,255,0.05) 51%,transparent 59%);
+ --v830-skin-citrus:linear-gradient(118deg,rgba(255,255,255,0.18),transparent 21%,rgba(var(--t-accent-rgb),0.09) 51%,transparent 72%,rgba(var(--t-secondary-rgb),0.18)),linear-gradient(22deg,transparent 25%,rgba(255,255,255,0.09) 51%,transparent 59%);
+ --v830-skin-plasma:linear-gradient(151deg,rgba(255,255,255,0.26),transparent 21%,rgba(var(--t-accent-rgb),0.11) 51%,transparent 72%,rgba(var(--t-secondary-rgb),0.26)),linear-gradient(22deg,transparent 25%,rgba(255,255,255,0.11) 51%,transparent 59%);
+ --v830-skin-liminal:linear-gradient(127deg,rgba(255,255,255,0.11),transparent 21%,rgba(var(--t-accent-rgb),0.03) 51%,transparent 72%,rgba(var(--t-secondary-rgb),0.11)),linear-gradient(22deg,transparent 25%,rgba(255,255,255,0.03) 51%,transparent 59%);
+ --v830-skin-carbon:linear-gradient(149deg,rgba(255,255,255,0.14),transparent 21%,rgba(var(--t-accent-rgb),0.07) 51%,transparent 72%,rgba(var(--t-secondary-rgb),0.14)),linear-gradient(22deg,transparent 25%,rgba(255,255,255,0.07) 51%,transparent 59%);
+ --v830-skin-cathedral:linear-gradient(137deg,rgba(255,255,255,0.24),transparent 21%,rgba(var(--t-accent-rgb),0.12) 51%,transparent 72%,rgba(var(--t-secondary-rgb),0.24)),linear-gradient(22deg,transparent 25%,rgba(255,255,255,0.12) 51%,transparent 59%);
+ --v830-skin-chrome:linear-gradient(119deg,rgba(255,255,255,0.23),transparent 21%,rgba(var(--t-accent-rgb),0.10) 51%,transparent 72%,rgba(var(--t-secondary-rgb),0.23)),linear-gradient(22deg,transparent 25%,rgba(255,255,255,0.10) 51%,transparent 59%);
+ --v830-skin-storm:linear-gradient(146deg,rgba(255,255,255,0.17),transparent 21%,rgba(var(--t-accent-rgb),0.08) 51%,transparent 72%,rgba(var(--t-secondary-rgb),0.17)),linear-gradient(22deg,transparent 25%,rgba(255,255,255,0.08) 51%,transparent 59%);
+ --v830-skin-vapor:linear-gradient(137deg,rgba(255,255,255,0.16),transparent 21%,rgba(var(--t-accent-rgb),0.08) 51%,transparent 72%,rgba(var(--t-secondary-rgb),0.16)),linear-gradient(22deg,transparent 25%,rgba(255,255,255,0.08) 51%,transparent 59%);
+ --v830-skin-gold:linear-gradient(141deg,rgba(255,255,255,0.26),transparent 21%,rgba(var(--t-accent-rgb),0.11) 51%,transparent 72%,rgba(var(--t-secondary-rgb),0.26)),linear-gradient(22deg,transparent 25%,rgba(255,255,255,0.11) 51%,transparent 59%);
+ --v830-skin-toxic:linear-gradient(149deg,rgba(255,255,255,0.22),transparent 21%,rgba(var(--t-accent-rgb),0.09) 51%,transparent 72%,rgba(var(--t-secondary-rgb),0.22)),linear-gradient(22deg,transparent 25%,rgba(255,255,255,0.09) 51%,transparent 59%);
+ --v830-motif-circuit:repeating-linear-gradient(90deg,transparent 0 29px,rgba(var(--t-accent-rgb),.09) 29px 30px,transparent 30px 59px),repeating-linear-gradient(0deg,transparent 0 37px,rgba(var(--t-secondary-rgb),.07) 37px 38px,transparent 38px 76px);
+ --v830-motif-slats:repeating-linear-gradient(111deg,rgba(255,255,255,.045) 0 1px,transparent 2px 9px,rgba(0,0,0,.09) 10px 12px,transparent 13px 24px);
+ --v830-motif-sparks:repeating-linear-gradient(137deg,transparent 0 37px,rgba(var(--t-accent-rgb),.10) 38px 39px,transparent 40px 73px);
+ --v830-motif-facets:conic-gradient(from 18deg at 83% 8%,rgba(var(--t-accent-rgb),.18),transparent 22%,rgba(255,255,255,.05) 36%,transparent 51%,rgba(var(--t-secondary-rgb),.10) 70%,transparent);
+ --v830-motif-waves:repeating-radial-gradient(ellipse 180px 65px at 98% 120%,transparent 0 28px,rgba(var(--t-accent-rgb),.085) 30px 31px,transparent 33px 61px);
+ --v830-motif-lattice:repeating-linear-gradient(60deg,transparent 0 34px,rgba(var(--t-accent-rgb),.08) 34px 35px,transparent 36px 68px),repeating-linear-gradient(-60deg,transparent 0 40px,rgba(var(--t-secondary-rgb),.06) 40px 41px,transparent 42px 80px);
+ --v830-motif-prism:conic-gradient(from 60deg at 92% 5%,rgba(var(--t-secondary-rgb),.27),transparent 29%,rgba(var(--t-accent-rgb),.18),transparent 71%,rgba(255,255,255,.06));
+ --v830-motif-curtains:repeating-linear-gradient(102deg,transparent 0 37px,rgba(var(--t-accent-rgb),.065) 38px 40px,rgba(var(--t-secondary-rgb),.06) 45px,transparent 68px);
+ --v830-motif-shards:linear-gradient(134deg,transparent 54%,rgba(255,255,255,.12) 54.5%,transparent 56%),linear-gradient(37deg,transparent 65%,rgba(var(--t-secondary-rgb),.15) 66%,transparent 70%);
+ --v830-motif-petals:radial-gradient(ellipse 25% 53% at 91% 30%,rgba(var(--t-secondary-rgb),.17),transparent 75%),radial-gradient(ellipse 18% 32% at 72% 90%,rgba(var(--t-accent-rgb),.13),transparent 78%);
+ --v830-motif-rings:repeating-radial-gradient(circle at 89% 14%,transparent 0 26px,rgba(var(--t-accent-rgb),.09) 28px 29px,transparent 30px 55px);
+ --v830-motif-matrix:repeating-linear-gradient(90deg,transparent 0 17px,rgba(var(--t-accent-rgb),.10) 17px 18px,transparent 18px 36px),linear-gradient(180deg,transparent,rgba(var(--t-secondary-rgb),.12));
+ --v830-motif-scan:repeating-linear-gradient(0deg,transparent 0 13px,rgba(var(--t-accent-rgb),.065) 13px 14px,transparent 14px 25px);
+ --v830-motif-horizon:linear-gradient(0deg,rgba(var(--t-accent-rgb),.17),transparent 18%),linear-gradient(90deg,transparent 33%,rgba(255,255,255,.09) 65%,transparent);
+ --v830-motif-sunbeam:conic-gradient(from 180deg at 84% 9%,transparent 0 8%,rgba(var(--t-secondary-rgb),.16) 12%,transparent 22%,rgba(255,255,255,.08) 25%,transparent 35%);
+ --v830-motif-fracture:linear-gradient(123deg,transparent 55%,rgba(var(--t-accent-rgb),.20) 55.2%,transparent 55.8%),linear-gradient(44deg,transparent 71%,rgba(var(--t-secondary-rgb),.17) 71.4%,transparent 72%);
+ --v830-motif-raster:repeating-linear-gradient(90deg,transparent 0 9px,rgba(255,255,255,.045) 10px,transparent 11px 20px);
+ --v830-motif-bubbles:radial-gradient(circle at 94% 16%,rgba(255,255,255,.25) 0 7px,transparent 8px 43px,rgba(255,255,255,.07) 44px 46px,transparent 47px),radial-gradient(circle at 74% 83%,rgba(255,255,255,.12) 0 8px,transparent 26px);
+ --v830-motif-hills:radial-gradient(ellipse 53% 28% at 91% 105%,rgba(var(--t-secondary-rgb),.17),transparent 77%),radial-gradient(ellipse 38% 37% at 73% 106%,rgba(var(--t-accent-rgb),.10),transparent 80%);
+ --v830-motif-orbit:repeating-radial-gradient(ellipse 195px 95px at 88% 18%,transparent 0 31px,rgba(var(--t-accent-rgb),.11) 33px 34px,transparent 35px 66px);
+ --v830-motif-bands:repeating-linear-gradient(157deg,transparent 0 43px,rgba(255,255,255,.15) 44px 49px,transparent 50px 90px);
+ --v830-motif-stripes:repeating-linear-gradient(145deg,rgba(0,0,0,.12) 0 11px,rgba(var(--t-accent-rgb),.06) 12px 13px,transparent 14px 23px);
+ --v830-motif-spires:repeating-linear-gradient(90deg,transparent 0 63px,rgba(var(--t-accent-rgb),.11) 63px 65px,transparent 66px 127px);
+ --v830-motif-eclipse:radial-gradient(circle at 87% 12%,rgba(var(--t-accent-rgb),.25) 0 5%,transparent 5.4% 10%,rgba(var(--t-secondary-rgb),.09) 11%,transparent 15%);
+ --v830-motif-rain:repeating-linear-gradient(111deg,transparent 0 17px,rgba(var(--t-accent-rgb),.07) 18px 19px,transparent 20px 36px);
+ --v830-motif-bio:repeating-radial-gradient(ellipse 165px 80px at 90% 20%,transparent 0 24px,rgba(var(--t-accent-rgb),.12) 26px 27px,transparent 28px 52px);
+ --v830-motif-dream:radial-gradient(ellipse 33% 44% at 88% 11%,rgba(var(--t-secondary-rgb),.17),transparent 81%),radial-gradient(ellipse 53% 44% at 96% 93%,rgba(var(--t-accent-rgb),.13),transparent 82%);
+}
+/* n01 — 01 · Cobalt Pulse: Cobalt-Ionenpulse und schwebende Leiterbahnen */
+body[data-theme-id="n01"],#themeStudioPanel .theme-option[data-preset="n01"],#themeStudioPanel .v80-theme-favorite[data-v80-theme="n01"]{--v830-signature:"n01-ion-circuit";--v830-mat:var(--v830-skin-ion);--v830-texture:var(--v830-motif-circuit);--v830-radius:20px;--v830-x:90%;--v830-y:7%;--v830-angle:120deg;--v830-halo:0.299;--v830-id-rgb:47,187,255;--v830-cut:1px;}
+/* n02 — 02 · Titanium Mirage: Geschliffene Titanlamellen und gebürstetes Metall */
+body[data-theme-id="n02"],#themeStudioPanel .theme-option[data-preset="n02"],#themeStudioPanel .v80-theme-favorite[data-v80-theme="n02"]{--v830-signature:"n02-titanium-slats";--v830-mat:var(--v830-skin-titanium);--v830-texture:var(--v830-motif-slats);--v830-radius:14px;--v830-x:83%;--v830-y:11%;--v830-angle:142deg;--v830-halo:0.176;--v830-id-rgb:229,210,181;--v830-cut:1px;}
+/* n03 — 03 · Solar Ember: Solarglut in vulkanischem Rauchglas */
+body[data-theme-id="n03"],#themeStudioPanel .theme-option[data-preset="n03"],#themeStudioPanel .v80-theme-favorite[data-v80-theme="n03"]{--v830-signature:"n03-molten-sparks";--v830-mat:var(--v830-skin-molten);--v830-texture:var(--v830-motif-sparks);--v830-radius:18px;--v830-x:92%;--v830-y:6%;--v830-angle:125deg;--v830-halo:0.319;--v830-id-rgb:255,162,60;--v830-cut:1px;}
+/* n04 — 04 · Emerald Luxe: Smaragdterrassen und kristallene Reflexe */
+body[data-theme-id="n04"],#themeStudioPanel .theme-option[data-preset="n04"],#themeStudioPanel .v80-theme-favorite[data-v80-theme="n04"]{--v830-signature:"n04-emerald-facets";--v830-mat:var(--v830-skin-emerald);--v830-texture:var(--v830-motif-facets);--v830-radius:27px;--v830-x:89%;--v830-y:5%;--v830-angle:115deg;--v830-halo:0.286;--v830-id-rgb:53,235,160;--v830-cut:1px;}
+/* n05 — 05 · Cobalt Wave: Kobaltblaue Unterwasserwellen */
+body[data-theme-id="n05"],#themeStudioPanel .theme-option[data-preset="n05"],#themeStudioPanel .v80-theme-favorite[data-v80-theme="n05"]{--v830-signature:"n05-aqua-waves";--v830-mat:var(--v830-skin-aqua);--v830-texture:var(--v830-motif-waves);--v830-radius:28px;--v830-x:91%;--v830-y:17%;--v830-angle:160deg;--v830-halo:0.280;--v830-id-rgb:51,139,255;--v830-cut:1px;}
+/* n06 — 06 · Emerald Crystal: Geschliffene Smaragdkristall-Gitter */
+body[data-theme-id="n06"],#themeStudioPanel .theme-option[data-preset="n06"],#themeStudioPanel .v80-theme-favorite[data-v80-theme="n06"]{--v830-signature:"n06-crystal-lattice";--v830-mat:var(--v830-skin-crystal);--v830-texture:var(--v830-motif-lattice);--v830-radius:23px;--v830-x:83%;--v830-y:13%;--v830-angle:130deg;--v830-halo:0.312;--v830-id-rgb:38,233,180;--v830-cut:1px;}
+/* n10 — 10 · Prism Noir: Dunkler Prisma-Stein mit violetten Lichtkanten */
+body[data-theme-id="n10"],#themeStudioPanel .theme-option[data-preset="n10"],#themeStudioPanel .v80-theme-favorite[data-v80-theme="n10"]{--v830-signature:"n10-obsidian-prism";--v830-mat:var(--v830-skin-obsidian);--v830-texture:var(--v830-motif-prism);--v830-radius:16px;--v830-x:90%;--v830-y:5%;--v830-angle:152deg;--v830-halo:0.202;--v830-id-rgb:180,162,236;--v830-cut:1px;}
+/* n11 — 11 · Mint Aurora: Mintfarbene Nordlichtvorhänge */
+body[data-theme-id="n11"],#themeStudioPanel .theme-option[data-preset="n11"],#themeStudioPanel .v80-theme-favorite[data-v80-theme="n11"]{--v830-signature:"n11-aurora-curtains";--v830-mat:var(--v830-skin-aurora);--v830-texture:var(--v830-motif-curtains);--v830-radius:30px;--v830-x:93%;--v830-y:10%;--v830-angle:98deg;--v830-halo:0.280;--v830-id-rgb:55,238,209;--v830-cut:1px;}
+/* n12 — 12 · Arctic Glass: Helles poliertes Eis und Winterlicht */
+body[data-theme-id="n12"],#themeStudioPanel .theme-option[data-preset="n12"],#themeStudioPanel .v80-theme-favorite[data-v80-theme="n12"]{--v830-signature:"n12-ice-shards";--v830-mat:var(--v830-skin-ice);--v830-texture:var(--v830-motif-shards);--v830-radius:33px;--v830-x:87%;--v830-y:9%;--v830-angle:145deg;--v830-halo:0.208;--v830-id-rgb:57,139,228;--v830-cut:1px;}
+/* n13 — 13 · Molten Rose Glass: Roséglut und überlagerte Glasblüten */
+body[data-theme-id="n13"],#themeStudioPanel .theme-option[data-preset="n13"],#themeStudioPanel .v80-theme-favorite[data-v80-theme="n13"]{--v830-signature:"n13-rose-petals";--v830-mat:var(--v830-skin-rose);--v830-texture:var(--v830-motif-petals);--v830-radius:28px;--v830-x:90%;--v830-y:16%;--v830-angle:140deg;--v830-halo:0.293;--v830-id-rgb:249,163,145;--v830-cut:1px;}
+/* n15 — 15 · Amethyst Ice: Amethyst-Eis mit violettem Leuchtkern */
+body[data-theme-id="n15"],#themeStudioPanel .theme-option[data-preset="n15"],#themeStudioPanel .v80-theme-favorite[data-v80-theme="n15"]{--v830-signature:"n15-ice-facets";--v830-mat:var(--v830-skin-ice);--v830-texture:var(--v830-motif-facets);--v830-radius:24px;--v830-x:87%;--v830-y:7%;--v830-angle:130deg;--v830-halo:0.325;--v830-id-rgb:181,150,255;--v830-cut:2px;}
+/* n16 — 16 · Aurora Spectrum: Mehrfarbige Polarlicht-Hologramme */
+body[data-theme-id="n16"],#themeStudioPanel .theme-option[data-preset="n16"],#themeStudioPanel .v80-theme-favorite[data-v80-theme="n16"]{--v830-signature:"n16-hologram-curtains";--v830-mat:var(--v830-skin-hologram);--v830-texture:var(--v830-motif-curtains);--v830-radius:29px;--v830-x:92%;--v830-y:7%;--v830-angle:125deg;--v830-halo:0.312;--v830-id-rgb:60,220,234;--v830-cut:1px;}
+/* n17 — 17 · Prismatic Violet: Violette Prismen und Lichtbrechung */
+body[data-theme-id="n17"],#themeStudioPanel .theme-option[data-preset="n17"],#themeStudioPanel .v80-theme-favorite[data-v80-theme="n17"]{--v830-signature:"n17-hologram-prism";--v830-mat:var(--v830-skin-hologram);--v830-texture:var(--v830-motif-prism);--v830-radius:21px;--v830-x:84%;--v830-y:17%;--v830-angle:110deg;--v830-halo:0.332;--v830-id-rgb:178,138,255;--v830-cut:2px;}
+/* n18 — 18 · Ocean Emerald: Tiefer jadegrüner Ozean mit Flüssigglas */
+body[data-theme-id="n18"],#themeStudioPanel .theme-option[data-preset="n18"],#themeStudioPanel .v80-theme-favorite[data-v80-theme="n18"]{--v830-signature:"n18-aqua-waves";--v830-mat:var(--v830-skin-aqua);--v830-texture:var(--v830-motif-waves);--v830-radius:26px;--v830-x:93%;--v830-y:12%;--v830-angle:134deg;--v830-halo:0.299;--v830-id-rgb:57,223,223;--v830-cut:1px;}
+/* n19 — 19 · Emerald Pulse: Limonengrüner Energiereaktor */
+body[data-theme-id="n19"],#themeStudioPanel .theme-option[data-preset="n19"],#themeStudioPanel .v80-theme-favorite[data-v80-theme="n19"]{--v830-signature:"n19-reactor-rings";--v830-mat:var(--v830-skin-reactor);--v830-texture:var(--v830-motif-rings);--v830-radius:16px;--v830-x:93%;--v830-y:8%;--v830-angle:153deg;--v830-halo:0.358;--v830-id-rgb:146,247,78;--v830-cut:2px;}
+/* n20 — 20 · Cyber Aurora: Cyber-Scanlinien und Aurora-Energie */
+body[data-theme-id="n20"],#themeStudioPanel .theme-option[data-preset="n20"],#themeStudioPanel .v80-theme-favorite[data-v80-theme="n20"]{--v830-signature:"n20-cyber-matrix";--v830-mat:var(--v830-skin-cyber);--v830-texture:var(--v830-motif-matrix);--v830-radius:17px;--v830-x:90%;--v830-y:14%;--v830-angle:128deg;--v830-halo:0.345;--v830-id-rgb:68,221,247;--v830-cut:2px;}
+/* n21 — 21 · Aurora Cyan Violet: Türkise und violette Spektralströme */
+body[data-theme-id="n21"],#themeStudioPanel .theme-option[data-preset="n21"],#themeStudioPanel .v80-theme-favorite[data-v80-theme="n21"]{--v830-signature:"n21-aurora-scan";--v830-mat:var(--v830-skin-aurora);--v830-texture:var(--v830-motif-scan);--v830-radius:27px;--v830-x:93%;--v830-y:17%;--v830-angle:116deg;--v830-halo:0.305;--v830-id-rgb:46,232,239;--v830-cut:1px;}
+/* n22 — 22 · Pearl Horizon: Perlmutt-Horizont mit zarten Glaslichtern */
+body[data-theme-id="n22"],#themeStudioPanel .theme-option[data-preset="n22"],#themeStudioPanel .v80-theme-favorite[data-v80-theme="n22"]{--v830-signature:"n22-pearl-horizon";--v830-mat:var(--v830-skin-pearl);--v830-texture:var(--v830-motif-horizon);--v830-radius:35px;--v830-x:89%;--v830-y:9%;--v830-angle:137deg;--v830-halo:0.208;--v830-id-rgb:134,119,250;--v830-cut:1px;}
+/* n23 — 23 · Sunset Pearl: Pastellsonnenuntergang auf perlweißem Glas */
+body[data-theme-id="n23"],#themeStudioPanel .theme-option[data-preset="n23"],#themeStudioPanel .v80-theme-favorite[data-v80-theme="n23"]{--v830-signature:"n23-pearl-sunbeam";--v830-mat:var(--v830-skin-pearl);--v830-texture:var(--v830-motif-sunbeam);--v830-radius:36px;--v830-x:91%;--v830-y:7%;--v830-angle:150deg;--v830-halo:0.208;--v830-id-rgb:238,130,128;--v830-cut:1px;}
+/* n24 — 24 · Ocean Crystal: Ozeankristalle und gebrochene Wasserstrahlen */
+body[data-theme-id="n24"],#themeStudioPanel .theme-option[data-preset="n24"],#themeStudioPanel .v80-theme-favorite[data-v80-theme="n24"]{--v830-signature:"n24-crystal-waves";--v830-mat:var(--v830-skin-crystal);--v830-texture:var(--v830-motif-waves);--v830-radius:26px;--v830-x:93%;--v830-y:7%;--v830-angle:134deg;--v830-halo:0.332;--v830-id-rgb:73,189,255;--v830-cut:2px;}
+/* n25 — 25 · Obsidian Prism: Obsidian-Monolith mit prismatischen Brüchen */
+body[data-theme-id="n25"],#themeStudioPanel .theme-option[data-preset="n25"],#themeStudioPanel .v80-theme-favorite[data-v80-theme="n25"]{--v830-signature:"n25-obsidian-fracture";--v830-mat:var(--v830-skin-obsidian);--v830-texture:var(--v830-motif-fracture);--v830-radius:13px;--v830-x:92%;--v830-y:12%;--v830-angle:145deg;--v830-halo:0.293;--v830-id-rgb:155,146,255;--v830-cut:1px;}
+/* n27 — 27 · Titanium Midnight: Dunkles Titan und technische Fräsrillen */
+body[data-theme-id="n27"],#themeStudioPanel .theme-option[data-preset="n27"],#themeStudioPanel .v80-theme-favorite[data-v80-theme="n27"]{--v830-signature:"n27-titanium-raster";--v830-mat:var(--v830-skin-titanium);--v830-texture:var(--v830-motif-raster);--v830-radius:15px;--v830-x:83%;--v830-y:8%;--v830-angle:158deg;--v830-halo:0.195;--v830-id-rgb:157,210,214;--v830-cut:1px;}
+/* n28 — 28 · Ocean Circuit: Ozeanblaue Leiterplatten im Flüssigglas */
+body[data-theme-id="n28"],#themeStudioPanel .theme-option[data-preset="n28"],#themeStudioPanel .v80-theme-favorite[data-v80-theme="n28"]{--v830-signature:"n28-cyber-circuit";--v830-mat:var(--v830-skin-cyber);--v830-texture:var(--v830-motif-circuit);--v830-radius:19px;--v830-x:93%;--v830-y:12%;--v830-angle:140deg;--v830-halo:0.332;--v830-id-rgb:55,227,223;--v830-cut:2px;}
+/* n29 — 29 · Crystal Frost: Frostweiße Kristallplatten und Prisma-Ecken */
+body[data-theme-id="n29"],#themeStudioPanel .theme-option[data-preset="n29"],#themeStudioPanel .v80-theme-favorite[data-v80-theme="n29"]{--v830-signature:"n29-ice-facets";--v830-mat:var(--v830-skin-ice);--v830-texture:var(--v830-motif-facets);--v830-radius:32px;--v830-x:86%;--v830-y:10%;--v830-angle:127deg;--v830-halo:0.195;--v830-id-rgb:108,157,248;--v830-cut:1px;}
+/* n30 — 30 · Holographic Pearl: Holografisches Perlglas in spektralen Schichten */
+body[data-theme-id="n30"],#themeStudioPanel .theme-option[data-preset="n30"],#themeStudioPanel .v80-theme-favorite[data-v80-theme="n30"]{--v830-signature:"n30-hologram-prism";--v830-mat:var(--v830-skin-hologram);--v830-texture:var(--v830-motif-prism);--v830-radius:30px;--v830-x:91%;--v830-y:8%;--v830-angle:115deg;--v830-halo:0.305;--v830-id-rgb:187,150,255;--v830-cut:1px;}
+/* fa00 — Frutiger Aero · Original: Klassische Vista-Glaskugeln in Aqua */
+body[data-theme-id="fa00"],#themeStudioPanel .theme-option[data-preset="fa00"],#themeStudioPanel .v80-theme-favorite[data-v80-theme="fa00"]{--v830-signature:"fa00-bubble-bubbles";--v830-mat:var(--v830-skin-bubble);--v830-texture:var(--v830-motif-bubbles);--v830-radius:37px;--v830-x:90%;--v830-y:6%;--v830-angle:80deg;--v830-halo:0.195;--v830-id-rgb:50,197,234;--v830-cut:1px;}
+/* fa01 — Ocean Breeze: Blauer Ozeanwind auf gewölbtem Wasserglas */
+body[data-theme-id="fa01"],#themeStudioPanel .theme-option[data-preset="fa01"],#themeStudioPanel .v80-theme-favorite[data-v80-theme="fa01"]{--v830-signature:"fa01-aqua-waves";--v830-mat:var(--v830-skin-aqua);--v830-texture:var(--v830-motif-waves);--v830-radius:38px;--v830-x:88%;--v830-y:6%;--v830-angle:106deg;--v830-halo:0.221;--v830-id-rgb:12,188,233;--v830-cut:1px;}
+/* fa02 — Tropical Aurora: Tropische Lichtschleier und Limettennebel */
+body[data-theme-id="fa02"],#themeStudioPanel .theme-option[data-preset="fa02"],#themeStudioPanel .v80-theme-favorite[data-v80-theme="fa02"]{--v830-signature:"fa02-aqua-curtains";--v830-mat:var(--v830-skin-aqua);--v830-texture:var(--v830-motif-curtains);--v830-radius:36px;--v830-x:93%;--v830-y:10%;--v830-angle:75deg;--v830-halo:0.208;--v830-id-rgb:34,204,189;--v830-cut:1px;}
+/* fa03 — Crystal Meadow: Aero-Wiese mit transparenten Horizontschichten */
+body[data-theme-id="fa03"],#themeStudioPanel .theme-option[data-preset="fa03"],#themeStudioPanel .v80-theme-favorite[data-v80-theme="fa03"]{--v830-signature:"fa03-meadow-hills";--v830-mat:var(--v830-skin-meadow);--v830-texture:var(--v830-motif-hills);--v830-radius:39px;--v830-x:90%;--v830-y:11%;--v830-angle:110deg;--v830-halo:0.189;--v830-id-rgb:46,184,221;--v830-cut:1px;}
+/* fa04 — Rainbow Aqua: Regenbogen-Perlmutt und Regenlicht */
+body[data-theme-id="fa04"],#themeStudioPanel .theme-option[data-preset="fa04"],#themeStudioPanel .v80-theme-favorite[data-v80-theme="fa04"]{--v830-signature:"fa04-pearl-prism";--v830-mat:var(--v830-skin-pearl);--v830-texture:var(--v830-motif-prism);--v830-radius:38px;--v830-x:86%;--v830-y:6%;--v830-angle:116deg;--v830-halo:0.195;--v830-id-rgb:121,127,247;--v830-cut:1px;}
+/* fa05 — Azure Orbital: Schwebende himmelblaue Aero-Orbs */
+body[data-theme-id="fa05"],#themeStudioPanel .theme-option[data-preset="fa05"],#themeStudioPanel .v80-theme-favorite[data-v80-theme="fa05"]{--v830-signature:"fa05-bubble-orbit";--v830-mat:var(--v830-skin-bubble);--v830-texture:var(--v830-motif-orbit);--v830-radius:36px;--v830-x:92%;--v830-y:12%;--v830-angle:93deg;--v830-halo:0.221;--v830-id-rgb:38,156,242;--v830-cut:1px;}
+/* fa06 — Citrus Wave: Zitrusglas mit sonnenhellen Wellenkanten */
+body[data-theme-id="fa06"],#themeStudioPanel .theme-option[data-preset="fa06"],#themeStudioPanel .v80-theme-favorite[data-v80-theme="fa06"]{--v830-signature:"fa06-citrus-bands";--v830-mat:var(--v830-skin-citrus);--v830-texture:var(--v830-motif-bands);--v830-radius:40px;--v830-x:86%;--v830-y:6%;--v830-angle:128deg;--v830-halo:0.215;--v830-id-rgb:59,227,194;--v830-cut:1px;}
+/* fa07 — Pearl Aqua: Weiches Perl-Aqua mit transparenten Blasen */
+body[data-theme-id="fa07"],#themeStudioPanel .theme-option[data-preset="fa07"],#themeStudioPanel .v80-theme-favorite[data-v80-theme="fa07"]{--v830-signature:"fa07-pearl-bubbles";--v830-mat:var(--v830-skin-pearl);--v830-texture:var(--v830-motif-bubbles);--v830-radius:41px;--v830-x:90%;--v830-y:5%;--v830-angle:104deg;--v830-halo:0.176;--v830-id-rgb:35,173,215;--v830-cut:1px;}
+/* fa08 — Sky Garden: Himmelgarten und gläserne Blüten */
+body[data-theme-id="fa08"],#themeStudioPanel .theme-option[data-preset="fa08"],#themeStudioPanel .v80-theme-favorite[data-v80-theme="fa08"]{--v830-signature:"fa08-meadow-petals";--v830-mat:var(--v830-skin-meadow);--v830-texture:var(--v830-motif-petals);--v830-radius:39px;--v830-x:89%;--v830-y:7%;--v830-angle:119deg;--v830-halo:0.202;--v830-id-rgb:72,202,226;--v830-cut:1px;}
+/* fa09 — Lagoon Prism: Lagunenprisma und gebrochenes Aquaglas */
+body[data-theme-id="fa09"],#themeStudioPanel .theme-option[data-preset="fa09"],#themeStudioPanel .v80-theme-favorite[data-v80-theme="fa09"]{--v830-signature:"fa09-aqua-facets";--v830-mat:var(--v830-skin-aqua);--v830-texture:var(--v830-motif-facets);--v830-radius:37px;--v830-x:87%;--v830-y:8%;--v830-angle:134deg;--v830-halo:0.215;--v830-id-rgb:35,190,226;--v830-cut:1px;}
+/* fa10 — Fresh Horizon: Frischer Sonnenhorizont in Lime-Aqua */
+body[data-theme-id="fa10"],#themeStudioPanel .theme-option[data-preset="fa10"],#themeStudioPanel .v80-theme-favorite[data-v80-theme="fa10"]{--v830-signature:"fa10-citrus-horizon";--v830-mat:var(--v830-skin-citrus);--v830-texture:var(--v830-motif-horizon);--v830-radius:38px;--v830-x:93%;--v830-y:7%;--v830-angle:96deg;--v830-halo:0.195;--v830-id-rgb:34,195,234;--v830-cut:1px;}
+/* ex01 — Quantum Aurora: Quantentunnel mit kosmischen Plasma-Orbits */
+body[data-theme-id="ex01"],#themeStudioPanel .theme-option[data-preset="ex01"],#themeStudioPanel .v80-theme-favorite[data-v80-theme="ex01"]{--v830-signature:"ex01-plasma-orbit";--v830-mat:var(--v830-skin-plasma);--v830-texture:var(--v830-motif-orbit);--v830-radius:22px;--v830-x:92%;--v830-y:9%;--v830-angle:123deg;--v830-halo:0.377;--v830-id-rgb:85,244,255;--v830-cut:2px;}
+/* ex02 — Obsidian Plasma: Schwarze Lava und pinkorange Plasma-Risse */
+body[data-theme-id="ex02"],#themeStudioPanel .theme-option[data-preset="ex02"],#themeStudioPanel .v80-theme-favorite[data-v80-theme="ex02"]{--v830-signature:"ex02-obsidian-fracture";--v830-mat:var(--v830-skin-obsidian);--v830-texture:var(--v830-motif-fracture);--v830-radius:17px;--v830-x:95%;--v830-y:13%;--v830-angle:141deg;--v830-halo:0.377;--v830-id-rgb:255,61,156;--v830-cut:2px;}
+/* ex03 — Emerald Hyperglass: Neon-Smaragdreaktor mit Lichtgitter */
+body[data-theme-id="ex03"],#themeStudioPanel .theme-option[data-preset="ex03"],#themeStudioPanel .v80-theme-favorite[data-v80-theme="ex03"]{--v830-signature:"ex03-reactor-lattice";--v830-mat:var(--v830-skin-reactor);--v830-texture:var(--v830-motif-lattice);--v830-radius:16px;--v830-x:91%;--v830-y:12%;--v830-angle:126deg;--v830-halo:0.410;--v830-id-rgb:84,255,171;--v830-cut:2px;}
+/* ex04 — Frutiger Aero Infinity: Unendliches Frutiger-Aero-Flüssigglas */
+body[data-theme-id="ex04"],#themeStudioPanel .theme-option[data-preset="ex04"],#themeStudioPanel .v80-theme-favorite[data-v80-theme="ex04"]{--v830-signature:"ex04-aqua-bubbles";--v830-mat:var(--v830-skin-aqua);--v830-texture:var(--v830-motif-bubbles);--v830-radius:39px;--v830-x:95%;--v830-y:6%;--v830-angle:108deg;--v830-halo:0.202;--v830-id-rgb:18,189,244;--v830-cut:1px;}
+/* ex05 — The Backrooms · Level 0: Backrooms-Leuchtstoff und liminale Flächen */
+body[data-theme-id="ex05"],#themeStudioPanel .theme-option[data-preset="ex05"],#themeStudioPanel .v80-theme-favorite[data-v80-theme="ex05"]{--v830-signature:"ex05-liminal-raster";--v830-mat:var(--v830-skin-liminal);--v830-texture:var(--v830-motif-raster);--v830-radius:12px;--v830-x:92%;--v830-y:11%;--v830-angle:129deg;--v830-halo:0.150;--v830-id-rgb:243,227,114;--v830-cut:1px;}
+/* ex06 — Black Corvette: Carbon-Supersportwagen und Rotlicht-Bremsspuren */
+body[data-theme-id="ex06"],#themeStudioPanel .theme-option[data-preset="ex06"],#themeStudioPanel .v80-theme-favorite[data-v80-theme="ex06"]{--v830-signature:"ex06-carbon-stripes";--v830-mat:var(--v830-skin-carbon);--v830-texture:var(--v830-motif-stripes);--v830-radius:13px;--v830-x:93%;--v830-y:15%;--v830-angle:150deg;--v830-halo:0.358;--v830-id-rgb:241,68,61;--v830-cut:2px;}
+/* ex07 — Neon Cathedral: Neonkathedrale mit prismatischen Bögen */
+body[data-theme-id="ex07"],#themeStudioPanel .theme-option[data-preset="ex07"],#themeStudioPanel .v80-theme-favorite[data-v80-theme="ex07"]{--v830-signature:"ex07-cathedral-spires";--v830-mat:var(--v830-skin-cathedral);--v830-texture:var(--v830-motif-spires);--v830-radius:23px;--v830-x:90%;--v830-y:6%;--v830-angle:117deg;--v830-halo:0.403;--v830-id-rgb:240,98,255;--v830-cut:2px;}
+/* ex08 — Void Reactor: Cyanfarbener Void-Reaktorkern */
+body[data-theme-id="ex08"],#themeStudioPanel .theme-option[data-preset="ex08"],#themeStudioPanel .v80-theme-favorite[data-v80-theme="ex08"]{--v830-signature:"ex08-reactor-circuit";--v830-mat:var(--v830-skin-reactor);--v830-texture:var(--v830-motif-circuit);--v830-radius:18px;--v830-x:94%;--v830-y:12%;--v830-angle:138deg;--v830-halo:0.397;--v830-id-rgb:0,239,255;--v830-cut:2px;}
+/* ex09 — Lunar Chrome: Mondchrom und orbitale Spiegelflächen */
+body[data-theme-id="ex09"],#themeStudioPanel .theme-option[data-preset="ex09"],#themeStudioPanel .v80-theme-favorite[data-v80-theme="ex09"]{--v830-signature:"ex09-chrome-orbit";--v830-mat:var(--v830-skin-chrome);--v830-texture:var(--v830-motif-orbit);--v830-radius:14px;--v830-x:90%;--v830-y:6%;--v830-angle:133deg;--v830-halo:0.332;--v830-id-rgb:226,241,255;--v830-cut:2px;}
+/* ex10 — Sakura Voltage: Sakura-Leuchtblüten auf Elektroglas */
+body[data-theme-id="ex10"],#themeStudioPanel .theme-option[data-preset="ex10"],#themeStudioPanel .v80-theme-favorite[data-v80-theme="ex10"]{--v830-signature:"ex10-rose-petals";--v830-mat:var(--v830-skin-rose);--v830-texture:var(--v830-motif-petals);--v830-radius:27px;--v830-x:91%;--v830-y:14%;--v830-angle:136deg;--v830-halo:0.312;--v830-id-rgb:255,130,210;--v830-cut:1px;}
+/* ex11 — Black Ice: Schwarzes Eis mit türkisblauen Brechungen */
+body[data-theme-id="ex11"],#themeStudioPanel .theme-option[data-preset="ex11"],#themeStudioPanel .v80-theme-favorite[data-v80-theme="ex11"]{--v830-signature:"ex11-ice-shards";--v830-mat:var(--v830-skin-ice);--v830-texture:var(--v830-motif-shards);--v830-radius:14px;--v830-x:93%;--v830-y:10%;--v830-angle:143deg;--v830-halo:0.358;--v830-id-rgb:141,218,255;--v830-cut:2px;}
+/* ex12 — Solar Eclipse: Goldrote Sonnenfinsternis in Glaslava */
+body[data-theme-id="ex12"],#themeStudioPanel .theme-option[data-preset="ex12"],#themeStudioPanel .v80-theme-favorite[data-v80-theme="ex12"]{--v830-signature:"ex12-molten-eclipse";--v830-mat:var(--v830-skin-molten);--v830-texture:var(--v830-motif-eclipse);--v830-radius:21px;--v830-x:91%;--v830-y:5%;--v830-angle:153deg;--v830-halo:0.384;--v830-id-rgb:255,186,80;--v830-cut:2px;}
+/* ex13 — Midnight Monsoon: Regennasse Neonstadt und Gewitterlicht */
+body[data-theme-id="ex13"],#themeStudioPanel .theme-option[data-preset="ex13"],#themeStudioPanel .v80-theme-favorite[data-v80-theme="ex13"]{--v830-signature:"ex13-storm-rain";--v830-mat:var(--v830-skin-storm);--v830-texture:var(--v830-motif-rain);--v830-radius:16px;--v830-x:91%;--v830-y:14%;--v830-angle:146deg;--v830-halo:0.351;--v830-id-rgb:86,185,255;--v830-cut:2px;}
+/* ex14 — Inferno Circuit: Orangeglühender Rennstrecken-Schaltkreis */
+body[data-theme-id="ex14"],#themeStudioPanel .theme-option[data-preset="ex14"],#themeStudioPanel .v80-theme-favorite[data-v80-theme="ex14"]{--v830-signature:"ex14-molten-stripes";--v830-mat:var(--v830-skin-molten);--v830-texture:var(--v830-motif-stripes);--v830-radius:16px;--v830-x:94%;--v830-y:10%;--v830-angle:147deg;--v830-halo:0.410;--v830-id-rgb:255,99,55;--v830-cut:2px;}
+/* ex15 — Vaporwave Mirage: Vaporwave-Sonne mit retrofuturistischen Bögen */
+body[data-theme-id="ex15"],#themeStudioPanel .theme-option[data-preset="ex15"],#themeStudioPanel .v80-theme-favorite[data-v80-theme="ex15"]{--v830-signature:"ex15-vapor-horizon";--v830-mat:var(--v830-skin-vapor);--v830-texture:var(--v830-motif-horizon);--v830-radius:29px;--v830-x:94%;--v830-y:9%;--v830-angle:119deg;--v830-halo:0.325;--v830-id-rgb:255,120,230;--v830-cut:2px;}
+/* ex16 — Frozen Atlantis: Gefrorenes Atlantis in blauer Tiefsee */
+body[data-theme-id="ex16"],#themeStudioPanel .theme-option[data-preset="ex16"],#themeStudioPanel .v80-theme-favorite[data-v80-theme="ex16"]{--v830-signature:"ex16-ice-waves";--v830-mat:var(--v830-skin-ice);--v830-texture:var(--v830-motif-waves);--v830-radius:26px;--v830-x:88%;--v830-y:14%;--v830-angle:131deg;--v830-halo:0.305;--v830-id-rgb:124,249,255;--v830-cut:1px;}
+/* ex17 — Golden Singularity: Goldene Singularität und Champagner-Chrom */
+body[data-theme-id="ex17"],#themeStudioPanel .theme-option[data-preset="ex17"],#themeStudioPanel .v80-theme-favorite[data-v80-theme="ex17"]{--v830-signature:"ex17-gold-orbit";--v830-mat:var(--v830-skin-gold);--v830-texture:var(--v830-motif-orbit);--v830-radius:23px;--v830-x:90%;--v830-y:9%;--v830-angle:145deg;--v830-halo:0.370;--v830-id-rgb:255,211,107;--v830-cut:2px;}
+/* ex18 — Toxic Biohazard: Toxisch grüne Bioglas-Leitungen */
+body[data-theme-id="ex18"],#themeStudioPanel .theme-option[data-preset="ex18"],#themeStudioPanel .v80-theme-favorite[data-v80-theme="ex18"]{--v830-signature:"ex18-toxic-bio";--v830-mat:var(--v830-skin-toxic);--v830-texture:var(--v830-motif-bio);--v830-radius:19px;--v830-x:92%;--v830-y:9%;--v830-angle:156deg;--v830-halo:0.397;--v830-id-rgb:180,255,67;--v830-cut:2px;}
+/* ex19 — Hyperdrive Redline: Schwarzer Carbon-Hyperdrive mit roten Lasern */
+body[data-theme-id="ex19"],#themeStudioPanel .theme-option[data-preset="ex19"],#themeStudioPanel .v80-theme-favorite[data-v80-theme="ex19"]{--v830-signature:"ex19-carbon-circuit";--v830-mat:var(--v830-skin-carbon);--v830-texture:var(--v830-motif-circuit);--v830-radius:13px;--v830-x:91%;--v830-y:10%;--v830-angle:139deg;--v830-halo:0.436;--v830-id-rgb:255,50,78;--v830-cut:2px;}
+/* ex20 — Dreamwave Paradise: Wolkenweiches Traum-Aero und farbiges Perlglas */
+body[data-theme-id="ex20"],#themeStudioPanel .theme-option[data-preset="ex20"],#themeStudioPanel .v80-theme-favorite[data-v80-theme="ex20"]{--v830-signature:"ex20-pearl-dream";--v830-mat:var(--v830-skin-pearl);--v830-texture:var(--v830-motif-dream);--v830-radius:37px;--v830-x:89%;--v830-y:8%;--v830-angle:117deg;--v830-halo:0.215;--v830-id-rgb:155,131,255;--v830-cut:1px;}
+/* An independent silhouette for every material, not a palette swap.
+   Beveled rails and bevel radius are part of each theme's profile. */
+body[data-theme-artwork="on"] :is(.topbar,.controlbar,.masthead,#overview .hero-main,#overview .platform-stack>.platform-card,.lifetime-views-card,.follower-aggregate,.chart-card,.metric-box){
+ border-top-width:var(--v830-cut,1px)!important;
+ border-top-color:var(--v830-glint)!important;
+ border-right-color:rgba(var(--t-secondary-rgb),.55)!important;
+ border-bottom-color:rgba(var(--t-accent-rgb),.32)!important;
+ border-radius:var(--v830-radius,24px)!important;
+ box-shadow:inset 0 2px 0 rgba(255,255,255,.31),
+ inset 0 -2px 0 rgba(var(--t-secondary-rgb),.25),
+ inset 1px 0 0 rgba(var(--t-accent-rgb),.15),
+ 0 14px 30px rgba(0,0,0,.20),
+ 0 0 22px rgba(var(--t-accent-rgb),var(--v830-halo,.19))!important;
+}
+/* The actual hero scene is still rendered in .theme-world-stage. Make its
+   frame/material unique without replacing its existing high-res image. */
+body[data-theme-artwork="on"] .masthead{
+ /* Keep the original layout box/border thickness: the scene must span the
+    complete header, including on 3x-density iPhones. Material lives on rims. */
+ border-top-width:2px!important;
+ background-color:var(--t-bg)!important;
+}
+body[data-theme-artwork="on"] .masthead .theme-world-stamp #themeWorldName{
+ border-radius:calc(var(--v830-radius,24px) / 2)!important;
+ border-color:rgba(var(--t-accent-rgb),.72)!important;
+ box-shadow:inset 0 1px 0 rgba(255,255,255,.36),
+ 0 0 15px rgba(var(--t-accent-rgb),var(--v830-halo,.19))!important;
+}
+/* Hero KPI uses theme-specific material layering and directed light.
+   Text, chart and all real figures remain ordinary DOM, not baked-in images. */
+body[data-theme-artwork="on"] #overview .hero-main{
+ background:var(--v830-mat),
+ var(--v830-texture),
+ radial-gradient(ellipse 72% 91% at var(--v830-x) var(--v830-y),
+ rgba(var(--t-accent-rgb),.24),transparent 74%),
+ linear-gradient(var(--v830-angle),
+ rgba(var(--v830-plate),.99),rgba(var(--v830-plate),.94) 63%,
+ rgba(var(--t-secondary-rgb),.15))!important;
+ border-color:rgba(var(--t-accent-rgb),.70)!important;
+ border-top-color:var(--v830-glint)!important;
+ overflow:hidden;
+}
+/* Alternate card material treatment from primary hero; individual texture
+   appears as faint detail rather than wallpaper behind important numbers. */
+body[data-theme-artwork="on"] #overview .platform-stack>.platform-card{
+ background:var(--v830-texture),
+ linear-gradient(140deg,rgba(var(--t-accent-rgb),.19),transparent 25%),
+ linear-gradient(calc(var(--v830-angle) + 25deg),
+ rgba(var(--v830-plate),.98),rgba(var(--v830-plate),.94) 71%,
+ rgba(var(--t-secondary-rgb),.16))!important;
+ border-top-color:rgba(255,255,255,.76)!important;
+}
+body[data-theme-artwork="on"] :is(.lifetime-views-card,.follower-aggregate,.chart-card,.metric-box){
+ background:
+ radial-gradient(ellipse 65% 85% at var(--v830-x) var(--v830-y),
+ rgba(var(--t-secondary-rgb),.16),transparent 81%),
+ var(--v830-mat),
+ linear-gradient(var(--v830-angle),rgba(var(--v830-plate),.96),rgba(var(--v830-plate),.98))!important;
+}
+/* Selected switches with stronger theme-specific focus, not fake numeric UI. */
+body[data-theme-artwork="on"] :is(.section-nav button.active,.platform-tabs button.selected,.period-tabs button.selected,.glass-toolbar button.selected){
+ border-color:rgba(var(--t-accent-rgb),.79)!important;
+ border-top-color:rgba(255,255,255,.8)!important;
+ background:
+ linear-gradient(115deg,rgba(var(--t-accent-rgb),.52),
+ rgba(var(--t-secondary-rgb),.20) 78%),
+ rgba(var(--v830-plate),.89)!important;
+ box-shadow:inset 0 1px 0 rgba(255,255,255,.43),
+ inset 0 -1px 0 rgba(var(--t-secondary-rgb),.51),
+ 0 0 18px rgba(var(--t-accent-rgb),var(--v830-halo,.19))!important;
+}
+body[data-theme-artwork="on"] .topbar,
+body[data-theme-artwork="on"] .controlbar{
+ background:linear-gradient(114deg,rgba(var(--t-accent-rgb),.16),
+ transparent 31%,rgba(var(--t-secondary-rgb),.12) 93%),
+ linear-gradient(180deg,rgba(255,255,255,.07),transparent 36%),
+ var(--v830-deep)!important;
+}
+/* Distinct specimen previews: profile variables live on each actual option,
+   so every card has its own rim/radius even when another theme is active. */
+#themeStudioPanel .theme-option{
+ border-radius:calc(var(--v830-radius,24px) * .65)!important;
+ border-color:rgba(var(--v830-id-rgb,var(--t-accent-rgb)),.36)!important;
+ background:linear-gradient(150deg,
+ rgba(var(--v830-id-rgb,var(--t-accent-rgb)),.19),transparent 26%),
+ rgba(var(--t-card),.53)!important;
+ box-shadow:inset 0 1px 0 rgba(255,255,255,.25),
+ 0 6px 17px rgba(0,0,0,.16)!important;
+}
+#themeStudioPanel .theme-option .theme-option-preview{
+ border-radius:calc(var(--v830-radius,24px) * .44)!important;
+ border:1.5px solid rgba(var(--v830-id-rgb,var(--t-accent-rgb)),.78)!important;
+ box-shadow:inset 0 2px 0 rgba(255,255,255,.48),
+ 0 0 11px rgba(var(--v830-id-rgb,var(--t-accent-rgb)),.23)!important;
+}
+#themeStudioPanel .theme-option.selected{
+ border:2px solid var(--t-accent)!important;
+ box-shadow:inset 0 1px 0 rgba(255,255,255,.4),
+ 0 0 0 2px rgba(var(--t-accent-rgb),.29),
+ 0 0 21px rgba(var(--t-accent-rgb),.34)!important;
+}
+/* Light and aero preserve dark ink on bright glass. */
+body[data-theme-artwork="on"]:is([data-theme-tone="light"],[data-theme-family="aero"]){
+ --v830-glint:rgba(255,255,255,.98);
+}
+body[data-theme-artwork="on"]:is([data-theme-tone="light"],[data-theme-family="aero"]) :is(#overview .hero-main,#overview .platform-stack>.platform-card,.chart-card,.metric-box,.follower-aggregate,.lifetime-views-card){
+ box-shadow:inset 0 2px 0 rgba(255,255,255,.90),
+ inset 0 -1px 0 rgba(var(--t-accent-rgb),.31),
+ 0 10px 26px rgba(28,72,112,.13),
+ 0 0 18px rgba(var(--t-accent-rgb),.12)!important;
+}
+/* The four verified hero photo atlases and all extreme images retain their
+   existing positions/overrides. Redline's special mesh stays in ::before. */
+@media(max-width:760px){
+ body[data-theme-artwork="on"] #overview .hero-main{
+  border-radius:clamp(18px,var(--v830-radius,24px),32px)!important;
+ }
+ body[data-theme-artwork="on"] #overview .platform-stack>.platform-card{
+  border-radius:clamp(17px,var(--v830-radius,24px),29px)!important;
+ }
+ body[data-theme-artwork="on"] #overview .hero-main .hero-big,
+ body[data-theme-artwork="on"] :is(.platform-number,.follower-aggregate-total,.lifetime-views-total){
+  white-space:nowrap!important;overflow-wrap:normal!important;word-break:normal!important;
+ }
+}
+@media(prefers-reduced-motion:reduce){
+ body[data-theme-artwork="on"] :is(.topbar,.controlbar,.masthead,.platform-card,.theme-option){
+  transition:none!important;animation:none!important;
+ }
+}
