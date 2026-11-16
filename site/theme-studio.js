@@ -216,21 +216,57 @@ function refreshEditor(){
  if(el('themeStatus'))el('themeStatus').textContent='Aktuell: '+byId[state.id].name+' · auf diesem Gerät gespeichert';
  document.querySelectorAll('.theme-option').forEach(b=>{const active=b.dataset.preset===state.id;b.classList.toggle('selected',active);b.setAttribute('aria-pressed',String(active))});
 }
+// Photo themes already have self-hosted JPG previews in theme-photo-v809/v810/v811.
+// Do not build and encode a second giant SVG that the CSS never displays.
+const photoThemeIds=new Set(['ex01','ex04','ex05','ex06','ex13','ex14','ex15','ex16','ex17','ex18','ex19','ex20']);
+const vectorPreviewCache=new Map();
+let previewObserver=null;
+function fillVectorPreview(button){
+ if(!button.isConnected||photoThemeIds.has(button.dataset.preset))return;
+ const id=button.dataset.preset,p=byId[id];
+ if(!p)return;
+ let url=vectorPreviewCache.get(id);
+ if(!url){
+  const renderer=window.BACK2U_REFERENCE_ART;
+  if(typeof renderer!=='function')return;
+  url=renderer(p).url;
+  vectorPreviewCache.set(id,url);
+ }
+ button.style.setProperty('--ref-preview','url("'+url+'")');
+}
 function renderGrid(){
- const grid=el('themeGrid');if(!grid)return;grid.replaceChildren();
+ const grid=el('themeGrid');if(!grid)return;
+ // The studio is closed for almost all normal dashboard navigation.
+ // Avoid constructing 56 buttons and 56 graphics behind an invisible dialog.
+ if(el('themeStudioPanel')?.hidden)return;
+ if(previewObserver){previewObserver.disconnect();previewObserver=null;}
+ grid.replaceChildren();
  const query=(el('themeSearch')?.value||'').toLowerCase().trim();
+ // Only render SVG previews actually visible (and just below the viewport).
+ // Safari / older browsers continue to receive the eager fallback.
+ if(typeof IntersectionObserver==='function'){
+  const observer=new IntersectionObserver(entries=>{
+   for(const entry of entries){
+    if(!entry.isIntersecting)continue;
+    observer.unobserve(entry.target);
+    fillVectorPreview(entry.target);
+   }
+  },{rootMargin:'240px 0px'});
+  previewObserver=observer;
+ }
  presets.filter(p=>(category==='all'||(category==='extreme'?extremeIds.has(p.id):p.family===category))&&p.name.toLowerCase().includes(query)).forEach(p=>{
   const b=document.createElement('button');b.type='button';b.className='theme-option';b.dataset.preset=p.id;
   b.style.setProperty('--preview-a',p.bg);b.style.setProperty('--preview-b',p.bg2);b.style.setProperty('--preview-c',p.accent);
-  if(typeof window.BACK2U_REFERENCE_ART==='function'){
-   b.style.setProperty('--ref-preview','url("'+window.BACK2U_REFERENCE_ART(p).url+'")');
-  }
   const art=document.createElement('span');art.className='theme-option-preview';art.setAttribute('aria-hidden','true');
   const name=document.createElement('strong');name.textContent=p.name;
   const desc=document.createElement('small');desc.textContent=extremeIds.has(p.id)?'Extreme Collection':p.family==='aero'?'Frutiger Aero':p.family==='light'?'Hell':'Dunkel';
   b.append(art,name,desc);
   b.addEventListener('click',()=>{state.id=p.id;save();apply();renderGrid()});
   grid.appendChild(b);
+  if(!photoThemeIds.has(p.id)){
+   if(previewObserver)previewObserver.observe(b);
+   else fillVectorPreview(b);
+  }
  });
  if(el('themeNone'))el('themeNone').hidden=grid.childElementCount!==0;
  refreshEditor();
