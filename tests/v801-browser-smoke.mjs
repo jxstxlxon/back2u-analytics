@@ -100,6 +100,27 @@ try{
  assert.equal(await phone.evaluate(()=>window.BACK2U_THEMES.current()),'ex05');
  await phone.locator('#themeStudioPanel [data-v80-theme="ex06"]').click();
  assert.equal(await phone.evaluate(()=>window.BACK2U_THEMES.current()),'ex06');
+ await phone.waitForFunction(()=>document.querySelector('.theme-world-stage img')?.src.startsWith('data:image/svg+xml,'));
+ const retinaScene=await phone.evaluate(async()=>{
+  const stage=document.querySelector('.theme-world-stage img');
+  await stage.decode();
+  const mast=document.querySelector('.masthead');
+  const style=getComputedStyle(mast);
+  const sceneSvg=decodeURIComponent(stage.src.slice('data:image/svg+xml,'.length));
+  return {world:document.querySelector('.theme-world-stage-info strong')?.textContent,
+   retina:sceneSvg.includes('viewBox="0 0 1920 1080"'),
+   fullWidth:stage.getBoundingClientRect().width>=mast.getBoundingClientRect().width-2,
+   background:style.backgroundImage.includes('data:image/svg+xml'),
+   hero:!!document.querySelector('#overview .theme-hero-stage img'),
+   height:mast.getBoundingClientRect().height};
+ });
+ assert.equal(retinaScene.world,'Black Corvette');
+ assert.ok(retinaScene.retina,'Retina vector art uses 1920x1080 coordinates');
+ assert.ok(retinaScene.background,'Cinematic masthead displays current theme artwork');
+ assert.ok(retinaScene.fullWidth,'Scene image covers header at 3x iPhone DPR');
+ assert.ok(retinaScene.hero,'Theme art also exists in real KPI hero');
+ assert.ok(retinaScene.height>=320,'Mobile hero has meaningful image area');
+
  const sceneStyle=await phone.evaluate(()=>({
   image:getComputedStyle(document.querySelector('.masthead')).backgroundImage,
   label:document.querySelector('#themeWorldName')?.textContent,
@@ -141,6 +162,16 @@ try{
  await ipad.close();
 
  const {page:desktop,errors:desktopErrors}=await createPage('Desktop 1440×900',{width:1440,height:900});
+ const desktopRetina=await desktop.evaluate(async()=>{
+  const img=document.querySelector('.theme-world-stage img');
+  await img.decode();
+  const header=document.querySelector('.masthead');
+  return {width:img.getBoundingClientRect().width,
+   height:header.getBoundingClientRect().height,
+   sharp:decodeURIComponent(img.src.slice('data:image/svg+xml,'.length)).includes('viewBox="0 0 1920 1080"')};
+ });
+ assert.ok(desktopRetina.width>800&&desktopRetina.height>=340&&desktopRetina.sharp,
+  'Desktop must render a large true vector illustration: '+JSON.stringify(desktopRetina));
  const railLayout=await desktop.locator('#dashboardWorkspace>.section-nav').evaluate(x=>({
   position:getComputedStyle(x).position,referenceLayout:document.body.dataset.referenceLayout||''
  }));
