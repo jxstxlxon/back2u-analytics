@@ -79,14 +79,26 @@ assert.ok(retinaStage.includes('back2u-theme-changed'),'Art stage must respond t
 const themeSource=readFileSync(new URL('../site/theme-studio.js',import.meta.url),'utf8');
 
 new vm.Script(themeSource,{filename:'theme-studio.js'});
-assert.ok(html.includes('src="/theme-studio.js?v=8" defer'),'Optimized Theme Studio must bypass stale browser JS cache');
+assert.ok(html.includes('src="/theme-studio.js?v=9" defer'),'Optimized Theme Studio must bypass stale browser JS cache');
 assert.ok(themeSource.includes('const photoThemeIds=new Set('),'Self-hosted photo themes should skip redundant vector previews');
 assert.ok(themeSource.includes("typeof IntersectionObserver==='function'"),'Theme Studio should lazily render visible vector artwork');
 assert.ok(themeSource.includes("el('themeStudioPanel')?.hidden"),'Hidden studio must not render 56 cards during normal navigation');
 const photoMatch=themeSource.match(/const photoThemeIds=new Set\(\[([^\]]+)\]\)/);
 assert.ok(photoMatch,'Photo theme list must be explicit and stable');
 const photographed=photoMatch[1].match(/'ex\d{2}'/g)||[];
-assert.equal(photographed.length,12,'All 12 photographic themes must bypass legacy vector thumbnails');
+assert.equal(photographed.length,16,'All 16 photographic themes must bypass legacy vector thumbnails');
+
+const v813Atlas=readFileSync(new URL('../site/theme-worlds-v813.jpg',import.meta.url));
+const v813Styles=readFileSync(new URL('../site/theme-photo-v813.css',import.meta.url),'utf8');
+assert.ok(v813Atlas.length>100000,'New 4-world atlas must be a real local image');
+assert.ok(html.includes('href="/theme-photo-v813.css?v=1"'),'New theme CSS must be linked');
+assert.ok(html.indexOf('/theme-photo-v813.css')>html.indexOf('/theme-photo-v811.css'),'New theme CSS must be loaded after prior world styles');
+for(const id of ['ex02','ex03','ex07','ex08']){
+ assert.ok(v813Styles.includes('data-theme-id="'+id+'"'),'Missing photo theme '+id);
+ assert.ok(photographed.includes("'"+id+"'"),'Photo theme must skip redundant SVG '+id);
+}
+assert.ok(!v813Styles.includes('filter:blur('),'New artwork cannot add expensive GPU blur');
+
 
 const artSource=readFileSync(new URL('../site/reference-theme-art.js',import.meta.url),'utf8');
 const catalog=themeSource.match(/'((?:ex|fa|n)\d{2})\|/g)||[];
