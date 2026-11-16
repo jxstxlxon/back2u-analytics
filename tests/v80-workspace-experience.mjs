@@ -6,6 +6,17 @@ const html=readFileSync(new URL('../site/index.html',import.meta.url),'utf8');
 const ux=readFileSync(new URL('../site/workspace-v80.js',import.meta.url),'utf8');
 const css=readFileSync(new URL('../site/workspace-v80.css',import.meta.url),'utf8');
 const universe=readFileSync(new URL('../site/theme-universe-v806.css',import.meta.url),'utf8');
+
+const cinema=readFileSync(new URL('../site/theme-cinematic-v807.css',import.meta.url),'utf8');
+assert.ok(html.includes('href="/theme-cinematic-v807.css?v=1"'),'Cinematic theme CSS must load');
+assert.ok(html.indexOf('/theme-cinematic-v807.css')>html.indexOf('/theme-universe-v806.css'),'Cinematic art direction must override older styles');
+assert.ok(html.includes('id="themeWorldName"'),'Cinematic hero must expose the active world');
+assert.ok(cinema.includes('.masthead')&&cinema.includes('var(--t-scene-url)'),'Cinematic hero must show actual SVG scene');
+assert.ok(cinema.includes('data-reference-layout="sidebar"'),'Sidebar specificity must not hide the hero');
+assert.ok(cinema.includes('backdrop-filter:none!important')===false,'Cinematic styles should not need new backdrop sampling');
+assert.ok(!cinema.includes('filter:blur('),'Cinematic styling must stay free of GPU blur');
+
+
 assert.ok(html.includes('href="/theme-universe-v806.css?v=1"'),'Universe style asset must load');
 assert.ok(html.indexOf('/theme-universe-v806.css')>html.indexOf('/workspace-v80.css'),'Universe overrides must load last');
 assert.ok(universe.includes('BACK2U V8.0.6 / Theme Universe visual overhaul'));
