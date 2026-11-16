@@ -1,0 +1,263 @@
+/* BACK2U V8.0.7 — cinematic world art direction
+ * Deliberately uses existing illustrated theme SVGs, real live data and
+ * static CSS gradients. Never adds animation, heavy blur or fixed wallpaper.
+ * The old screen hid almost all artwork behind opaque cards.
+ */
+body[data-theme-artwork="on"]{
+ --cinema-rgb:var(--t-accent-rgb);
+ --cinema-edge:rgba(var(--t-accent-rgb),.72);
+ --cinema-secondary:rgba(var(--t-secondary-rgb),.55);
+ --cinema-hero-veil:rgba(var(--t-card),.88);
+}
+body[data-theme-artwork="on"] .masthead{
+ position:relative;
+ isolation:isolate;
+ overflow:hidden;
+ min-height:290px;
+ padding:29px 30px;
+ border:1.5px solid var(--cinema-edge)!important;
+ border-top:2px solid rgba(255,255,255,.7)!important;
+ border-radius:28px;
+ background:
+  linear-gradient(90deg,rgba(var(--t-card),.94) 0%,rgba(var(--t-card),.75) 35%,rgba(var(--t-card),.12) 74%,rgba(var(--t-card),.32) 100%),
+  var(--t-scene-url)!important;
+ background-position:center, center 40%!important;
+ background-size:cover!important;
+ background-repeat:no-repeat!important;
+ box-shadow:inset 0 1px 0 rgba(255,255,255,.36),0 8px 25px rgba(0,0,0,.18)!important;
+}
+body[data-theme-artwork="on"] .masthead::before{
+ content:"";
+ position:absolute;
+ inset:auto 3% 0 3%;
+ height:2px;
+ background:linear-gradient(90deg,transparent,var(--t-accent) 20%,var(--t-secondary) 72%,transparent);
+ pointer-events:none;
+ opacity:.86;
+ z-index:1;
+}
+body[data-theme-artwork="on"] .masthead::after{
+ content:"";
+ position:absolute;
+ left:57%;top:0;bottom:0;width:43%;
+ background:linear-gradient(90deg,transparent 0%,rgba(var(--t-accent-rgb),.05) 48%,rgba(var(--t-secondary-rgb),.17));
+ clip-path:polygon(16% 0,100% 0,100% 100%,0 100%);
+ pointer-events:none;
+ z-index:0;
+}
+body[data-theme-artwork="on"] .masthead>div{
+ position:relative;
+ z-index:2;
+}
+body[data-theme-artwork="on"] .masthead>div:first-child{max-width:min(620px,65%);}
+body[data-theme-artwork="on"] .masthead h1{
+ line-height:1.02;
+ font-weight:850;
+ font-size:clamp(39px,3.8vw,63px);
+ text-shadow:0 2px 10px rgba(0,0,0,.24);
+ margin:17px 0 15px;
+}
+body[data-theme-artwork="on"] .masthead .eyebrow,
+body[data-theme-artwork="on"] .masthead .source-stamp{
+ color:var(--t-ink-label);
+ text-shadow:0 1px 5px rgba(0,0,0,.17);
+}
+.theme-world-stamp{
+ display:flex;
+ align-items:center;
+ flex-wrap:wrap;
+ gap:9px;
+ margin-top:21px;
+ font-size:10px;
+ line-height:1.45;
+ letter-spacing:.15em;
+ font-weight:850;
+ color:var(--t-ink-strong);
+ max-width:100%;
+}
+.theme-world-stamp #themeWorldName{
+ display:inline-block;
+ max-width:min(410px,100%);
+ padding:7px 12px;
+ border:1px solid var(--cinema-edge);
+ border-radius:8px;
+ background:rgba(var(--t-card),.82);
+ white-space:normal;
+ overflow-wrap:anywhere;
+}
+.theme-world-dot{
+ display:inline-block;
+ width:8px;height:8px;
+ border-radius:50%;
+ background:var(--t-accent);
+ box-shadow:0 0 0 3px rgba(var(--t-accent-rgb),.21);
+ flex:none;
+}
+.theme-world-division{font-size:9px;color:var(--t-ink-muted);letter-spacing:.12em}
+body[data-theme-artwork="on"] .masthead .mast-right{
+ background:linear-gradient(140deg,rgba(var(--t-card),.94),rgba(var(--t-card),.78))!important;
+ border:1px solid var(--cinema-edge)!important;
+ max-width:278px;
+ box-shadow:inset 0 1px 0 rgba(255,255,255,.34),0 7px 19px rgba(0,0,0,.18)!important;
+}
+/* Make the image worlds visible across ACTUAL KPI, not only body gutters. */
+body[data-theme-artwork="on"] #overview .hero-main{
+ position:relative;
+ isolation:isolate;
+ min-height:330px;
+ background:
+  linear-gradient(90deg,rgba(var(--t-card),.95) 0%,rgba(var(--t-card),.83) 32%,rgba(var(--t-card),.26) 87%),
+  var(--t-scene-url)!important;
+ background-size:cover!important;
+ background-position:center,center center!important;
+ background-repeat:no-repeat!important;
+ border:1.5px solid var(--cinema-edge)!important;
+ border-top:2px solid rgba(255,255,255,.60)!important;
+}
+body[data-theme-artwork="on"] #overview .hero-main:after{
+ height:3px;
+ background:linear-gradient(90deg,transparent,var(--t-accent),var(--t-secondary),transparent);
+}
+body[data-theme-artwork="on"] #overview .hero-main .hero-big{
+ position:relative;
+ z-index:1;
+ font-weight:850;
+ text-shadow:0 2px 10px rgba(0,0,0,.16);
+}
+/* Surfaces now use different light treatments by information hierarchy.
+   Strong colored gradients with no scroll-time backdrop sampling. */
+body[data-theme-artwork="on"] :is(.platform-card,.metric-box,.chart-kpi){
+ background:linear-gradient(137deg,rgba(var(--t-accent-rgb),.22),rgba(var(--t-card),.94) 52%,rgba(var(--t-secondary-rgb),.16))!important;
+ border:1.5px solid rgba(var(--t-accent-rgb),.48)!important;
+ border-top-color:rgba(255,255,255,.48)!important;
+ box-shadow:inset 0 1px 0 rgba(255,255,255,.26),0 4px 12px rgba(0,0,0,.14)!important;
+}
+body[data-theme-artwork="on"] :is(.chart-card,.lifetime-views-card,.follower-aggregate,.video-card,.top-seven-item){
+ border-color:rgba(var(--t-accent-rgb),.48)!important;
+ box-shadow:inset 0 1px 0 rgba(255,255,255,.20),0 4px 13px rgba(0,0,0,.14)!important;
+}
+body[data-theme-artwork="on"] .chart-card{
+ background:linear-gradient(145deg,rgba(var(--t-card),.94),rgba(var(--t-accent-rgb),.15) 60%,rgba(var(--t-card),.93))!important;
+}
+body[data-theme-artwork="on"] :is(.follower-aggregate,.lifetime-views-card){
+ background:
+  linear-gradient(100deg,rgba(var(--t-card),.92) 0%,rgba(var(--t-card),.84) 56%,rgba(var(--t-card),.32) 100%),
+  var(--t-scene-url)!important;
+ background-size:cover!important;background-position:center!important;
+}
+body[data-theme-artwork="on"] .section-nav button.active{
+ border:1px solid var(--cinema-edge)!important;
+ background:linear-gradient(120deg,rgba(var(--t-accent-rgb),.42),rgba(var(--t-secondary-rgb),.26))!important;
+ color:var(--t-ink-strong)!important;
+ box-shadow:inset 0 1px 0 rgba(255,255,255,.28),0 0 0 1px rgba(var(--t-accent-rgb),.12)!important;
+}
+body[data-theme-artwork="on"] .topbar{
+ border:1px solid rgba(var(--t-accent-rgb),.48)!important;
+ background:linear-gradient(110deg,rgba(var(--t-card),.95),rgba(var(--t-accent-rgb),.13),rgba(var(--t-card),.95))!important;
+}
+@media(min-width:1060px){
+ body[data-theme-artwork="on"][data-reference-layout="sidebar"] .section-nav{
+  background:
+   linear-gradient(180deg,rgba(var(--t-card),.84) 0%,rgba(var(--t-card),.95) 44%,rgba(var(--t-card),.57) 100%),
+   var(--t-scene-url)!important;
+  background-position:center,57% center!important;
+  background-size:cover!important;
+  border:1.5px solid rgba(var(--t-accent-rgb),.65)!important;
+  border-top:2px solid rgba(255,255,255,.64)!important;
+ }
+ body[data-theme-artwork="on"][data-reference-layout="sidebar"] .section-nav::after{
+  border-top:1px solid rgba(var(--t-accent-rgb),.28);
+  padding-top:16px;
+  color:var(--t-ink-label);
+ }
+}
+/* World-specific hero art visibility and semantic contrast. */
+body[data-theme-id="ex05"] .masthead,
+body[data-theme-id="ex05"] #overview .hero-main{
+ background-image:linear-gradient(90deg,rgba(43,37,12,.92),rgba(45,39,13,.62) 40%,rgba(40,32,7,.08) 80%),var(--t-scene-url)!important;
+}
+body[data-theme-id="ex06"] .masthead,
+body[data-theme-id="ex06"] #overview .hero-main,
+body[data-theme-id="ex19"] .masthead,
+body[data-theme-id="ex19"] #overview .hero-main{
+ background-image:linear-gradient(90deg,rgba(5,6,9,.98),rgba(8,9,13,.71) 34%,rgba(6,6,10,.03) 76%),var(--t-scene-url)!important;
+ background-position:center,center 65%!important;
+}
+body[data-theme-id="ex06"] :is(.platform-card,.metric-box,.chart-kpi),
+body[data-theme-id="ex19"] :is(.platform-card,.metric-box,.chart-kpi){
+ background:linear-gradient(145deg,rgba(242,61,60,.21),rgba(9,10,15,.95) 46%,rgba(96,106,122,.20))!important;
+}
+body[data-theme-id="ex07"] .masthead,
+body[data-theme-id="ex08"] .masthead,
+body[data-theme-id="ex12"] .masthead,
+body[data-theme-id="ex15"] .masthead{
+ background-position:center,center 55%!important;
+}
+body[data-theme-tone="light"][data-theme-artwork="on"] .masthead,
+body[data-theme-family="aero"][data-theme-artwork="on"] .masthead{
+ background-image:linear-gradient(90deg,rgba(236,250,255,.94) 0%,rgba(238,252,255,.79) 36%,rgba(238,252,255,.06) 80%),var(--t-scene-url)!important;
+ --cinema-edge:rgba(var(--t-accent-rgb),.55);
+ border-top-color:rgba(255,255,255,.94)!important;
+}
+body[data-theme-tone="light"][data-theme-artwork="on"] #overview .hero-main,
+body[data-theme-family="aero"][data-theme-artwork="on"] #overview .hero-main{
+ background-image:linear-gradient(90deg,rgba(239,250,255,.95),rgba(240,251,255,.80) 34%,rgba(240,251,255,.13) 85%),var(--t-scene-url)!important;
+}
+body[data-theme-tone="light"][data-theme-artwork="on"] .masthead h1,
+body[data-theme-family="aero"][data-theme-artwork="on"] .masthead h1{
+ text-shadow:none;
+}
+body[data-theme-tone="light"][data-theme-artwork="on"] .masthead .mast-right,
+body[data-theme-family="aero"][data-theme-artwork="on"] .masthead .mast-right{
+ background:linear-gradient(150deg,rgba(255,255,255,.94),rgba(238,250,255,.82))!important;
+}
+body[data-theme-tone="light"][data-theme-artwork="on"] :is(.platform-card,.metric-box,.chart-kpi),
+body[data-theme-family="aero"][data-theme-artwork="on"] :is(.platform-card,.metric-box,.chart-kpi){
+ background:linear-gradient(145deg,rgba(255,255,255,.92),rgba(var(--t-accent-rgb),.13))!important;
+}
+@media(max-width:1059px){
+ body[data-theme-artwork="on"] .masthead{min-height:260px;padding:25px}
+ body[data-theme-artwork="on"] .masthead>div:first-child{max-width:70%}
+ body[data-theme-artwork="on"] #overview .hero-main{min-height:280px}
+}
+@media(max-width:760px){
+ body[data-theme-artwork="on"] .masthead{min-height:0;padding:20px 18px;gap:16px;background-position:center,right center!important}
+ body[data-theme-artwork="on"] .masthead>div:first-child{max-width:100%}
+ body[data-theme-artwork="on"] .masthead h1{font-size:clamp(32px,10vw,48px)}
+ body[data-theme-artwork="on"] .masthead .mast-right{width:100%;max-width:none}
+ body[data-theme-artwork="on"] #overview .hero-main{min-height:260px}
+ .theme-world-stamp{margin-top:14px;font-size:9px;letter-spacing:.08em}
+ .theme-world-division{display:none}
+}
+@media(prefers-reduced-motion:reduce){
+ body[data-theme-artwork="on"] :is(.masthead,.hero-main,.platform-card,.metric-box,.chart-kpi){transition:none!important}
+}
+
+/* Specificity guard: historical sidebar stylesheet uses a two-attribute body
+ * selector and !important. The actual illustrated hero must win in all layouts. */
+body[data-theme-artwork="on"][data-reference-layout="sidebar"] .masthead,
+body[data-theme-artwork="on"][data-reference-layout="wide"] .masthead{
+ background:
+  linear-gradient(90deg,rgba(var(--t-card),.94) 0%,rgba(var(--t-card),.75) 35%,rgba(var(--t-card),.12) 74%,rgba(var(--t-card),.32) 100%),
+  var(--t-scene-url)!important;
+ background-position:center,center 40%!important;
+ background-size:cover!important;
+ background-repeat:no-repeat!important;
+}
+body[data-theme-artwork="on"][data-reference-layout="sidebar"][data-theme-id="ex06"] .masthead,
+body[data-theme-artwork="on"][data-reference-layout="sidebar"][data-theme-id="ex19"] .masthead,
+body[data-theme-artwork="on"][data-reference-layout="wide"][data-theme-id="ex06"] .masthead,
+body[data-theme-artwork="on"][data-reference-layout="wide"][data-theme-id="ex19"] .masthead{
+ background-image:linear-gradient(90deg,rgba(5,6,9,.98),rgba(8,9,13,.71) 34%,rgba(6,6,10,.03) 76%),var(--t-scene-url)!important;
+ background-position:center,center 65%!important;
+}
+body[data-theme-artwork="on"][data-reference-layout="sidebar"][data-theme-id="ex05"] .masthead,
+body[data-theme-artwork="on"][data-reference-layout="wide"][data-theme-id="ex05"] .masthead{
+ background-image:linear-gradient(90deg,rgba(43,37,12,.92),rgba(45,39,13,.62) 40%,rgba(40,32,7,.08) 80%),var(--t-scene-url)!important;
+}
+body[data-theme-artwork="on"][data-reference-layout="sidebar"][data-theme-tone="light"] .masthead,
+body[data-theme-artwork="on"][data-reference-layout="wide"][data-theme-tone="light"] .masthead,
+body[data-theme-artwork="on"][data-reference-layout="sidebar"][data-theme-family="aero"] .masthead,
+body[data-theme-artwork="on"][data-reference-layout="wide"][data-theme-family="aero"] .masthead{
+ background-image:linear-gradient(90deg,rgba(236,250,255,.94) 0%,rgba(238,252,255,.79) 36%,rgba(238,252,255,.06) 80%),var(--t-scene-url)!important;
+}

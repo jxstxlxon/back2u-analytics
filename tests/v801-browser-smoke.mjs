@@ -100,6 +100,15 @@ try{
  assert.equal(await phone.evaluate(()=>window.BACK2U_THEMES.current()),'ex05');
  await phone.locator('#themeStudioPanel [data-v80-theme="ex06"]').click();
  assert.equal(await phone.evaluate(()=>window.BACK2U_THEMES.current()),'ex06');
+ const sceneStyle=await phone.evaluate(()=>({
+  image:getComputedStyle(document.querySelector('.masthead')).backgroundImage,
+  label:document.querySelector('#themeWorldName')?.textContent,
+  artwork:document.body.dataset.themeArtwork
+ }));
+ assert.ok(sceneStyle.image.includes('data:image/svg+xml'),'Cinematic Corvette wallpaper must be visible in real hero');
+ assert.equal(sceneStyle.label,'BLACK CORVETTE');
+ assert.equal(sceneStyle.artwork,'on');
+
  await phone.locator('#themeStudioPanel [data-v80-theme="n04"]').click();
  assert.equal(await phone.evaluate(()=>window.BACK2U_THEMES.current()),'n04');
  await phone.locator('#themeClose').click();
