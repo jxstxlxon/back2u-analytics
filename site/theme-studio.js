@@ -218,7 +218,7 @@ function refreshEditor(){
 }
 // Photo themes already have self-hosted JPG previews in theme-photo-v809/v810/v811.
 // Do not build and encode a second giant SVG that the CSS never displays.
-const photoThemeIds=new Set(['ex01','ex04','ex05','ex06','ex13','ex14','ex15','ex16','ex17','ex18','ex19','ex20']);
+const photoThemeIds=new Set(['ex01','ex02','ex03','ex04','ex05','ex06','ex07','ex08','ex09','ex10','ex11','ex12','ex13','ex14','ex15','ex16','ex17','ex18','ex19','ex20']);
 const vectorPreviewCache=new Map();
 let previewObserver=null;
 function fillVectorPreview(button){
