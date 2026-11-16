@@ -15,7 +15,7 @@ import {chromium} from 'playwright';
 
 const dir=path.resolve(fileURLToPath(new URL('../site/',import.meta.url)));
 const type={'.html':'text/html; charset=utf-8','.js':'text/javascript; charset=utf-8',
- '.css':'text/css; charset=utf-8','.svg':'image/svg+xml','.png':'image/png',
+ '.css':'text/css; charset=utf-8','.svg':'image/svg+xml','.png':'image/png','.jpg':'image/jpeg',
  '.json':'application/json'};
 const server=createServer(async(req,res)=>{
  const u=new URL(req.url||'/', 'http://127.0.0.1');
@@ -128,6 +128,17 @@ try{
  }));
  assert.ok(sceneStyle.image.includes('data:image/svg+xml'),'Cinematic Corvette wallpaper must be visible in real hero');
  assert.equal(sceneStyle.label,'BLACK CORVETTE');
+
+ const photoWorld=await phone.evaluate(async()=>{
+  const background=getComputedStyle(document.querySelector('.masthead>.theme-world-stage')).backgroundImage;
+  const img=new Image();
+  img.src='/theme-worlds-v809.jpg';
+  await img.decode();
+  return {background,loaded:img.complete,width:img.naturalWidth,height:img.naturalHeight};
+ });
+ assert.ok(photoWorld.background.includes('theme-worlds-v809.jpg'),'Selected theme uses new photo-based scene');
+ assert.ok(photoWorld.loaded&&photoWorld.width>=1200,'Self-hosted atlas decodes at high resolution');
+
 
  const cinematicContrast=await phone.evaluate(()=>{
   const img=document.querySelector('.masthead > .theme-world-stage');
