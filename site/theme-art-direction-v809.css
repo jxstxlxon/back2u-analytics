@@ -476,3 +476,78 @@ body:is([data-theme-id="ex05"],[data-theme-id="ex06"],[data-theme-id="ex18"],[da
   mask-image:linear-gradient(90deg,transparent 0%,rgba(0,0,0,.70) 32%,#000 85%)!important;
  }
 }
+
+
+/* V8.0.9 QA correction — exact visual verification revealed that the
+ * photographic theme still had a legacy vector scene below its own artwork.
+ * For these 4 photo worlds, remove the inherited SVG background completely. */
+body[data-theme-artwork="on"][data-reference-layout][data-theme-id="ex05"] .masthead,
+body[data-theme-artwork="on"][data-reference-layout][data-theme-id="ex06"] .masthead,
+body[data-theme-artwork="on"][data-reference-layout][data-theme-id="ex18"] .masthead,
+body[data-theme-artwork="on"][data-reference-layout][data-theme-id="ex04"] .masthead{
+ background-image:
+  linear-gradient(92deg,rgba(var(--v809-card),.99),rgba(var(--v809-card),.98) 29%,rgba(var(--v809-card),.88) 46%,rgba(var(--v809-card),.25) 79%,rgba(var(--v809-card),.09)),
+  radial-gradient(ellipse 63% 100% at 92% 58%,rgba(var(--v809-accent),.17),transparent 78%)!important;
+ background-color:rgba(var(--v809-card),1)!important;
+}
+body[data-theme-artwork="on"][data-reference-layout][data-theme-id="ex04"] .masthead{
+ background-image:
+  linear-gradient(92deg,rgba(241,251,255,.98),rgba(242,251,255,.96) 26%,rgba(245,253,255,.77) 49%,rgba(247,253,255,.12) 89%),
+  radial-gradient(ellipse 60% 100% at 92% 55%,rgba(var(--v809-accent),.14),transparent 78%)!important;
+}
+@media(max-width:760px){
+ /* A v7.8 mobile optimisation hid this FIRST masthead child entirely.
+    Restore the actual heading and subtitle; visual artwork never replaces UI. */
+ body[data-theme-artwork="on"] .masthead{
+  display:flex!important;
+  flex-direction:column!important;
+  align-items:stretch!important;
+  justify-content:flex-start!important;
+  gap:12px!important;
+  min-height:440px!important;
+  padding:20px 17px!important;
+ }
+ body[data-theme-artwork="on"] .masthead>div:first-child{
+  display:block!important;
+  order:0!important;
+  position:relative!important;
+  z-index:4!important;
+  max-width:none!important;
+  width:100%!important;
+  padding:0!important;
+ }
+ body[data-theme-artwork="on"] .masthead h1{
+  display:block!important;
+  font-size:clamp(31px,9.3vw,46px)!important;
+  line-height:1.06!important;
+  margin:13px 0 9px!important;
+  max-width:100%;
+ }
+ body[data-theme-artwork="on"] .masthead .eyebrow{
+  font-size:9px!important;
+  letter-spacing:.10em!important;
+ }
+ body[data-theme-artwork="on"] .masthead p{
+  max-width:93%!important;
+  font-size:12px!important;
+  line-height:1.55!important;
+ }
+ body[data-theme-artwork="on"] .masthead .mast-right{
+  display:grid!important;
+  order:1!important;
+  width:100%!important;
+  max-width:none!important;
+  margin:4px 0 0!important;
+  position:relative!important;
+  z-index:5!important;
+ }
+ body[data-theme-artwork="on"] .masthead>.theme-world-stage{
+  z-index:1!important;
+ }
+ body[data-theme-artwork="on"] .masthead .theme-world-stamp{
+  margin-top:12px!important;
+ }
+ body[data-theme-artwork="on"] .masthead .theme-world-division{
+  display:none!important;
+ }
+}

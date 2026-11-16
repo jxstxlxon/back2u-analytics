@@ -105,6 +105,18 @@ try{
  await phone.locator('#themeStudioPanel [data-v80-theme="ex06"]').click();
  assert.equal(await phone.evaluate(()=>window.BACK2U_THEMES.current()),'ex06');
  await phone.locator('#themeClose').click();
+ const mobileHeadline=await phone.evaluate(()=>{
+  const h=document.querySelector('.masthead h1'),r=h.getBoundingClientRect();
+  const mast=document.querySelector('.masthead').getBoundingClientRect();
+  const st=getComputedStyle(h);
+  return {visible:st.display!=='none'&&st.visibility!=='hidden',width:r.width,height:r.height,
+    inside:r.top>=mast.top&&r.bottom<=mast.bottom+1,text:h.textContent,
+    background:getComputedStyle(document.querySelector('.masthead')).backgroundImage};
+ });
+ assert.ok(mobileHeadline.visible&&mobileHeadline.height>=55&&mobileHeadline.inside,
+  'iPhone must show actual hero title: '+JSON.stringify(mobileHeadline));
+ assert.ok(!mobileHeadline.background.includes('data:image/svg+xml'),
+  'Photo themes must not retain giant obsolete SVG car behind their photo');
  await shot(phone,'iphone-black-corvette');
  await phone.locator('#themeStudioToggle').click();
  await phone.waitForFunction(()=>document.querySelector('.theme-world-stage img')?.src.startsWith('data:image/svg+xml,'));
@@ -123,7 +135,7 @@ try{
  });
  assert.equal(retinaScene.world,'Black Corvette');
  assert.ok(retinaScene.retina,'Retina vector art uses 1920x1080 coordinates');
- assert.ok(retinaScene.background,'Cinematic masthead displays current theme artwork');
+ assert.ok(!retinaScene.background,'Photographic masthead must no longer render obsolete SVG background');
  assert.ok(retinaScene.fullWidth,'Scene image covers header at 3x iPhone DPR');
  assert.ok(retinaScene.hero,'Theme art also exists in real KPI hero');
  assert.ok(retinaScene.height>=320,'Mobile hero has meaningful image area');
@@ -133,7 +145,7 @@ try{
   label:document.querySelector('#themeWorldName')?.textContent,
   artwork:document.body.dataset.themeArtwork
  }));
- assert.ok(sceneStyle.image.includes('data:image/svg+xml'),'Cinematic Corvette wallpaper must be visible in real hero');
+ assert.ok(!sceneStyle.image.includes('data:image/svg+xml'),'Only the actual photograph should appear behind the Corvette hero');
  assert.equal(sceneStyle.label,'BLACK CORVETTE');
 
  const photoWorld=await phone.evaluate(async()=>{
@@ -169,7 +181,7 @@ try{
  assert.ok(!cinematicContrast.bodyImage,'No huge wallpaper behind entire dashboard');
  assert.ok(!cinematicContrast.heroImage&&cinematicContrast.sceneOnly,'Real KPIs must not be cartoon wallpaper');
  assert.ok(cinematicContrast.stageRatio<=1.01&&cinematicContrast.stageOpacity<=.45,'On phone, background art must be dimmed: '+JSON.stringify(cinematicContrast));
- assert.ok(cinematicContrast.mastImage,'Cinematic hero keeps its theme illustration');
+ assert.ok(!cinematicContrast.mastImage,'Legacy background SVG must be removed from photographic hero');
  assert.ok(cinematicContrast.width<=cinematicContrast.viewport+24,'No mobile horizontal overflow');
 
  assert.equal(sceneStyle.artwork,'on');
@@ -219,6 +231,9 @@ try{
  for(const id of ['ex06','ex05','ex18','ex04']){
   assert.ok(await desktop.evaluate(id=>window.BACK2U_THEMES.use(id),id));
   await desktop.waitForFunction(id=>document.body.dataset.themeId===id,id);
+  const desktopHeroBackground=await desktop.evaluate(()=>getComputedStyle(document.querySelector('.masthead')).backgroundImage);
+  assert.ok(!desktopHeroBackground.includes('data:image/svg+xml'),
+   'Photo worlds must not stack geometric SVG with photographic atlas: '+id);
   await shot(desktop,'desktop-'+id);
  }
  const railLayout=await desktop.locator('#dashboardWorkspace>.section-nav').evaluate(x=>({
