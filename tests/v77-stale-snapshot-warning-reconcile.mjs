@@ -9,7 +9,7 @@ const validTT={
  schema:1,accountId:'tt-verified-account',
  source:'TikTok Organic via Windsor.ai',
  daily:[{d:'2026-11-14',views:5000}],
- videos:[{id:'7345678901234567890',views:700}],
+ videos:[{id:'7345678901234567890',views:700,source:'TikTok Organic über Windsor.ai'}],
  updatedAt:'2026-11-15T09:00:00Z'
 };
 const success={status:'ok',lastSuccessAt:'2026-11-15T09:00:00Z'};
