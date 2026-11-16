@@ -419,7 +419,7 @@ function setSection(s){
  if(!valid.includes(s))return;
  state.section=s;
  document.body.dataset.activeSection=s;
- $('[data-section]').forEach(x=>{const active=x.dataset.section===s;
+ $$('[data-section]').forEach(x=>{const active=x.dataset.section===s;
   x.classList.toggle('active',active);
   if(active)x.setAttribute('aria-current','page');else x.removeAttribute('aria-current');
  });
