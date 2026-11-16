@@ -1,0 +1,202 @@
+/*
+ * BACK2U V7.8 — Information architecture, not a palette reset.
+ * Theme variables remain the sole source of colors. Desktop navigation is
+ * persistent; iPhone navigation is thumb-friendly and keeps actual data first.
+ */
+.dashboard-workspace{display:contents}
+.mobile-bottom-nav{display:none}
+.mobile-more-drawer[hidden]{display:none!important}
+.top-seven-expand[hidden]{display:none!important}
+.top-seven-expand{display:none}
+.dashboard-workspace>main{min-width:0}
+
+/* The six existing sections become a stable left rail on wide desktop.
+ * Between 761 and 1239 px, keep the existing full-width horizontal nav. */
+@media(min-width:1240px){
+ .dashboard-workspace{
+  display:grid;grid-template-columns:184px minmax(0,1fr);
+  grid-template-areas:"side notice" "side content";
+  gap:0 21px;align-items:start;min-width:0
+ }
+ .dashboard-workspace>.section-nav{
+  grid-area:side;display:flex!important;flex-direction:column;
+  position:sticky;top:16px;align-self:start;
+  min-width:0;max-height:calc(100dvh - 32px);overflow-y:auto;overflow-x:hidden;
+  gap:5px;padding:15px 10px 17px;margin:0;
+  background:rgba(var(--t-card,23,48,48),.35);
+  border:1px solid rgba(var(--t-accent-rgb,111,200,162),.25);
+  border-radius:19px;
+ }
+ .dashboard-workspace>.section-nav:before{
+  content:"BEREICHE";display:block;align-self:start;
+  padding:3px 11px 10px;font:800 10px/1.4 var(--t-font-ui,system-ui);
+  letter-spacing:.12em;color:var(--t-ink-muted,#b2c7c5)
+ }
+ .dashboard-workspace>.section-nav button{
+  flex:none;width:100%;min-height:47px;display:flex;align-items:center;justify-content:flex-start;
+  gap:9px;white-space:normal;text-align:left;line-height:1.3;padding:10px 12px;
+  border-radius:12px;font-size:12px;
+ }
+ .dashboard-workspace>.section-nav button .navglyph{flex:0 0 20px;font-size:17px;text-align:center}
+ .dashboard-workspace>.section-nav button[data-section="experiments"]{
+  margin-top:11px;border-top:1px solid rgba(var(--t-accent-rgb,111,200,162),.24);
+  padding-top:15px;border-top-left-radius:0;border-top-right-radius:0
+ }
+ .dashboard-workspace>#notice{grid-area:notice;margin-top:0;min-width:0}
+ .dashboard-workspace>main{grid-area:content;min-width:0}
+ .shell{width:min(1460px,calc(100% - 64px))}
+ .dashboard-workspace .top-seven-heading{align-items:start}
+ /* In the creator workspace, the calendar comes before trophies and drafts. */
+ #creator.view.active{display:flex;flex-direction:column}
+ #creator>.section-heading{order:0}
+ #creator>#creatorKpis{order:1}
+ #creator>.creator-panel{order:2}
+ #creator>.creator-two-col:first-of-type{order:3}
+ #creator>.creator-two-col.v7-creator-tools{order:4}
+ #creator>.creator-two-col:not(.v7-creator-tools):last-of-type{order:5}
+ #creator>#creatorMethodNote{order:6}
+}
+/* Two-column creator layout on tablets is preserved by the existing themes. */
+
+/* Mobile architecture: one-handed navigation, above the iOS home indicator. */
+@media(max-width:760px){
+ html body{padding-bottom:calc(86px + env(safe-area-inset-bottom,0px))}
+ .dashboard-workspace>.section-nav{display:none!important}
+ .mobile-bottom-nav{
+  position:fixed;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));
+  align-items:stretch;gap:2px;z-index:1100;inset:auto 0 0;
+  padding:7px max(8px,env(safe-area-inset-right,0px))
+   calc(7px + env(safe-area-inset-bottom,0px))
+   max(8px,env(safe-area-inset-left,0px));
+  background:rgba(var(--t-card,20,40,41),.98);
+  border-top:1px solid rgba(var(--t-accent-rgb,111,200,162),.4);
+  box-shadow:0 -7px 28px rgba(0,0,0,.20);
+ }
+ .mobile-bottom-nav button{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:2px;min-height:54px;min-width:0;padding:5px 3px;border:1px solid transparent;
+  border-radius:12px;background:transparent;color:var(--t-ink-muted,#bfd2d0);
+ }
+ .mobile-bottom-nav button>span{font:800 22px/1.1 var(--t-font-ui,system-ui)}
+ .mobile-bottom-nav button>small{font:750 9px/1.3 var(--t-font-ui,system-ui);
+  max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+ .mobile-bottom-nav button.active,
+ .mobile-bottom-nav button[aria-current="page"]{
+  background:rgba(var(--t-accent-rgb,111,200,162),.15);
+  border-color:rgba(var(--t-accent-rgb,111,200,162),.32);
+  color:var(--t-ink-strong,#fff)
+ }
+ .mobile-bottom-nav button:focus-visible,.mobile-more-sheet button:focus-visible{
+  outline:2px solid var(--t-accent,#6fe5bb);outline-offset:-2px
+ }
+ body.story-open .mobile-bottom-nav,body.theme-open .mobile-bottom-nav{display:none}
+ .mobile-more-drawer{
+  position:fixed;z-index:1080;inset:0;
+  display:flex;align-items:flex-end;justify-content:center
+ }
+ .mobile-more-backdrop{position:absolute;inset:0;background:rgba(0,0,0,.40);border:0;border-radius:0}
+ .mobile-more-sheet{
+  position:relative;width:100%;max-width:700px;
+  margin-bottom:calc(75px + env(safe-area-inset-bottom,0px));
+  padding:14px max(14px,env(safe-area-inset-left,0px))
+   14px max(14px,env(safe-area-inset-right,0px));
+  display:grid;gap:8px;max-height:calc(100dvh - 125px);overflow-y:auto;
+  background:var(--t-card,#183a35);
+  border:1px solid rgba(var(--t-accent-rgb,111,200,162),.4);
+  border-radius:20px 20px 0 0;
+  box-shadow:0 -12px 40px rgba(0,0,0,.28)
+ }
+ .mobile-more-title{display:flex;justify-content:space-between;align-items:center;
+  gap:10px;margin-bottom:4px;color:var(--t-ink-strong,#fff);
+  font:850 14px var(--t-font-display,system-ui)}
+ .mobile-more-title>button{min-height:39px;min-width:39px;display:grid;place-items:center}
+ .mobile-more-sheet button{
+  min-height:48px;text-align:left;
+  background:rgba(var(--t-accent-rgb,111,200,162),.10);
+  border:1px solid rgba(var(--t-accent-rgb,111,200,162),.25);
+  border-radius:12px;padding:11px 14px;
+  color:var(--t-ink-strong,#fff);font:750 13px/1.4 var(--t-font-ui,system-ui)
+ }
+ .mobile-more-sheet button>span{display:inline-block;min-width:25px;font-size:17px}
+ .mobile-more-sheet button>small{
+  display:block;padding-left:29px;font:520 10px/1.4 var(--t-font-ui,system-ui);
+  color:var(--t-ink-muted,#bfd2d0)
+ }
+ /* No giant intro or design controls between opening the app and KPI data. */
+ body[data-theme-tone] .masthead{
+  margin:9px 0 12px!important;display:block!important;
+ }
+ body[data-theme-tone] .masthead>div:first-child{display:none!important}
+ body[data-theme-tone] .masthead .mast-right{
+  margin:0!important;width:100%!important;min-width:0;
+  display:grid;grid-template-columns:minmax(0,1fr) auto;
+  grid-template-areas:"label presets" "slider slider";
+  align-items:center;gap:5px 8px;padding:8px 12px!important;
+  border-radius:16px
+ }
+ body[data-theme-tone] .masthead .mini-label{
+  grid-area:label;letter-spacing:.04em;font-size:10px;
+  white-space:normal;overflow-wrap:anywhere
+ }
+ body[data-theme-tone] .masthead .glass-toolbar{
+  grid-area:presets;display:flex;gap:4px;min-width:0
+ }
+ body[data-theme-tone] .masthead .glass-toolbar button{
+  padding:6px 8px;font-size:10px;min-height:31px
+ }
+ body[data-theme-tone] .masthead #glassSlider{
+  grid-area:slider;width:100%;min-width:0;margin:2px 0 0
+ }
+ body[data-theme-tone] .masthead .glass-scale{display:none}
+ .controlbar{margin-bottom:9px!important}
+ /* Everyday use: period views -> followers -> verified trend -> best content.
+    All-time and extra diagnostics follow, never vanish. */
+ #overview.view.active{display:flex;flex-direction:column;min-width:0}
+ #overview>.hero-grid{order:0}
+ #overview>#followerCards{order:1}
+ #overview>#dailyFreshness{order:2}
+ #overview>.overview-trend-heading{order:3}
+ #overview>.chart-card{order:4}
+ #overview>.v7-chart-pie-card{order:5}
+ #overview>.overview-top-heading{order:6}
+ #overview>#topCards{order:7}
+ #overview>.insight-strip{order:8}
+ #overview>#lifetimeViewsCard{order:9}
+ #overview>#extendedDailyCard{order:10}
+ #overview .overview-trend-heading{margin-top:18px}
+ #overview #followerCards{margin-top:12px}
+ #overview>.v7-chart-pie-card{margin-top:12px}
+ #overview>.overview-top-heading{margin-top:21px}
+ #overview>#lifetimeViewsCard{margin-top:24px}
+ #overview>#extendedDailyCard{margin-top:22px}
+ /* A compact Top-3 is enough to decide what to tap; full Top-10 on demand. */
+ #topSevenList[data-collapsed="true"] .top-seven-item:nth-child(n+4){display:none!important}
+ .top-seven-expand{
+  display:block;width:100%;min-height:43px;margin:10px 0 0;padding:9px 12px;
+  border:1px solid rgba(var(--t-accent-rgb,111,200,162),.42);
+  border-radius:12px;background:rgba(var(--t-accent-rgb,111,200,162),.15);
+  color:var(--t-ink-strong,#fff);
+  font:750 12px var(--t-font-ui,system-ui)
+ }
+ #topSevenCard .top-seven-heading p{font-size:11px}
+ #topSevenCard .top-seven-heading h3{margin-top:4px}
+ /* Keep the calendar at the top of the Creator workspace for daily posting. */
+ #creator.view.active{display:flex;flex-direction:column;min-width:0}
+ #creator>.section-heading{order:0}
+ #creator>#creatorKpis{order:1}
+ #creator>.creator-panel{order:2}
+ #creator>.creator-two-col:first-of-type{order:3}
+ #creator>.creator-two-col.v7-creator-tools{order:4}
+ #creator>.creator-two-col:not(.v7-creator-tools):last-of-type{order:5}
+ #creator>#creatorMethodNote{order:6}
+ /* System/source warnings don't spread into a full-screen red box. */
+ #notice.live-partial{margin-top:0}
+ .shell{padding-bottom:10px}
+}
+@media(max-width:375px){
+ .mobile-bottom-nav button>small{font-size:8px}
+ body[data-theme-tone] .masthead .glass-toolbar button{padding:5px 6px;font-size:9px}
+}
+@media(prefers-reduced-motion:reduce){
+ .mobile-more-sheet,.mobile-bottom-nav{transition:none!important}
+}
