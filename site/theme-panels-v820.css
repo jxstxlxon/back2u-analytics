@@ -1,0 +1,261 @@
+/* BACK2U V8.2.0 – legible mobile numbers and theme-specific premium surfaces.
+   Static CSS only. Zero extra blur layers, no wallpaper behind data, no fake metrics.
+   Reuses active Theme Studio tokens, works with all 56 themes. */
+body[data-theme-artwork="on"]{
+ --v820-plate:var(--v816-plate,var(--t-card));
+ --v820-a:var(--t-accent-rgb);
+ --v820-b:var(--t-secondary-rgb);
+ --v820-graphic:repeating-linear-gradient(117deg,transparent 0 23px,rgba(var(--v820-a),.035) 23px 24px,transparent 24px 48px);
+ --v820-beam:radial-gradient(ellipse 63% 105% at 107% -11%,rgba(var(--v820-a),.29),transparent 72%);
+ --v820-kpi-depth:linear-gradient(124deg,rgba(var(--v820-plate),.98) 0%,rgba(var(--v820-plate),.95) 53%,rgba(var(--v820-a),.19) 100%);
+ --v820-edge:rgba(var(--v820-a),.63);
+ --v820-glint:rgba(255,255,255,.78);
+}
+/* Each world changes its material language, not only the accent hue. */
+body[data-theme-id^="ex"]{
+ --v820-graphic:repeating-linear-gradient(135deg,transparent 0 14px,rgba(var(--v820-a),.050) 15px 16px,transparent 17px 31px);
+ --v820-beam:radial-gradient(ellipse 70% 90% at 100% 4%,rgba(var(--v820-a),.32),transparent 72%);
+}
+body:is([data-theme-id="ex19"],[data-theme-id="ex06"]){
+ --v820-graphic:repeating-linear-gradient(112deg,rgba(255,255,255,.045) 0 1px,transparent 1px 16px,rgba(0,0,0,.12) 16px 28px,transparent 28px 31px);
+ --v820-beam:radial-gradient(ellipse at 105% 0%,rgba(255,58,84,.39),transparent 67%);
+ --v820-edge:rgba(255,66,94,.87);
+}
+body:is([data-theme-id="ex05"],[data-theme-id="ex14"]){
+ --v820-graphic:repeating-linear-gradient(0deg,transparent 0 18px,rgba(255,192,70,.045) 19px 20px,transparent 20px 38px);
+ --v820-beam:radial-gradient(ellipse at 92% 2%,rgba(248,164,52,.28),transparent 66%);
+}
+body:is([data-theme-id="ex03"],[data-theme-id="ex08"],[data-theme-id="n04"],[data-theme-id="n19"]){
+ --v820-graphic:repeating-linear-gradient(155deg,transparent 0 30px,rgba(75,250,184,.10) 31px 32px,transparent 33px 60px);
+ --v820-beam:radial-gradient(ellipse 60% 85% at 100% 8%,rgba(67,255,194,.36),transparent 71%);
+}
+body:is([data-theme-id="ex01"],[data-theme-id="ex02"],[data-theme-id="ex07"],[data-theme-id="ex10"],[data-theme-id="n15"]){
+ --v820-graphic:repeating-linear-gradient(133deg,transparent 0 27px,rgba(186,132,255,.085) 28px 29px,transparent 30px 52px);
+ --v820-beam:radial-gradient(ellipse at 102% 0%,rgba(193,100,255,.35),transparent 65%);
+}
+body:is([data-theme-id="ex09"],[data-theme-id="ex11"],[data-theme-id="n24"],[data-theme-id="n12"]){
+ --v820-graphic:repeating-linear-gradient(132deg,transparent 0 21px,rgba(193,235,255,.07) 22px 23px,transparent 24px 45px);
+ --v820-beam:radial-gradient(ellipse at 105% 0%,rgba(112,203,255,.35),transparent 68%);
+}
+body:is([data-theme-id="ex12"],[data-theme-id="ex17"],[data-theme-id="n02"]){
+ --v820-graphic:repeating-linear-gradient(127deg,transparent 0 24px,rgba(255,207,123,.08) 25px 26px,transparent 27px 47px);
+ --v820-beam:radial-gradient(ellipse at 100% 0%,rgba(255,193,79,.34),transparent 66%);
+}
+body:is([data-theme-family="aero"],[data-theme-tone="light"]){
+ --v820-graphic:radial-gradient(circle at 89% 12%,rgba(255,255,255,.62) 0 2px,transparent 4px),
+ radial-gradient(circle at 78% 70%,rgba(255,255,255,.36) 0 6px,transparent 11px),
+ radial-gradient(circle at 98% 75%,rgba(var(--v820-b),.19),transparent 25%);
+ --v820-beam:radial-gradient(ellipse 63% 90% at 105% 0%,rgba(var(--v820-a),.27),transparent 72%);
+ --v820-glint:rgba(255,255,255,.96);
+}
+/* Cut crystal rims, layered material and a stronger inner beam; no animation. */
+body[data-theme-artwork="on"] :is(.topbar,.controlbar,.masthead,#overview .hero-main,#overview .platform-card,.follower-aggregate,.lifetime-views-card,.chart-card,.metric-box){
+ border-top-color:var(--v820-glint)!important;
+ box-shadow:
+  inset 0 1px 0 rgba(255,255,255,.30),
+  inset 0 0 0 1px rgba(var(--v820-a),.12),
+  inset 0 -2px 0 rgba(var(--v820-b),.34),
+  0 12px 27px rgba(0,0,0,.22),
+  0 0 18px rgba(var(--v820-a),.18)!important;
+}
+body[data-theme-artwork="on"] #overview .hero-main{
+ background:var(--v820-graphic),var(--v820-beam),var(--v820-kpi-depth)!important;
+ border-color:var(--v820-edge)!important;
+ border-top-width:2px!important;
+ border-radius:28px!important;
+ box-shadow:
+  inset 0 2px 0 rgba(255,255,255,.34),
+  inset 0 -2px 0 rgba(var(--v820-a),.60),
+  0 17px 35px rgba(0,0,0,.24),
+  0 0 24px rgba(var(--v820-a),.18)!important;
+}
+body[data-theme-artwork="on"] #overview .hero-main .hero-label{
+ color:var(--t-ink-label)!important;
+ font-weight:760;
+ letter-spacing:.02em;
+}
+body[data-theme-artwork="on"] #overview .hero-main .hero-big{
+ font-variant-numeric:tabular-nums lining-nums;
+ white-space:nowrap!important;
+ overflow-wrap:normal!important;
+ word-break:normal!important;
+ max-width:100%;
+}
+body[data-theme-artwork="on"] #overview .platform-stack>.platform-card{
+ border-radius:22px!important;
+ background:
+  linear-gradient(107deg,rgba(var(--v820-a),.15),transparent 29%),
+  var(--v820-graphic),
+  radial-gradient(ellipse 80% 170% at 105% 0%,rgba(var(--v820-b),.16),transparent 76%),
+  linear-gradient(135deg,rgba(var(--v820-plate),.98),rgba(var(--v820-plate),.93))!important;
+ box-shadow:inset 0 1px 0 rgba(255,255,255,.32),inset 0 -1px 0 rgba(var(--v820-a),.45),
+  0 6px 22px rgba(0,0,0,.19),0 0 15px rgba(var(--v820-a),.16)!important;
+}
+body[data-theme-artwork="on"] .platform-number,
+body[data-theme-artwork="on"] :is(.follower-aggregate-total,.lifetime-views-total,.follower-breakdown-item>b,.lifetime-breakdown-item b,.metric-box strong,.detail-metric b){
+ white-space:nowrap!important;
+ overflow-wrap:normal!important;
+ word-break:normal!important;
+ font-variant-numeric:tabular-nums lining-nums;
+}
+body[data-theme-artwork="on"] :is(.follower-aggregate,.lifetime-views-card,.chart-card,.metric-box){
+ background:
+  linear-gradient(158deg,rgba(255,255,255,.055),transparent 32%),
+  var(--v820-beam),
+  linear-gradient(130deg,rgba(var(--v820-plate),.97),rgba(var(--v820-plate),.94))!important;
+ border-color:rgba(var(--v820-a),.48)!important;
+}
+body[data-theme-artwork="on"] .follower-aggregate,
+body[data-theme-artwork="on"] .lifetime-views-card{
+ border-radius:26px!important;
+}
+body[data-theme-artwork="on"] :is(.follower-aggregate-total,.lifetime-views-total){
+ letter-spacing:-.052em;
+ background:linear-gradient(104deg,var(--t-ink-strong) 0%,var(--t-accent) 80%,var(--t-secondary))!important;
+ color:transparent!important;
+ -webkit-background-clip:text!important;
+ background-clip:text!important;
+}
+/* Deliberately different finishes for Neon / Metallic / Aero worlds. */
+body[data-theme-artwork="on"]:is([data-theme-id="ex19"],[data-theme-id="ex06"],[data-theme-id="ex14"]) :is(.topbar,.masthead,#overview .hero-main){
+ border-color:rgba(255,72,94,.90)!important;
+ border-top-color:rgba(255,238,245,.96)!important;
+ box-shadow:inset 0 1px 0 rgba(255,255,255,.35),inset 0 -2px 0 rgba(255,42,81,.75),
+  0 14px 29px rgba(0,0,0,.35),0 0 30px rgba(255,44,76,.24)!important;
+}
+body[data-theme-artwork="on"]:is([data-theme-id="ex12"],[data-theme-id="ex17"],[data-theme-id="n02"]) :is(.masthead,#overview .hero-main,.lifetime-views-card){
+ border-top-color:rgba(255,241,208,.95)!important;
+ box-shadow:inset 0 2px 0 rgba(255,238,197,.52),inset 0 -2px 0 rgba(var(--v820-a),.43),
+  0 12px 26px rgba(0,0,0,.30),0 0 20px rgba(255,188,84,.19)!important;
+}
+body[data-theme-artwork="on"]:is([data-theme-tone="light"],[data-theme-family="aero"]) :is(#overview .hero-main,.follower-aggregate,.lifetime-views-card,.chart-card,.metric-box){
+ background:
+  linear-gradient(143deg,rgba(255,255,255,.64),rgba(255,255,255,.09) 45%),
+  var(--v820-graphic),
+  radial-gradient(ellipse at 105% 0%,rgba(var(--v820-a),.23),transparent 68%),
+  rgba(var(--v820-plate),.87)!important;
+ box-shadow:inset 0 2px 0 rgba(255,255,255,.82),inset 0 -1px 0 rgba(var(--v820-a),.38),
+  0 9px 23px rgba(45,95,135,.14),0 0 20px rgba(var(--v820-a),.14)!important;
+}
+/* Theme picker should actually feel like selecting a visual world. */
+#themeStudioPanel .theme-option{
+ border-radius:18px!important;
+ border:1px solid rgba(var(--t-accent-rgb),.26)!important;
+ box-shadow:inset 0 1px 0 rgba(255,255,255,.16),0 5px 14px rgba(0,0,0,.14);
+ overflow:hidden;
+}
+#themeStudioPanel .theme-option-preview{
+ border:1px solid rgba(255,255,255,.30);
+ border-radius:12px;
+ box-shadow:inset 0 2px 0 rgba(255,255,255,.28);
+}
+#themeStudioPanel .theme-option.selected{
+ border:2px solid var(--t-accent)!important;
+ box-shadow:inset 0 1px 0 rgba(255,255,255,.27),0 0 0 2px rgba(var(--t-accent-rgb),.18),
+  0 0 18px rgba(var(--t-accent-rgb),.25)!important;
+}
+#themeStudioPanel .theme-option:focus-visible{
+ outline:2px solid var(--t-accent)!important;
+ outline-offset:3px;
+}
+/* Mobile layout fix: three full-width, information-dense platform rows instead
+   of three 100px-wide cards fighting their own 26px numbers. */
+@media(max-width:760px){
+ body[data-theme-artwork="on"] .hero-grid{
+  grid-template-columns:minmax(0,1fr)!important;
+  gap:12px!important;
+ }
+ body[data-theme-artwork="on"] #overview .hero-main{
+  padding:21px 18px 23px!important;
+  min-height:260px!important;
+  min-width:0;
+ }
+ body[data-theme-artwork="on"] #overview .hero-main .hero-big{
+  font-size:clamp(27px,8.9vw,45px)!important;
+  letter-spacing:-.065em!important;
+  line-height:1.12!important;
+ }
+ body[data-theme-artwork="on"] #overview .platform-stack{
+  grid-template-columns:minmax(0,1fr)!important;
+  grid-template-rows:none!important;
+  gap:9px!important;
+  min-width:0;
+ }
+ body[data-theme-artwork="on"] #overview .platform-stack>.platform-card{
+  display:grid!important;
+  grid-template-columns:minmax(0,1fr) minmax(0,100px)!important;
+  align-items:center;
+  min-height:94px!important;
+  padding:13px 17px!important;
+  column-gap:10px!important;
+ }
+ body[data-theme-artwork="on"] #overview .platform-card>div:first-child{min-width:0}
+ body[data-theme-artwork="on"] #overview .platform-number{
+  font-size:clamp(23px,6.4vw,30px)!important;
+  line-height:1.12!important;
+  letter-spacing:-.055em!important;
+ }
+ body[data-theme-artwork="on"] #overview .platform-name{
+  font-size:12px!important;
+  line-height:1.2!important;
+ }
+ body[data-theme-artwork="on"] #overview .platform-caption{
+  font-size:11px!important;
+ }
+ body[data-theme-artwork="on"] #overview .platform-card .platform-side{
+  display:flex!important;
+  flex-direction:column;
+  align-items:flex-end;
+  justify-content:center;
+  text-align:right;
+  gap:7px;
+  max-width:100px;
+  min-width:0;
+ }
+ body[data-theme-artwork="on"] #overview .platform-card .platform-rank{
+  font-size:9px!important;
+  line-height:1.25;
+  white-space:normal;
+ }
+ body[data-theme-artwork="on"] :is(.lifetime-views-total,.follower-aggregate-total){
+  font-size:clamp(27px,8.9vw,43px)!important;
+  line-height:1.12!important;
+ }
+ body[data-theme-artwork="on"] :is(.follower-aggregate-breakdown,.lifetime-views-breakdown){
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  gap:13px 11px!important;
+ }
+ body[data-theme-artwork="on"] :is(.follower-breakdown-item,.lifetime-breakdown-item){
+  min-width:0;
+ }
+ body[data-theme-artwork="on"] :is(.follower-breakdown-item>b,.lifetime-breakdown-item b){
+  font-size:clamp(13px,3.65vw,17px)!important;
+  letter-spacing:-.035em;
+ }
+ body[data-theme-artwork="on"] :is(.follower-breakdown-item,.lifetime-breakdown-item):last-child:nth-child(odd){
+  grid-column:1 / -1;
+ }
+ body[data-theme-artwork="on"] .metric-box strong{
+  display:block;
+  font-size:clamp(16px,4.5vw,22px)!important;
+  letter-spacing:-.045em;
+ }
+ body[data-theme-artwork="on"] .detail-metric b{
+  font-size:clamp(16px,4.5vw,22px)!important;
+ }
+}
+@media(max-width:370px){
+ body[data-theme-artwork="on"] #overview .platform-stack>.platform-card{
+  padding:12px 13px!important;
+  grid-template-columns:minmax(0,1fr) minmax(0,88px)!important;
+ }
+ body[data-theme-artwork="on"] #overview .platform-card .platform-side{max-width:88px}
+ body[data-theme-artwork="on"] #overview .hero-main .hero-big{font-size:clamp(26px,8.5vw,35px)!important}
+ body[data-theme-artwork="on"] :is(.lifetime-views-total,.follower-aggregate-total){font-size:clamp(26px,8.6vw,36px)!important}
+}
+@media(prefers-reduced-motion:reduce){
+ body[data-theme-artwork="on"] :is(.topbar,.controlbar,.masthead,.platform-card,.theme-option){
+  transition:none!important;animation:none!important;
+ }
+}
