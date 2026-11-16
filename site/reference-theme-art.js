@@ -27,7 +27,11 @@ const extremeKinds={
  ex05:['backrooms','sidebar','vintage'],ex06:['corvette','sidebar','chrome'],
  ex07:['cathedral','sidebar','spectral'],ex08:['reactor','sidebar','neon'],
  ex09:['lunar','wide','chrome'],ex10:['sakura','sidebar','iridescent'],
- ex11:['blackice','wide','frost'],ex12:['eclipse','sidebar','molten']
+ ex11:['blackice','wide','frost'],ex12:['eclipse','sidebar','molten'],
+ ex13:['monsoon','wide','ocean'],ex14:['inferno','sidebar','neon'],
+ ex15:['vapor','wide','iridescent'],ex16:['atlantis','sidebar','frost'],
+ ex17:['singularity','sidebar','chrome'],ex18:['bio','sidebar','gem'],
+ ex19:['redline','wide','obsidian'],ex20:['dreamwave','sidebar','iridescent']
 };
 function extremeArt(p){
  const config=extremeKinds[p.id];
@@ -57,7 +61,15 @@ function extremeArt(p){
   lunar:crystal+bars,
   sakura:streaks+'<g fill="'+a+'" opacity=".36"><circle cx="150" cy="180" r="18"/><circle cx="320" cy="285" r="12"/><circle cx="1320" cy="420" r="27"/><circle cx="1500" cy="160" r="17"/></g>',
   blackice:crystal+horizon,
-  eclipse:eclipse+streaks
+  eclipse:eclipse+streaks,
+  monsoon:horizon+'<g stroke="'+a+'" stroke-opacity=".6" stroke-width="3">'+Array.from({length:28},(_,i)=>'<path d="M'+(i*75-150)+' 0l-270 900"/>').join('')+'</g>'+streaks,
+  inferno:bars+'<g fill="none" stroke="'+a+'" stroke-width="30" opacity=".4"><path d="M-20 780L370 510L710 670L1030 250L1620 430"/><path d="M-30 790L430 600L830 400L1620 190"/></g>',
+  vapor:'<circle cx="1180" cy="330" r="270" fill="url(#orb)" opacity=".8"/><g fill="none" stroke="'+b+'" stroke-width="3" opacity=".53">'+Array.from({length:12},(_,i)=>'<path d="M0 '+(520+i*36)+'H1600"/>').join('')+'<path d="M800 470L0 900M800 470L1600 900M800 470L400 900M800 470L1200 900"/></g>'+streaks,
+  atlantis:horizon+crystal+bubbles+'<g fill="none" stroke="#ffffff" stroke-opacity=".42"><path d="M200 850Q260 530 500 550T850 600T1200 440T1650 570" stroke-width="9"/></g>',
+  singularity:'<circle cx="1160" cy="330" r="265" fill="none" stroke="'+a+'" stroke-width="26" opacity=".65"/><circle cx="1160" cy="330" r="180" fill="#020204" stroke="'+b+'" stroke-opacity=".65" stroke-width="8"/>'+streaks,
+  bio:'<g stroke="'+a+'" fill="none" opacity=".55" stroke-width="7">'+Array.from({length:8},(_,i)=>'<path d="M'+(i*215)+' -40L'+(i*215+530)+' 900"/>').join('')+'</g>'+bubbles+bars,
+  redline:'<path d="M0 770H1600" stroke="'+a+'" stroke-opacity=".7" stroke-width="12"/><g fill="none" stroke="'+a+'" stroke-width="3" opacity=".60">'+Array.from({length:14},(_,i)=>'<path d="M'+(i*145)+' 900L800 350"/>').join('')+'</g>'+streaks,
+  dreamwave:horizon+bubbles+'<g fill="none" stroke="'+a+'" stroke-width="34" opacity=".40"><path d="M-60 430Q250 110 600 410T1260 310T1720 190"/></g>'+crystal
  };
  const svg='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid slice"><defs>'+
  '<linearGradient id="ground" x2="1" y2="1"><stop stop-color="'+bg+'"/><stop offset=".53" stop-color="'+mid+'"/><stop offset="1" stop-color="'+bg+'"/></linearGradient>'+
@@ -128,6 +140,16 @@ function art(p){
  if(finish==='sunrise')details+='<circle cx="1260" cy="330" r="140" fill="#ffffaa" opacity=".34" filter="url(#smear)"/>';
  if(finish==='metal'||finish==='titanium')details+='<g opacity=".23" fill="none" stroke="#ffffff" stroke-width="1.5"><path d="M60 0l760 900M450 0l760 900M1000 0l600 800"/></g>';
  if(isAero)details+=aeroDetails(p.id);
+ // Remastered legacy artwork: static glass prisms, horizon highlights and
+ // individually shifted ribbons preserve 36 recognizable motifs.
+ // No DOM animations or additional image requests while scrolling.
+ const code=Number(p.id.slice(1))||0;
+ const offset=(code*37)%250;
+ const premiumRim='<g fill="none" stroke="url(#shine)" stroke-linecap="round"><path d="M-110 '+(120+offset)+'Q420 '+(50+offset)+' 740 '+(270+offset)+'T1710 '+(125+offset)+'" stroke-width="5" opacity=".74"/><path d="M-80 '+(760-offset/4)+'Q440 '+(580-offset/4)+' 910 '+(730-offset/4)+'T1680 '+(620-offset/4)+'" stroke-width="3" opacity=".67"/></g>';
+ const premiumGeometry=isAero
+  ?'<g opacity=".55" fill="none" stroke="url(#orb)" stroke-width="3"><circle cx="'+(1330-offset)+'" cy="340" r="155"/><circle cx="'+(310+offset)+'" cy="720" r="93"/></g>'
+  :'<g opacity=".55" fill="url(#crystal)" stroke="#ffffff" stroke-opacity=".56" stroke-width="2"><path d="M'+(1210-offset/2)+' 160l140 135-90 280-150-160z"/><path d="M'+(310+offset/3)+' 660l85-230 95 140-70 190z"/></g>';
+ details+=premiumRim+premiumGeometry;
  const svg='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid slice"><defs>'+
  '<linearGradient id="scene" x1="0" y1="0" x2=".87" y2="1"><stop stop-color="'+bg+'"/><stop offset=".50" stop-color="'+mid+'"/><stop offset="1" stop-color="'+bg+'"/></linearGradient>'+
  '<linearGradient id="wave"><stop stop-color="'+sc+'" stop-opacity=".06"/><stop offset=".38" stop-color="'+ac+'"/><stop offset=".72" stop-color="#ffffff"/><stop offset="1" stop-color="'+sc+'" stop-opacity=".4"/></linearGradient>'+
