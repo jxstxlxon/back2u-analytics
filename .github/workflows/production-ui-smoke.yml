@@ -1,0 +1,60 @@
+name: Check BACK2U live PC and iPhone layout
+on:
+  push:
+    branches: [cloudflare-migration]
+    paths:
+      - site/index.html
+      - site/workspace-v78.css
+      - .github/workflows/production-ui-smoke.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Fetch live public assets without cookies or credentials
+        shell: bash
+        run: |
+          set -euo pipefail
+          base="https://back2u-cloud.leon-mueller0806.workers.dev"
+          # A GitHub merge does not guarantee that Cloudflare deploys immediately.
+          # Only these public static assets are fetched. Do not print page bodies,
+          # private session tokens, cookies, analytics payloads or exception dumps.
+          ok=0
+          for attempt in $(seq 1 8); do
+            if curl -fsSL --max-time 12 --retry 1 --retry-delay 1 \
+                "$base/" -o /tmp/back2u-live-index.html \
+              && curl -fsSL --max-time 12 --retry 1 --retry-delay 1 \
+                "$base/workspace-v78.css" -o /tmp/back2u-live-workspace.css; then
+              if node --input-type=module - <<'NODE'
+          import {readFileSync} from 'node:fs';
+          const html=readFileSync('/tmp/back2u-live-index.html','utf8');
+          const css=readFileSync('/tmp/back2u-live-workspace.css','utf8');
+          const visible=[
+            ['SHELL',html.includes('id="dashboardWorkspace"')],
+            ['MOBILE_BOTTOM_NAV',html.includes('id="mobileBottomNav"')],
+            ['MOBILE_MORE_MENU',html.includes('id="mobileMoreDrawer"')],
+            ['VIDEO_TOP3_EXPAND',html.includes('id="topSevenExpand"')],
+            ['DESKTOP_RAIL_CSS',css.includes('grid-template-areas:"side notice" "side content"')],
+            ['MOBILE_SAFE_AREA',css.includes('env(safe-area-inset-bottom,0px)')],
+            ['CONTENT_SECTION_ALL', ['overview','videos','creator','experiments','audience','system']
+              .every(id=>html.includes('id="'+id+'" class="view'))]
+          ];
+          for(const [name,pass] of visible)console.log('LAYOUT_'+name+'='+(pass?'present':'missing'));
+          if(!visible.every(x=>x[1]))process.exit(1);
+          NODE
+              then
+                ok=1
+                echo "BACK2U_LIVE_LAYOUT=VERIFIED"
+                break
+              fi
+            fi
+            if [ "$attempt" -lt 8 ]; then sleep 8; fi
+          done
+          if [ "$ok" != 1 ]; then
+            echo "BACK2U_LIVE_LAYOUT=NOT_YET_DEPLOYED_OR_INACCESSIBLE"
+            echo "The GitHub source may be correct, but the live Cloudflare assets were not verified."
+            exit 1
+          fi
