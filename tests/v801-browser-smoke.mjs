@@ -128,6 +128,31 @@ try{
  }));
  assert.ok(sceneStyle.image.includes('data:image/svg+xml'),'Cinematic Corvette wallpaper must be visible in real hero');
  assert.equal(sceneStyle.label,'BLACK CORVETTE');
+
+ const cinematicContrast=await phone.evaluate(()=>{
+  const img=document.querySelector('.masthead > .theme-world-stage');
+  const mast=document.querySelector('.masthead');
+  const hero=document.querySelector('#overview .hero-main');
+  const stage=document.querySelector('#overview .theme-hero-stage');
+  const bodyBg=getComputedStyle(document.body).backgroundImage;
+  const kpiBg=getComputedStyle(hero).backgroundImage;
+  const mastBg=getComputedStyle(mast).backgroundImage;
+  return {
+   bodyImage:bodyBg.includes('data:image/svg+xml'),
+   heroImage:kpiBg.includes('data:image/svg+xml'),
+   sceneOnly:getComputedStyle(stage).display==='none',
+   stageRatio:img.getBoundingClientRect().width/mast.getBoundingClientRect().width,
+   mastImage:mastBg.includes('data:image/svg+xml'),
+   width:document.documentElement.scrollWidth,
+   viewport:document.documentElement.clientWidth
+  };
+ });
+ assert.ok(!cinematicContrast.bodyImage,'No huge wallpaper behind entire dashboard');
+ assert.ok(!cinematicContrast.heroImage&&cinematicContrast.sceneOnly,'Real KPIs must not be cartoon wallpaper');
+ assert.ok(cinematicContrast.stageRatio<=.66,'Decorative art stays confined to one side');
+ assert.ok(cinematicContrast.mastImage,'Cinematic hero keeps its theme illustration');
+ assert.ok(cinematicContrast.width<=cinematicContrast.viewport+24,'No mobile horizontal overflow');
+
  assert.equal(sceneStyle.artwork,'on');
 
  await phone.locator('#themeStudioPanel [data-v80-theme="n04"]').click();
