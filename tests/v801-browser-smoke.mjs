@@ -135,7 +135,7 @@ try{
  });
  assert.equal(retinaScene.world,'Black Corvette');
  assert.ok(retinaScene.retina,'Retina vector art uses 1920x1080 coordinates');
- assert.ok(retinaScene.background,'Cinematic masthead displays current theme artwork');
+ assert.ok(!retinaScene.background,'Photographic masthead must no longer render obsolete SVG background');
  assert.ok(retinaScene.fullWidth,'Scene image covers header at 3x iPhone DPR');
  assert.ok(retinaScene.hero,'Theme art also exists in real KPI hero');
  assert.ok(retinaScene.height>=320,'Mobile hero has meaningful image area');
@@ -145,7 +145,7 @@ try{
   label:document.querySelector('#themeWorldName')?.textContent,
   artwork:document.body.dataset.themeArtwork
  }));
- assert.ok(sceneStyle.image.includes('data:image/svg+xml'),'Cinematic Corvette wallpaper must be visible in real hero');
+ assert.ok(!sceneStyle.image.includes('data:image/svg+xml'),'Only the actual photograph should appear behind the Corvette hero');
  assert.equal(sceneStyle.label,'BLACK CORVETTE');
 
  const photoWorld=await phone.evaluate(async()=>{
@@ -181,7 +181,7 @@ try{
  assert.ok(!cinematicContrast.bodyImage,'No huge wallpaper behind entire dashboard');
  assert.ok(!cinematicContrast.heroImage&&cinematicContrast.sceneOnly,'Real KPIs must not be cartoon wallpaper');
  assert.ok(cinematicContrast.stageRatio<=1.01&&cinematicContrast.stageOpacity<=.45,'On phone, background art must be dimmed: '+JSON.stringify(cinematicContrast));
- assert.ok(cinematicContrast.mastImage,'Cinematic hero keeps its theme illustration');
+ assert.ok(!cinematicContrast.mastImage,'Legacy background SVG must be removed from photographic hero');
  assert.ok(cinematicContrast.width<=cinematicContrast.viewport+24,'No mobile horizontal overflow');
 
  assert.equal(sceneStyle.artwork,'on');
