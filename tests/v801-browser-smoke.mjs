@@ -8,14 +8,14 @@
  */
 import assert from 'node:assert/strict';
 import {createServer} from 'node:http';
-import {readFile} from 'node:fs/promises';
+import {readFile,mkdir} from 'node:fs/promises';
 import {fileURLToPath} from 'node:url';
 import path from 'node:path';
 import {chromium} from 'playwright';
 
 const dir=path.resolve(fileURLToPath(new URL('../site/',import.meta.url)));
 const type={'.html':'text/html; charset=utf-8','.js':'text/javascript; charset=utf-8',
- '.css':'text/css; charset=utf-8','.svg':'image/svg+xml','.png':'image/png',
+ '.css':'text/css; charset=utf-8','.svg':'image/svg+xml','.png':'image/png','.jpg':'image/jpeg',
  '.json':'application/json'};
 const server=createServer(async(req,res)=>{
  const u=new URL(req.url||'/', 'http://127.0.0.1');
@@ -37,6 +37,10 @@ const server=createServer(async(req,res)=>{
 await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
 const base='http://127.0.0.1:'+server.address().port;
 const browser=await chromium.launch({headless:true,args:['--no-sandbox','--disable-dev-shm-usage']});
+const screenshotDir=path.resolve(process.cwd(),'artifacts','v809');
+await mkdir(screenshotDir,{recursive:true});
+async function shot(page,name){await page.screenshot({path:path.join(screenshotDir,name+'.png'),animations:'disabled'});}
+
 async function createPage(name,viewport,flags={}){
  const page=await browser.newPage({viewport,deviceScaleFactor:flags.mobile?3:1,
   isMobile:!!flags.mobile,hasTouch:!!flags.mobile});
@@ -100,6 +104,9 @@ try{
  assert.equal(await phone.evaluate(()=>window.BACK2U_THEMES.current()),'ex05');
  await phone.locator('#themeStudioPanel [data-v80-theme="ex06"]').click();
  assert.equal(await phone.evaluate(()=>window.BACK2U_THEMES.current()),'ex06');
+ await phone.locator('#themeClose').click();
+ await shot(phone,'iphone-black-corvette');
+ await phone.locator('#themeStudioToggle').click();
  await phone.waitForFunction(()=>document.querySelector('.theme-world-stage img')?.src.startsWith('data:image/svg+xml,'));
  const retinaScene=await phone.evaluate(async()=>{
   const stage=document.querySelector('.theme-world-stage img');
@@ -128,6 +135,43 @@ try{
  }));
  assert.ok(sceneStyle.image.includes('data:image/svg+xml'),'Cinematic Corvette wallpaper must be visible in real hero');
  assert.equal(sceneStyle.label,'BLACK CORVETTE');
+
+ const photoWorld=await phone.evaluate(async()=>{
+  const background=getComputedStyle(document.querySelector('.masthead>.theme-world-stage')).backgroundImage;
+  const img=new Image();
+  img.src='/theme-worlds-v809.jpg';
+  await img.decode();
+  return {background,loaded:img.complete,width:img.naturalWidth,height:img.naturalHeight};
+ });
+ assert.ok(photoWorld.background.includes('theme-worlds-v809.jpg'),'Selected theme uses new photo-based scene');
+ assert.ok(photoWorld.loaded&&photoWorld.width>=1200,'Self-hosted atlas decodes at high resolution');
+
+
+ const cinematicContrast=await phone.evaluate(()=>{
+  const img=document.querySelector('.masthead > .theme-world-stage');
+  const mast=document.querySelector('.masthead');
+  const hero=document.querySelector('#overview .hero-main');
+  const stage=document.querySelector('#overview .theme-hero-stage');
+  const bodyBg=getComputedStyle(document.body).backgroundImage;
+  const kpiBg=getComputedStyle(hero).backgroundImage;
+  const mastBg=getComputedStyle(mast).backgroundImage;
+  return {
+   bodyImage:bodyBg.includes('data:image/svg+xml'),
+   heroImage:kpiBg.includes('data:image/svg+xml'),
+   sceneOnly:getComputedStyle(stage).display==='none',
+   stageRatio:img.getBoundingClientRect().width/mast.getBoundingClientRect().width,
+   stageOpacity:Number.parseFloat(getComputedStyle(img).opacity),
+   mastImage:mastBg.includes('data:image/svg+xml'),
+   width:document.documentElement.scrollWidth,
+   viewport:document.documentElement.clientWidth
+  };
+ });
+ assert.ok(!cinematicContrast.bodyImage,'No huge wallpaper behind entire dashboard');
+ assert.ok(!cinematicContrast.heroImage&&cinematicContrast.sceneOnly,'Real KPIs must not be cartoon wallpaper');
+ assert.ok(cinematicContrast.stageRatio<=1.01&&cinematicContrast.stageOpacity<=.45,'On phone, background art must be dimmed: '+JSON.stringify(cinematicContrast));
+ assert.ok(cinematicContrast.mastImage,'Cinematic hero keeps its theme illustration');
+ assert.ok(cinematicContrast.width<=cinematicContrast.viewport+24,'No mobile horizontal overflow');
+
  assert.equal(sceneStyle.artwork,'on');
 
  await phone.locator('#themeStudioPanel [data-v80-theme="n04"]').click();
@@ -170,8 +214,13 @@ try{
    height:header.getBoundingClientRect().height,
    sharp:decodeURIComponent(img.src.slice('data:image/svg+xml,'.length)).includes('viewBox="0 0 1920 1080"')};
  });
- assert.ok(desktopRetina.width>800&&desktopRetina.height>=340&&desktopRetina.sharp,
+ assert.ok(desktopRetina.width>=650&&desktopRetina.width<=980&&desktopRetina.height>=340&&desktopRetina.sharp,
   'Desktop must render a large true vector illustration: '+JSON.stringify(desktopRetina));
+ for(const id of ['ex06','ex05','ex18','ex04']){
+  assert.ok(await desktop.evaluate(id=>window.BACK2U_THEMES.use(id),id));
+  await desktop.waitForFunction(id=>document.body.dataset.themeId===id,id);
+  await shot(desktop,'desktop-'+id);
+ }
  const railLayout=await desktop.locator('#dashboardWorkspace>.section-nav').evaluate(x=>({
   position:getComputedStyle(x).position,referenceLayout:document.body.dataset.referenceLayout||''
  }));
