@@ -254,6 +254,28 @@ try{
   assert.ok(!scene.oldSvg&&scene.stillThere,'Photo scene must not draw old SVG or hide actual heading: '+id);
   await shot(desktop,'desktop-'+id);
  }
+
+ for(const id of ['ex17','ex19','ex20','ex01']){
+  assert.ok(await desktop.evaluate(id=>window.BACK2U_THEMES.use(id),id),'Theme selection failed: '+id);
+  await desktop.waitForFunction(id=>document.body.dataset.themeId===id,id);
+  const scene=await desktop.evaluate(async()=>{
+   const img=new Image();
+   img.src='/theme-worlds-v811.jpg';
+   await img.decode();
+   const masthead=document.querySelector('.masthead');
+   const stage=document.querySelector('.masthead>.theme-world-stage');
+   const title=masthead.querySelector('h1');
+   const rect=title.getBoundingClientRect();
+   return {image:img.naturalWidth,
+    stage:getComputedStyle(stage).backgroundImage,
+    oldSvg:getComputedStyle(masthead).backgroundImage.includes('data:image/svg+xml'),
+    heading:rect.height>50&&getComputedStyle(title).display!=='none',
+    overflow:document.documentElement.scrollWidth>document.documentElement.clientWidth+20};
+  });
+  assert.ok(scene.image>=1200&&scene.stage.includes('theme-worlds-v811.jpg'),'Photo world must display actual image: '+id);
+  assert.ok(!scene.oldSvg&&scene.heading&&!scene.overflow,'No obsolete SVG, hidden heading or viewport overflow: '+id+' '+JSON.stringify(scene));
+  await shot(desktop,'desktop-'+id);
+ }
  const railLayout=await desktop.locator('#dashboardWorkspace>.section-nav').evaluate(x=>({
   position:getComputedStyle(x).position,referenceLayout:document.body.dataset.referenceLayout||''
  }));
