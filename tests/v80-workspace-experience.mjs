@@ -5,6 +5,16 @@ import vm from 'node:vm';
 const html=readFileSync(new URL('../site/index.html',import.meta.url),'utf8');
 const ux=readFileSync(new URL('../site/workspace-v80.js',import.meta.url),'utf8');
 const css=readFileSync(new URL('../site/workspace-v80.css',import.meta.url),'utf8');
+const universe=readFileSync(new URL('../site/theme-universe-v806.css',import.meta.url),'utf8');
+assert.ok(html.includes('href="/theme-universe-v806.css?v=1"'),'Universe style asset must load');
+assert.ok(html.indexOf('/theme-universe-v806.css')>html.indexOf('/workspace-v80.css'),'Universe overrides must load last');
+assert.ok(universe.includes('BACK2U V8.0.6 / Theme Universe visual overhaul'));
+for(const id of ['ex05','ex06','ex19','ex04','ex20','n24','n15','n04'])
+ assert.ok(universe.includes('data-theme-id="'+id+'"'),'Missing theme direction '+id);
+assert.ok(universe.includes('backdrop-filter:none!important'),'Universe should avoid scroll-time backdrop sampling');
+assert.ok(universe.includes('background-attachment:scroll!important'),'Universe artwork must not use fixed wallpaper');
+assert.ok(!universe.includes('filter:blur('),'Universe effect should not reintroduce heavy blur');
+
 const themeSource=readFileSync(new URL('../site/theme-studio.js',import.meta.url),'utf8');
 const artSource=readFileSync(new URL('../site/reference-theme-art.js',import.meta.url),'utf8');
 const catalog=themeSource.match(/'((?:ex|fa|n)\d{2})\|/g)||[];
