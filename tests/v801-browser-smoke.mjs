@@ -8,7 +8,7 @@
  */
 import assert from 'node:assert/strict';
 import {createServer} from 'node:http';
-import {readFile} from 'node:fs/promises';
+import {readFile,mkdir} from 'node:fs/promises';
 import {fileURLToPath} from 'node:url';
 import path from 'node:path';
 import {chromium} from 'playwright';
@@ -37,6 +37,10 @@ const server=createServer(async(req,res)=>{
 await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
 const base='http://127.0.0.1:'+server.address().port;
 const browser=await chromium.launch({headless:true,args:['--no-sandbox','--disable-dev-shm-usage']});
+const screenshotDir=path.resolve(process.cwd(),'artifacts','v809');
+await mkdir(screenshotDir,{recursive:true});
+async function shot(page,name){await page.screenshot({path:path.join(screenshotDir,name+'.png'),animations:'disabled'});}
+
 async function createPage(name,viewport,flags={}){
  const page=await browser.newPage({viewport,deviceScaleFactor:flags.mobile?3:1,
   isMobile:!!flags.mobile,hasTouch:!!flags.mobile});
@@ -100,6 +104,7 @@ try{
  assert.equal(await phone.evaluate(()=>window.BACK2U_THEMES.current()),'ex05');
  await phone.locator('#themeStudioPanel [data-v80-theme="ex06"]').click();
  assert.equal(await phone.evaluate(()=>window.BACK2U_THEMES.current()),'ex06');
+ await shot(phone,'iphone-black-corvette');
  await phone.waitForFunction(()=>document.querySelector('.theme-world-stage img')?.src.startsWith('data:image/svg+xml,'));
  const retinaScene=await phone.evaluate(async()=>{
   const stage=document.querySelector('.theme-world-stage img');
@@ -209,6 +214,11 @@ try{
  });
  assert.ok(desktopRetina.width>800&&desktopRetina.height>=340&&desktopRetina.sharp,
   'Desktop must render a large true vector illustration: '+JSON.stringify(desktopRetina));
+ for(const id of ['ex06','ex05','ex18','ex04']){
+  assert.ok(await desktop.evaluate(id=>window.BACK2U_THEMES.use(id),id));
+  await desktop.waitForFunction(id=>document.body.dataset.themeId===id,id);
+  await shot(desktop,'desktop-'+id);
+ }
  const railLayout=await desktop.locator('#dashboardWorkspace>.section-nav').evaluate(x=>({
   position:getComputedStyle(x).position,referenceLayout:document.body.dataset.referenceLayout||''
  }));
