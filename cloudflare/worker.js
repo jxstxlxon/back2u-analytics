@@ -10,7 +10,7 @@ import {runInstagramWindsorFollowersSync,overlayInstagramWindsorFollowers,instag
 import {runTikTokOrganicSync,overlayTikTokOrganicState,tiktokOrganicStatus} from './tiktok-windsor-repair.js';
 import {syncPhaseForUtcMinute,isLegacyThirtyMinuteCron} from './sync-schedule.js';
 import {snapshotWithRawFallback} from './snapshot-recovery.js';
-import {reconcileSnapshotWarnings} from './snapshot-warning-reconcile.js';
+import {reconcileSnapshotWarnings,publicSnapshotWarningDiagnosis} from './snapshot-warning-reconcile.js';
 import {runYouTubeWindsorExtrasSync,overlayYouTubeWindsorExtras,youtubeWindsorExtrasStatus} from './youtube-windsor-extras.js';
 /* BACK2U Cloudflare Worker - private creator dashboard.
    Independent of Netlify. Do not publish API keys or creator analytics in static assets.
@@ -727,9 +727,14 @@ async function route(req,env,ctx){
    windsorReady:typeof env.WINDSOR_API_KEY==='string'&&env.WINDSOR_API_KEY.trim().length>=16};
   try{
    if(env.DB){
-    const [sync,stored,snapshot]=await Promise.all([
-     get(env,'tt_windsor_sync_v1'),get(env,'tt_windsor_daily_v1'),get(env,'snapshot')
+    const [sync,stored,snapshot,cursor]=await Promise.all([
+     get(env,'tt_windsor_sync_v1'),get(env,'tt_windsor_daily_v1'),
+     get(env,'snapshot'),get(env,'tt_page_cursor')
     ]);
+    // Allowlisted operational category only; never leak raw error messages,
+    // media IDs, counts or private analytics through the public health URL.
+    health.snapshotNotice=publicSnapshotWarningDiagnosis(snapshot,{
+     tiktokOrganic:stored,tiktokSync:sync,tiktokCursor:cursor});
     // Diagnostic booleans only: never expose media counts, dates or data.
     health.snapshotStored=!!(snapshot?.platforms?.yt&&snapshot?.platforms?.ig&&snapshot?.platforms?.tt);
     health.snapshotHasVideoCatalog=!!(['yt','ig','tt'].some(p=>snapshot?.platforms?.[p]?.videos?.length));
@@ -756,7 +761,8 @@ async function route(req,env,ctx){
      lastSuccessRecent:since(sync?.lastSuccessAt)
     };
    }
-  }catch(_){health.tiktokSync={state:'read-failed',reason:'storage'};}
+  }catch(_){health.tiktokSync={state:'read-failed',reason:'storage'};
+   health.snapshotNotice={category:'unknown',legacyTikTokRecovered:false};}
   // Temporary high-level production diagnosis for missing extras; expose no
   // account metrics, dates, tokens or error messages to the public health URL.
   try {
