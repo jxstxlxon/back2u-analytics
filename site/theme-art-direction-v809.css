@@ -459,3 +459,20 @@ body[data-theme-id="ex04"][data-theme-artwork="on"] .masthead>.theme-world-stage
   opacity:.38!important;
  }
 }
+
+
+/* Blend the image stage into the real header instead of the hard vertical seam
+ * visible at the left edge of the first photographic browser screenshots. */
+body:is([data-theme-id="ex05"],[data-theme-id="ex06"],[data-theme-id="ex18"],[data-theme-id="ex04"])[data-theme-artwork="on"] .masthead>.theme-world-stage{
+ -webkit-mask-image:linear-gradient(90deg,transparent 0%,rgba(0,0,0,.28) 15%,#000 49%)!important;
+ mask-image:linear-gradient(90deg,transparent 0%,rgba(0,0,0,.28) 15%,#000 49%)!important;
+}
+body:is([data-theme-id="ex05"],[data-theme-id="ex06"],[data-theme-id="ex18"],[data-theme-id="ex04"])[data-theme-artwork="on"] .masthead>.theme-world-stage::after{
+ background:none!important;
+}
+@media(max-width:760px){
+ body:is([data-theme-id="ex05"],[data-theme-id="ex06"],[data-theme-id="ex18"],[data-theme-id="ex04"])[data-theme-artwork="on"] .masthead>.theme-world-stage{
+  -webkit-mask-image:linear-gradient(90deg,transparent 0%,rgba(0,0,0,.70) 32%,#000 85%)!important;
+  mask-image:linear-gradient(90deg,transparent 0%,rgba(0,0,0,.70) 32%,#000 85%)!important;
+ }
+}
