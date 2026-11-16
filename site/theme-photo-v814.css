@@ -1,0 +1,70 @@
+/* BACK2U V8.1.4 — final four Extreme cinematic theme art scenes.
+ * Individual optimized local JPGs: no stretched sprites, no fake UI/data,
+ * no external CDNs, no scrolling animations or expensive backdrop sampling.
+ */
+body[data-theme-id="ex09"]{
+ --v814-scene:url("/theme-world-v814-lunar.jpg");
+ --v809-card:15,19,31;
+ --v809-edge:rgba(181,216,255,.78);
+}
+body[data-theme-id="ex10"]{
+ --v814-scene:url("/theme-world-v814-sakura.jpg");
+ --v809-card:28,12,36;
+ --v809-edge:rgba(250,118,225,.82);
+}
+body[data-theme-id="ex11"]{
+ --v814-scene:url("/theme-world-v814-ice.jpg");
+ --v809-card:8,23,36;
+ --v809-edge:rgba(116,229,255,.84);
+}
+body[data-theme-id="ex12"]{
+ --v814-scene:url("/theme-world-v814-eclipse.jpg");
+ --v809-card:23,14,10;
+ --v809-edge:rgba(255,166,59,.83);
+}
+body:is([data-theme-id="ex09"],[data-theme-id="ex10"],[data-theme-id="ex11"],[data-theme-id="ex12"])[data-theme-artwork="on"] .masthead>.theme-world-stage{
+ background-image:var(--v814-scene)!important;
+ background-size:cover!important;
+ background-position:center!important;
+ background-repeat:no-repeat!important;
+ opacity:1!important;
+ -webkit-mask-image:linear-gradient(90deg,transparent 0%,rgba(0,0,0,.23) 19%,#000 58%)!important;
+ mask-image:linear-gradient(90deg,transparent 0%,rgba(0,0,0,.23) 19%,#000 58%)!important;
+}
+body:is([data-theme-id="ex09"],[data-theme-id="ex10"],[data-theme-id="ex11"],[data-theme-id="ex12"])[data-theme-artwork="on"] .masthead>.theme-world-stage>img{
+ visibility:hidden!important;
+}
+body:is([data-theme-id="ex09"],[data-theme-id="ex10"],[data-theme-id="ex11"],[data-theme-id="ex12"])[data-theme-artwork="on"] .masthead>.theme-world-stage::after{
+ background:none!important;
+}
+body[data-theme-artwork="on"][data-reference-layout][data-theme-id="ex09"] .masthead,
+body[data-theme-artwork="on"][data-reference-layout][data-theme-id="ex10"] .masthead,
+body[data-theme-artwork="on"][data-reference-layout][data-theme-id="ex11"] .masthead,
+body[data-theme-artwork="on"][data-reference-layout][data-theme-id="ex12"] .masthead{
+ background-image:
+  linear-gradient(93deg,rgba(var(--v809-card),.99),rgba(var(--v809-card),.98) 29%,rgba(var(--v809-card),.86) 48%,rgba(var(--v809-card),.09) 89%),
+  radial-gradient(ellipse 64% 96% at 91% 54%,rgba(var(--v809-accent),.16),transparent 81%)!important;
+ background-color:rgb(var(--v809-card))!important;
+}
+body:is([data-theme-id="ex09"],[data-theme-id="ex10"],[data-theme-id="ex11"],[data-theme-id="ex12"])[data-theme-artwork="on"] #overview .theme-hero-stage{
+ display:none!important;
+}
+#themeStudioPanel .theme-option[data-preset="ex09"] .theme-option-preview,
+#themeStudioPanel .theme-option[data-preset="ex10"] .theme-option-preview,
+#themeStudioPanel .theme-option[data-preset="ex11"] .theme-option-preview,
+#themeStudioPanel .theme-option[data-preset="ex12"] .theme-option-preview{
+ background-image:linear-gradient(0deg,rgba(0,0,0,.20),transparent 62%),var(--v814-scene)!important;
+ background-size:cover!important;
+ background-repeat:no-repeat!important;
+ background-position:center!important;
+}
+@media(max-width:760px){
+ html body[data-theme-artwork="on"][data-theme-tone][data-theme-id="ex09"] .masthead>div.theme-world-stage,
+ html body[data-theme-artwork="on"][data-theme-tone][data-theme-id="ex10"] .masthead>div.theme-world-stage,
+ html body[data-theme-artwork="on"][data-theme-tone][data-theme-id="ex11"] .masthead>div.theme-world-stage,
+ html body[data-theme-artwork="on"][data-theme-tone][data-theme-id="ex12"] .masthead>div.theme-world-stage{
+  opacity:.38!important;
+  -webkit-mask-image:linear-gradient(90deg,transparent 0%,rgba(0,0,0,.68) 38%,#000 83%)!important;
+  mask-image:linear-gradient(90deg,transparent 0%,rgba(0,0,0,.68) 38%,#000 83%)!important;
+ }
+}
