@@ -9,6 +9,7 @@ import {runInstagramWindsorMediaSync,overlayInstagramWindsorMedia,instagramWinds
 import {runInstagramWindsorFollowersSync,overlayInstagramWindsorFollowers,instagramWindsorFollowersStatus} from './instagram-followers-sync.js';
 import {runTikTokOrganicSync,overlayTikTokOrganicState,tiktokOrganicStatus} from './tiktok-windsor-repair.js';
 import {syncPhaseForUtcMinute,isLegacyThirtyMinuteCron} from './sync-schedule.js';
+import {tiktokScanPageBudget} from './tiktok-scan-budget.js';
 import {snapshotWithRawFallback} from './snapshot-recovery.js';
 import {reconcileSnapshotWarnings,publicSnapshotWarningDiagnosis} from './snapshot-warning-reconcile.js';
 import {runYouTubeWindsorExtrasSync,overlayYouTubeWindsorExtras,youtubeWindsorExtrasStatus} from './youtube-windsor-extras.js';
@@ -611,7 +612,12 @@ async function ttFetch(env,maxPages=25,startCursor){
 async function ttSync(env){
  const checkpoint=await get(env,'tt_page_cursor');
  const validCheckpoint=checkpoint?.hasMore&&checkpoint?.cursor!=null&&Number.isSafeInteger(Number(checkpoint.cursor))&&Date.now()-Date.parse(checkpoint.updatedAt||'')<86400000;
- const t=await ttFetch(env,25,validCheckpoint?Number(checkpoint.cursor):undefined);if(!t.connected)return {connected:false,added:0};
+ // A fixed 500-video budget could not finish a known >500-video catalog.
+ // Adapt to verified stored totals, cap the calls, and preserve pagination
+ // checkpoints for any history larger than the safe one-run limit.
+ const scanBudget=tiktokScanPageBudget(checkpoint?.storedAfterMerge);
+ const t=await ttFetch(env,scanBudget,validCheckpoint?Number(checkpoint.cursor):undefined);
+ if(!t.connected)return {connected:false,added:0};
  // A denied statistics scope must never interrupt the established video sync.
  const profileSync=await ttRefreshProfile(env).catch(e=>({known:false,error:clamp(e?.message)}));
  const snapshot=await get(env,'snapshot');
@@ -644,10 +650,17 @@ async function ttSync(env){
  snapshot.status=snapshot.errors.length?'partial':'ok';
  await put(env,'snapshot',snapshot);
  await put(env,'tt_scan_reconciliation',inventory);
- await put(env,'tt_page_cursor',{cursor:t.hasMore?t.nextCursor:null,hasMore:t.hasMore,pagesLastBatch:t.pages,updatedAt:new Date().toISOString(),complete:!t.hasMore});
+ await put(env,'tt_page_cursor',{
+  cursor:t.hasMore?t.nextCursor:null,hasMore:t.hasMore,pagesLastBatch:t.pages,
+  updatedAt:new Date().toISOString(),complete:!t.hasMore,
+  storedAfterMerge:videos.length,
+  // This is the time of the last truly finished official scan, not a claim
+  // that the current in-progress pass has already reached its final page.
+  completedAt:t.hasMore?(checkpoint?.completedAt||null):new Date().toISOString()
+ });
  return {connected:true,added:t.videos.length,total:videos.length,hasMore:t.hasMore,pages:t.pages,complete:!t.hasMore,continued:!!validCheckpoint,
    fetchedThisRun:inventory.fetchedThisRun,previouslyStoredNotReturned:inventory.previouslyStoredNotReturned,
-   fullInventoryComparison:inventory.fullScan,
+   fullInventoryComparison:inventory.fullScan,scanBudget,
    tiktokFollowersUpdated:profileSync.known,statsScopeRequired:profileSync.reason==='user.info.stats not granted'};
 }
 /* Read-only cross-check of saved TikTok IDs against the independent video/query API.
