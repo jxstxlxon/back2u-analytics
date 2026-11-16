@@ -113,6 +113,14 @@ try{
  });
  assert.ok(photoPreviews.every(x=>x.photoLoaded&&!x.vectorGenerated),
   'Photographic themes should use atlas imagery without generating redundant SVGs: '+JSON.stringify(photoPreviews));
+
+ const legacyPhotoPreviews=await phone.evaluate(()=>['n24','n04','n15','n23'].map(id=>{
+  const card=document.querySelector('#themeGrid .theme-option[data-preset="'+id+'"]');
+  return {id,exists:!!card,vectorGenerated:!!card?.style.getPropertyValue('--ref-preview'),
+   background:card?getComputedStyle(card.querySelector('.theme-option-preview')).backgroundImage:''};
+ }));
+ assert.ok(legacyPhotoPreviews.every(x=>x.exists&&!x.vectorGenerated&&x.background.includes('theme-worlds-v815.jpg')),
+  'iPhone legacy photo thumbnails must use the local atlas rather than SVG: '+JSON.stringify(legacyPhotoPreviews));
  const firstVector=phone.locator('#themeGrid .theme-option[data-preset="n01"]');
  await firstVector.scrollIntoViewIfNeeded();
  await phone.waitForFunction(()=>!!document.querySelector('#themeGrid .theme-option[data-preset="n01"]')?.style.getPropertyValue('--ref-preview'),
@@ -424,6 +432,23 @@ try{
  await desktop.locator('#themeReset').click();
  assert.equal(await desktop.locator('#theme_layout').inputValue(),'auto');
  await desktop.locator('#themeClose').click();
+
+ // Rebased legacy-photo integration: verify actual decoded image and accessible hero
+ // without changing the rest of the test profile's selected theme.
+ const legacyOriginalTheme=await desktop.evaluate(()=>window.BACK2U_THEMES.current());
+ for(const id of ['n24','n04','n15','n23']){
+  assert.ok(await desktop.evaluate(id=>window.BACK2U_THEMES.use(id),id),'Legacy theme selection failed '+id);
+  const scene=await desktop.evaluate(async()=>{
+   const img=new Image();img.src='/theme-worlds-v815.jpg';await img.decode();
+   const mast=document.querySelector('.masthead'),stage=mast.querySelector('.theme-world-stage'),heading=mast.querySelector('h1');
+   return {decodedWidth:img.naturalWidth,background:getComputedStyle(stage).backgroundImage,
+    heading:heading.getBoundingClientRect().height>=30&&getComputedStyle(heading).display!=='none',
+    overflow:document.documentElement.scrollWidth>document.documentElement.clientWidth+24};
+  });
+  assert.ok(scene.decodedWidth>=1200&&scene.background.includes('theme-worlds-v815.jpg')&&scene.heading&&!scene.overflow,
+   'Legacy photo must render without hidden H1 or horizontal overflow: '+id+' '+JSON.stringify(scene));
+ }
+ await desktop.evaluate(id=>window.BACK2U_THEMES.use(id),legacyOriginalTheme);
  const railLayout=await desktop.locator('#dashboardWorkspace>.section-nav').evaluate(x=>({
   position:getComputedStyle(x).position,referenceLayout:document.body.dataset.referenceLayout||''
  }));

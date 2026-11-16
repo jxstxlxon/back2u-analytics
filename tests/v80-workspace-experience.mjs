@@ -102,7 +102,7 @@ assert.ok(retinaStage.includes('back2u-theme-changed'),'Art stage must respond t
 const themeSource=readFileSync(new URL('../site/theme-studio.js',import.meta.url),'utf8');
 
 new vm.Script(themeSource,{filename:'theme-studio.js'});
-assert.ok(html.includes('src="/theme-studio.js?v=11" defer'),'Optimized Theme Studio must bypass stale browser JS cache');
+assert.ok(html.includes('src="/theme-studio.js?v=12" defer'),'Optimized Theme Studio must bypass stale browser JS cache');
 assert.ok(themeSource.includes('const photoThemeIds=new Set('),'Self-hosted photo themes should skip redundant vector previews');
 assert.ok(html.includes('href="/theme-studio.css?v=2"'),'Touch-friendly theme controls must load');
 assert.ok(themeSource.includes("item.addEventListener('change',commit)"),'iOS select/color controls must commit on change');
@@ -113,6 +113,20 @@ const photoMatch=themeSource.match(/const photoThemeIds=new Set\(\[([^\]]+)\]\)/
 assert.ok(photoMatch,'Photo theme list must be explicit and stable');
 const photographed=photoMatch[1].match(/'ex\d{2}'/g)||[];
 assert.equal(photographed.length,20,'All 20 Extreme photographic themes must bypass legacy vector thumbnails');
+
+const legacyPhotoMatch=photoMatch[1].match(/'n\d{2}'/g)||[];
+assert.deepEqual(new Set(legacyPhotoMatch),new Set(["'n24'","'n04'","'n15'","'n23'"]),
+ 'All four remastered legacy themes must use local photo previews, not SVGs');
+const legacyScenes=readFileSync(new URL('../site/theme-photo-v815.css',import.meta.url),'utf8');
+const legacyAtlas=readFileSync(new URL('../site/theme-worlds-v815.jpg',import.meta.url));
+assert.ok(legacyAtlas.length>150000,'Real local four-world image atlas must exist');
+assert.ok(html.includes('href="/theme-photo-v815.css?v=1"'),'Legacy photo CSS must load');
+assert.ok(html.indexOf('/theme-photo-v815.css')>html.indexOf('/theme-photo-v814.css'),'Legacy images must override V814');
+assert.ok(html.indexOf('/theme-chrome-v816.css')>html.indexOf('/theme-photo-v815.css'),'Preserve newer premium chrome styles');
+for(const id of ['n24','n04','n15','n23'])
+ assert.ok(legacyScenes.includes('data-theme-id="'+id+'"'),'Missing legacy world '+id);
+assert.ok(!legacyScenes.includes('filter:blur('),'New worlds must not add heavy GPU blur');
+
 
 const v814Css=readFileSync(new URL('../site/theme-photo-v814.css',import.meta.url),'utf8');
 assert.ok(html.includes('href="/theme-photo-v814.css?v=1"'),'V814 photo CSS must load');
