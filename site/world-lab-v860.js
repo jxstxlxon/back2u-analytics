@@ -141,7 +141,10 @@ function installStudio(){
    blank.className='v860-comparison-placeholder';other.append(blank);
   }
   accept.disabled=!target;
-  grid.querySelectorAll('.theme-option').forEach(card=>card.dataset.comparison=card.dataset.preset===target?'true':'false');
+  grid.querySelectorAll('.theme-option').forEach(card=>{
+   card.dataset.comparison=card.dataset.preset===target?'true':'false';
+   card.dataset.v860World=layout(card.dataset.preset);
+  });
  }
  function setCompare(on){
   compare=on;compareBtn.setAttribute('aria-pressed',String(on));
@@ -167,10 +170,10 @@ function installStudio(){
   themes().use(target);setCompare(false);update();
  });
  const gridMo=new MutationObserver(()=>{
-  if(compare){
-   grid.querySelectorAll('.theme-option').forEach(card=>{
-    card.dataset.comparison=card.dataset.preset===target?'true':'false';
-   });
+  for(const card of grid.querySelectorAll('.theme-option')){
+   const w=layout(card.dataset.preset);
+   if(card.dataset.v860World!==w)card.dataset.v860World=w;
+   if(compare){const mark=card.dataset.preset===target?'true':'false';if(card.dataset.comparison!==mark)card.dataset.comparison=mark;}
   }
  });
  gridMo.observe(grid,{childList:true});
