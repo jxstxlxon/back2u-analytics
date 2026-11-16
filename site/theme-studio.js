@@ -182,6 +182,7 @@ function apply(){
  setvar('--ink',p.light?'#102c43':'#edf6ff');setvar('--muted',p.light?'#33556f':'#b4c7da');setvar('--soft',p.light?'#556b81':'#8da9c3');
  setvar('--t-label',p.light?'#21435e':'#d9ecfa');setvar('--t-grid',p.light?'#426c93':'#95bde8');
  document.documentElement.style.colorScheme=p.light?'light':'dark';
+ const world=el('themeWorldName');if(world)world.textContent=p.name.replace(/^\\d+ · /,'').toUpperCase();
  const label=el('themeCurrentName');if(label)label.textContent=p.name;
  const trigger=el('themeStudioToggle');if(trigger)trigger.title='Theme: '+p.name;
  refreshEditor();
