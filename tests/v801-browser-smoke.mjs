@@ -142,6 +142,7 @@ try{
    heroImage:kpiBg.includes('data:image/svg+xml'),
    sceneOnly:getComputedStyle(stage).display==='none',
    stageRatio:img.getBoundingClientRect().width/mast.getBoundingClientRect().width,
+   stageOpacity:Number.parseFloat(getComputedStyle(img.parentElement).opacity),
    mastImage:mastBg.includes('data:image/svg+xml'),
    width:document.documentElement.scrollWidth,
    viewport:document.documentElement.clientWidth
@@ -149,7 +150,7 @@ try{
  });
  assert.ok(!cinematicContrast.bodyImage,'No huge wallpaper behind entire dashboard');
  assert.ok(!cinematicContrast.heroImage&&cinematicContrast.sceneOnly,'Real KPIs must not be cartoon wallpaper');
- assert.ok(cinematicContrast.stageRatio<=.66,'Decorative art stays confined to one side');
+ assert.ok(cinematicContrast.stageRatio<=1.01&&cinematicContrast.stageOpacity<=.45,'On phone, background art may span header only when strongly dimmed');
  assert.ok(cinematicContrast.mastImage,'Cinematic hero keeps its theme illustration');
  assert.ok(cinematicContrast.width<=cinematicContrast.viewport+24,'No mobile horizontal overflow');
 
