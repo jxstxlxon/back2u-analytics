@@ -447,3 +447,15 @@ body[data-theme-id="ex04"][data-theme-artwork="on"] .masthead>.theme-world-stage
   background-size:200% 200%!important;
  }
 }
+
+
+/* Guarantee smartphone opacity even if a browser keeps older Retina
+ * declarations with stronger specificity from the previous release. */
+@media screen and (max-width:760px){
+ html body[data-theme-artwork="on"][data-theme-tone][data-theme-id="ex05"] .masthead > div.theme-world-stage,
+ html body[data-theme-artwork="on"][data-theme-tone][data-theme-id="ex06"] .masthead > div.theme-world-stage,
+ html body[data-theme-artwork="on"][data-theme-tone][data-theme-id="ex18"] .masthead > div.theme-world-stage,
+ html body[data-theme-artwork="on"][data-theme-tone][data-theme-id="ex04"] .masthead > div.theme-world-stage{
+  opacity:.38!important;
+ }
+}
