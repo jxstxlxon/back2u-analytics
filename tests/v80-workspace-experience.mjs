@@ -293,3 +293,32 @@ assert.ok(galleryCss.includes('background-image:url("/theme-worlds-v815.jpg")'),
 assert.ok(!galleryCss.includes('filter:blur('),'New gallery must avoid costly blur');
 assert.ok(themeSource.includes("b.addEventListener('click',()=>{state.id=p.id;save();apply()});"),
  'Theme switching must not rebuild the gallery and lose user scroll/focus');
+
+/* V8.3 / all-56 world remaster acceptance */
+const allProfiles=readFileSync(new URL('../site/theme-all-v830.css',import.meta.url),'utf8');
+const signatureJs=readFileSync(new URL('../site/theme-signatures-v830.js',import.meta.url),'utf8');
+new vm.Script(signatureJs,{filename:'theme-signatures-v830.js'});
+assert.ok(html.includes('href="/theme-all-v830.css?v=1"'),'56 world material CSS must load');
+assert.ok(html.includes('src="/theme-signatures-v830.js?v=1" defer'),'Unique vector signature engine must load');
+assert.ok(html.indexOf('/theme-all-v830.css')>html.indexOf('/theme-gallery-v821.css'),
+ 'V8.3 must not be undone by older gallery CSS');
+assert.ok(html.indexOf('/theme-worlds-v808.js')<html.indexOf('/theme-signatures-v830.js')&&
+ html.indexOf('/theme-signatures-v830.js')<html.indexOf('/theme-studio.js'),
+ 'Vector signatures must wrap the retina engine before the Theme Studio loads');
+const originalThemeRows=[...themeSource.matchAll(/^'(n\d\d|fa\d\d|ex\d\d)\|/gm)].map(x=>x[1]);
+assert.equal(originalThemeRows.length,56,'Keep exactly 56 existing presets');
+assert.equal(new Set(originalThemeRows).size,56,'Theme IDs must remain unique');
+const photographic=new Set(['ex01','ex02','ex03','ex04','ex05','ex06','ex07','ex08','ex09','ex10',
+ 'ex11','ex12','ex13','ex14','ex15','ex16','ex17','ex18','ex19','ex20','n04','n15','n23','n24']);
+for(const id of originalThemeRows){
+ assert.ok(allProfiles.includes('body[data-theme-id="'+id+'"]'),'Every theme needs a specific V8.3 material '+id);
+ assert.ok(allProfiles.includes('--v830-signature:"'+id+'-'),'Each theme needs a unique visual signature '+id);
+ if(!photographic.has(id))assert.ok(signatureJs.includes(' '+id+':['),'Each vector theme needs a unique SVG accent '+id);
+}
+assert.equal(photographic.size,24);
+assert.equal((signatureJs.match(/^ (?:n\d\d|fa\d\d):\[/gm)||[]).length,32,
+ 'Every non-photographic original world must have exactly one artwork signature');
+assert.ok(!allProfiles.includes('filter:blur(')&&!allProfiles.includes('backdrop-filter:blur('),
+ 'Premium 56-world CSS must avoid expensive realtime Gaussian filters');
+assert.ok(!signatureJs.includes('<filter')&&!signatureJs.includes('setInterval'),
+ 'Enhanced vector artwork must not add SVG filters or animations');

@@ -381,6 +381,40 @@ try{
  await ipad.close();
 
  const {page:desktop,errors:desktopErrors}=await createPage('Desktop 1440×900',{width:1440,height:900});
+
+ // V8.3: inspect actual material/hero DOM from all 56 existing themes.
+ // Use a disposable Chromium browser profile and restore the original preset.
+ const v830Audit=await desktop.evaluate(()=>{
+  const themes=window.BACK2U_THEMES;
+  const originals=themes.list(),saved=themes.current();
+  const seen=new Set(),issues=[];
+  for(const t of originals){
+   if(!themes.use(t.id)){issues.push(t.id+':cannot select');continue;}
+   const signature=getComputedStyle(document.body).getPropertyValue('--v830-signature').trim();
+   const hero=getComputedStyle(document.querySelector('#overview .hero-main'));
+   const head=document.querySelector('.masthead h1');
+   const img=document.querySelector('.masthead>.theme-world-stage img');
+   const isPhoto=/^(ex\d\d|n04|n15|n23|n24)$/.test(t.id);
+   const vectorUri=img?.getAttribute('src')||'';
+   const matchingSvg=isPhoto||(
+     vectorUri.startsWith('data:image/svg+xml,')&&
+     decodeURIComponent(vectorUri.slice('data:image/svg+xml,'.length)).includes('data-back2u-signature="'+t.id+'"'));
+   if(!signature.includes('"'+t.id+'-'))issues.push(t.id+':wrong CSS signature '+signature);
+   if(seen.has(signature))issues.push(t.id+':duplicate CSS signature');
+   if(!matchingSvg)issues.push(t.id+':missing unique vector overlay');
+   if(!hero.backgroundImage.includes('gradient'))issues.push(t.id+':no material background');
+   if(!head||head.getBoundingClientRect().height<30)issues.push(t.id+':hidden headline');
+   seen.add(signature);
+  }
+  themes.use(saved);
+  return {total:originals.length,unique:seen.size,issues,
+   overflow:document.documentElement.scrollWidth>document.documentElement.clientWidth+24};
+ });
+ assert.equal(v830Audit.total,56,'All previous 56 theme IDs must remain selectable');
+ assert.equal(v830Audit.unique,56,'Every existing theme must have a distinct computed material signature');
+ assert.deepEqual(v830Audit.issues,[],'Theme world remaster missing some real artwork/materials: '+JSON.stringify(v830Audit.issues));
+ assert.ok(!v830Audit.overflow,'Full theme sweep must not cause horizontal desktop overflow');
+
  const desktopRetina=await desktop.evaluate(async()=>{
   const img=document.querySelector('.theme-world-stage img');
   await img.decode();
