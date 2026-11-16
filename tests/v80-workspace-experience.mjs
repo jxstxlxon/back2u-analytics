@@ -99,6 +99,8 @@ for(const marker of [
 assert.ok(css.includes('@media(min-width:1240px)'));
 assert.ok(css.includes('@media(min-width:761px) and (max-width:1239px)'));
 assert.ok(css.includes('@media(max-width:760px)'));
+assert.ok(css.includes('body[data-theme-tone] #dashboardWorkspace>.section-nav{display:none!important}'),
+ 'iPhone nav must override preexisting ui-v4 display:flex!important selector');
 assert.ok(css.includes('@media(max-width:375px)'));
 assert.ok(css.includes('@media(prefers-reduced-motion:reduce)'));
 assert.ok(css.includes('var(--t-accent'));
