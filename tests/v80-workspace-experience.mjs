@@ -7,6 +7,21 @@ const ux=readFileSync(new URL('../site/workspace-v80.js',import.meta.url),'utf8'
 const css=readFileSync(new URL('../site/workspace-v80.css',import.meta.url),'utf8');
 const universe=readFileSync(new URL('../site/theme-universe-v806.css',import.meta.url),'utf8');
 
+const referenceChrome=readFileSync(new URL('../site/theme-chrome-v816.css',import.meta.url),'utf8');
+const momentumMesh=readFileSync(new URL('../site/theme-momentum-mesh-v816.svg',import.meta.url),'utf8');
+assert.ok(html.includes('href="/theme-chrome-v816.css?v=1"'),'Reference-grade chrome must be part of live HTML');
+assert.ok(html.indexOf('/theme-chrome-v816.css')>html.indexOf('/theme-photo-v814.css'),'Premium chrome must load after existing themes');
+assert.ok(momentumMesh.includes('viewBox="0 0 1200 650"')&&momentumMesh.includes('id="spark"'),
+ 'Momentum wave must be a real sharp SVG, not a screenshot with fake metrics');
+assert.ok(referenceChrome.includes('theme-momentum-mesh-v816.svg'),
+ 'Hyperdrive and Corvette must display the static decorative Momentum mesh');
+assert.ok(referenceChrome.includes('data-theme-id="ex19"')&&referenceChrome.includes('data-theme-id="ex06"'));
+assert.ok(referenceChrome.includes('.platform-card:nth-child(1)')&&referenceChrome.includes('.platform-card:nth-child(3)'),
+ 'Platform colors must remain individually recognizable');
+assert.ok(!referenceChrome.includes('backdrop-filter:blur(')&&!referenceChrome.includes('filter:blur('),
+ 'Reference design must not reintroduce scrolling GPU blur');
+
+
 const cinema=readFileSync(new URL('../site/theme-cinematic-v807.css',import.meta.url),'utf8');
 assert.ok(html.includes('href="/theme-cinematic-v807.css?v=1"'),'Cinematic theme CSS must load');
 assert.ok(html.indexOf('/theme-cinematic-v807.css')>html.indexOf('/theme-universe-v806.css'),'Cinematic art direction must override older styles');
