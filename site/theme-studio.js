@@ -218,7 +218,7 @@ function refreshEditor(){
 }
 // Photo themes already have self-hosted JPG previews in theme-photo-v809/v810/v811.
 // Do not build and encode a second giant SVG that the CSS never displays.
-const photoThemeIds=new Set(['ex01','ex02','ex03','ex04','ex05','ex06','ex07','ex08','ex09','ex10','ex11','ex12','ex13','ex14','ex15','ex16','ex17','ex18','ex19','ex20']);
+const photoThemeIds=new Set(['ex01','ex04','ex05','ex06','ex13','ex14','ex15','ex16','ex17','ex18','ex19','ex20']);
 const vectorPreviewCache=new Map();
 let previewObserver=null;
 function fillVectorPreview(button){
@@ -310,7 +310,15 @@ function setup(){
  }));
  document.querySelectorAll('#themeStudioPanel [data-setting]').forEach(item=>{
   const k=item.dataset.setting;
-  item.addEventListener(k==='motion'?'change':'input',()=>edit(k,k==='motion'?item.checked:item.value));
+  const commit=()=>{
+   const value=k==='motion'?item.checked:item.value;
+   // On iOS a color picker or select may only emit change after dismissal.
+   // Avoid rendering twice if another browser fires input AND change.
+   if(String(settings()[k])===String(value))return;
+   edit(k,value);
+  };
+  if(item.matches('input[type="range"],input[type="color"]'))item.addEventListener('input',commit);
+  item.addEventListener('change',commit);
  });
  el('themeReset').addEventListener('click',()=>{delete state.edits[state.id];save();apply()});
  document.addEventListener('keydown',event=>{
