@@ -382,7 +382,7 @@ try{
  assert.ok(!retinaScene.background,'Photographic masthead must no longer render obsolete SVG background');
  assert.ok(retinaScene.fullWidth,'Scene image covers header at 3x iPhone DPR');
  assert.ok(retinaScene.hero,'Theme art also exists in real KPI hero');
- assert.ok(retinaScene.height>=320,'Mobile hero has meaningful image area');
+ assert.ok(retinaScene.height>=280&&retinaScene.height<=340,'Mobile theme artwork must be meaningful without blocking actual statistics');
 
  const sceneStyle=await phone.evaluate(()=>({
   image:getComputedStyle(document.querySelector('.masthead')).backgroundImage,
