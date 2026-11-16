@@ -30,9 +30,9 @@ jobs:
               if node --input-type=module - <<'NODE'
           import {readFileSync} from 'node:fs';
           const response=JSON.parse(readFileSync('/tmp/back2u-layout-probe.json','utf8'));
-          const allowed=['html','css','bottomNavigation','desktopRail','mobileSafeArea','topVideoExpand'];
+          const allowed=['html','css','bottomNavigation','desktopRail','mobileSafeArea','topVideoExpand','themeQuick','storyTemplates','videoWorkspace','creatorAudience','moreActions'];
           for(const key of allowed)console.log('LAYOUT_'+key.toUpperCase()+'='+(response.checks?.[key]===true?'present':'missing'));
-          if(response.release!=='V7.9'||response.ready!==true||
+          if(response.release!=='V8.0'||response.ready!==true||
              !allowed.every(x=>response.checks?.[x]===true))process.exit(1);
           NODE
               then
