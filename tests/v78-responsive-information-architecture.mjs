@@ -89,11 +89,11 @@ const context={
 };
 vm.runInNewContext(js.slice(start,end)+'\n;({setSection,toggleMobileMore,closeMobileMore})',context).toggleMobileMore();
 assert.equal(menu.hidden,false,'More drawer must open');
-assert.equal(more.expanded,'true');
+assert.equal(more['aria-expanded'],'true');
 assert.equal(close.focused,true,'More drawer needs keyboard focus');
 vm.runInNewContext(js.slice(start,end)+'\n;({setSection,toggleMobileMore,closeMobileMore})',context).setSection('system');
 assert.equal(menu.hidden,true,'Switching a section must always close More');
-assert.equal(more.expanded,'false');
+assert.equal(more['aria-expanded'],'false');
 assert.equal(mockBody.dataset.activeSection,'system');
 assert.ok(selected.some(x=>x.section==='system'&&x.active));
 console.log('OK V7.8: responsive navigation, user-focused section order, safe-area bottom nav, More keyboard behavior, collapsed Top-3 and complete six-section availability');
