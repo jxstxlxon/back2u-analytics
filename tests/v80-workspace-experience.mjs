@@ -357,3 +357,18 @@ assert.ok(v840Js.includes("themes.use(list[(i+dir+list.length)%list.length].id)"
  'World pager must switch real existing presets');
 assert.ok(!v840Css.includes('filter:blur(')&&!v840Css.includes('backdrop-filter:blur('),
  'Cinematic look must not degrade iPhone scroll GPU performance with extra blur');
+
+/* V8.4.1 regressions from user-provided iPhone Safari screenshot */
+const safariCoverCss=readFileSync(new URL('../site/safari-cover-v841.css',import.meta.url),'utf8');
+assert.ok(html.includes('href="/safari-cover-v841.css?v=1"'),
+ 'Screenshot fix must be loaded in production');
+assert.ok(html.indexOf('/safari-cover-v841.css')>html.indexOf('/cinematic-v840.css'),
+ 'Screenshot fix must override previous tall cover CSS');
+assert.ok(safariCoverCss.includes('@supports (-webkit-touch-callout: none)')&&
+ safariCoverCss.includes('env(safe-area-inset-top,0px)')&&safariCoverCss.includes('58px'),
+ 'iOS Safari must reserve the real status/Dynamic Island area even if env reports zero');
+assert.ok(safariCoverCss.includes('top:auto!important;right:auto!important;bottom:auto!important;left:auto!important;'),
+ 'Eyebrow must not be absolutely positioned over the heading');
+assert.ok(safariCoverCss.includes('margin:auto 0 9px!important;')&&
+ safariCoverCss.includes('min-height:308px!important;'),
+ 'Hero title must sit above dock and leave analytics reachable');
