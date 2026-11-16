@@ -312,12 +312,19 @@ const nl=s=>String(s||'').replace(/\s+/g,' ').trim();
 const nameOf=v=>nl(v.title||v.caption||'Unbenanntes Video').replace(/(\s*#\w+)+$/g,'').trim()||'Video';
 const platforms=()=>state.platform==='all'?['yt','ig','tt']:[state.platform];
 const rowsSeed=p=>(SEED.daily[p]||[]).map(x=>({d:x.d,views:p==='yt'?null:x.v,engaged:p==='yt'?x.v:null,likes:x.l??null,comments:x.c??null,interactions:x.i??null,reach:x.r??null,follows:x.f??null}));
+let dailyCache=null;
 function mergedDaily(p){
- const map=new Map(rowsSeed(p).map(r=>[r.d,r]));
+ // Daily data stays unchanged across filter, page and view switches.
+ // Clone seed records so API additions never mutate archived source rows.
+ if(dailyCache?.live===state.live&&dailyCache.entries.has(p))return dailyCache.entries.get(p);
+ if(!dailyCache||dailyCache.live!==state.live)dailyCache={live:state.live,entries:new Map()};
+ const map=new Map(rowsSeed(p).map(r=>[r.d,{...r}]));
  if(p==='yt')for(const x of SEED.checks?.youtubeFullDailyPartial||[]){let r=map.get(x.d)||{d:x.d};r.views=x.v;map.set(x.d,r)}
  if(p==='tt')for(const x of SEED.checks?.tiktokDailyNetFollows||[]){let r=map.get(x.d)||{d:x.d};r.follows=x.v;map.set(x.d,r)}
  for(const r of state.live?.platforms?.[p]?.daily||[]){if(!r.d)continue;let old=map.get(r.d)||{d:r.d};for(const [k,v] of Object.entries(r))if(v!==null&&v!==undefined)old[k]=v;map.set(r.d,old)}
- return [...map.values()].sort((a,b)=>a.d.localeCompare(b.d));
+ const rows=[...map.values()].sort((a,b)=>a.d.localeCompare(b.d));
+ dailyCache.entries.set(p,rows);
+ return rows;
 }
 function guessFormat(t){t=(t||'').toLowerCase();return t.includes('captain')?'Trend':t.includes('ianrock')||t.includes('ian rocks')||t.includes('edit')?'Edit':t.includes('hakken')?'Hakken':/tutorial|mistake|cleaner|practice/.test(t)?'Training':/phat|pant|outfit/.test(t)?'Outfit':/castle|lost|abandoned/.test(t)?'Outdoor':'Jumpstyle'}
 let videoMergeCache=null;
@@ -668,7 +675,29 @@ function renderTop(){const top=allVideosNoSearch().slice(0,3);$('#topCards').inn
 function renderInsight(){const vids=allVideosNoSearch().filter(x=>x.views>0),count=vids.length;if(!count)return;const good=vids.filter(v=>v.views>=3000);const by={};for(const v of vids){let k=v.platform+'-'+v.format;(by[k]??=[]).push(v.views)}const ranked=Object.entries(by).filter(x=>x[1].length>=3).sort((a,b)=>b[1].reduce((x,y)=>x+y,0)/b[1].length-a[1].reduce((x,y)=>x+y,0)/a[1].length);const best=ranked[0];if(best){let [p,f]=best[0].split('-');let avg=best[1].reduce((a,b)=>a+b,0)/best[1].length;$('#headlineInsight').textContent=`${NAMES[p]} · ${f}: ${fmt(avg)} Aufrufe pro Video`;$('#headlineInsightText').textContent=`${best[1].length} erfasste Clips in diesem Format. Der Durchschnitt kann von Ausreißern geprägt sein und ist keine Vorhersage.`}else{$('#headlineInsight').textContent=`${count} Videos im gewählten Zeitraum`;$('#headlineInsightText').textContent=`Davon haben ${good.length} mindestens 3.000 Aufrufe. Entdecke die Muster im Video Radar.`}
 }
 function kindScore(a,b){const clean=s=>nl(s).toLowerCase().normalize('NFKD').replace(/[\u0300-\u036f]/g,'').split('#')[0].replace(/[^a-z0-9 ]/g,' ').replace(/\b(jumpstyle|hardstyle|shuffle|hakken|edit|pt|day|video|the|and|in|this|my|new)\b/g,' ').split(/\s+/).filter(x=>x.length>2);let A=[...new Set(clean(a))],B=[...new Set(clean(b))];if(A.length<2||B.length<2)return 0;let intersect=A.filter(x=>B.includes(x)).length;return 2*intersect/(A.length+B.length)}
-function matches(v){const others=mergedVideos().filter(x=>x.platform!==v.platform&&Math.abs((toDay(x.date)-toDay(v.date))/86400000)<=3).map(x=>({v:x,s:kindScore(v.title,x.title)})).filter(x=>x.s>=.72).sort((a,b)=>b.s-a.s);let m={};for(const x of others)if(!m[x.v.platform])m[x.v.platform]=x;return m}
+let videoDateIndex=null;
+function matches(v){
+ const source=mergedVideos();
+ // Index each source snapshot once, keeping the same +/-3 day matching rule.
+ if(videoDateIndex?.source!==source){
+  const byDay=new Map(),invalid=[];
+  for(const x of source){
+   const day=toDay(x.date);
+   if(!Number.isFinite(day)){invalid.push(x);continue}
+   if(!byDay.has(day))byDay.set(day,[]);
+   byDay.get(day).push(x);
+  }
+  videoDateIndex={source,byDay,invalid};
+ }
+ const day=toDay(v.date);
+ const candidates=Number.isFinite(day)?
+  Array.from({length:7},(_,i)=>videoDateIndex.byDay.get(day+(i-3)*86400000)||[]).flat():
+  source;
+ const others=candidates.filter(x=>x.platform!==v.platform&&Math.abs((toDay(x.date)-day)/86400000)<=3)
+  .map(x=>({v:x,s:kindScore(v.title,x.title)})).filter(x=>x.s>=.72).sort((a,b)=>b.s-a.s);
+ const m={};for(const x of others)if(!m[x.v.platform])m[x.v.platform]=x;
+ return m;
+}
 
 function groupTitleStem(v){
  let text=nl(v.title||'').split('#')[0].replace(/https?:\/\/\S+/gi,' ').replace(/@\S+/g,' ').toLowerCase().normalize('NFKD');
@@ -1289,7 +1318,9 @@ document.querySelector('#back2uLoginForm').addEventListener('submit',async(e)=>{
  }catch(x){err.textContent=x.message||'Anmeldung fehlgeschlagen'}
  finally{b.disabled=false}
 });
-async function loadLive(force=false){if(state.loading)return;state.loading=true;$('#refreshBtn').classList.add('spinning');renderActive();
+async function loadLive(force=false){if(state.loading)return;state.loading=true;$('#refreshBtn').classList.add('spinning');setSyncStatus();
+ // Defer the full (potentially hundreds-of-videos) render until new data arrives.
+ // The current screen remains interactive while the network request is pending.
  const url=location.protocol==='file:'?null:`/api/snapshot${force?'?refresh=1':''}`;
  if(!url){state.lastError='Lokale Datei – keine Serververbindung.';state.loading=false;$('#refreshBtn').classList.remove('spinning');renderActive();if(force)toast('Offline-Datei: Für Live-Daten den Cloudflare-Worker veröffentlichen.');return}
  try{let response=await fetch(url,{credentials:'same-origin',cache:'no-store',signal:AbortSignal.timeout(45000)});if(response.status===401){showLogin();throw Error('Bitte anmelden')}if(!response.ok)throw Error('API-Status '+response.status);let data=await response.json();if(!data.platforms||!data.generatedAt)throw Error('Ungültige Serverantwort');state.live=data;state.sourceDiagnostics=null;
