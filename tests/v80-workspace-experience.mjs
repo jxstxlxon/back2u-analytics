@@ -79,14 +79,26 @@ assert.ok(retinaStage.includes('back2u-theme-changed'),'Art stage must respond t
 const themeSource=readFileSync(new URL('../site/theme-studio.js',import.meta.url),'utf8');
 
 new vm.Script(themeSource,{filename:'theme-studio.js'});
-assert.ok(html.includes('src="/theme-studio.js?v=9" defer'),'Optimized Theme Studio must bypass stale browser JS cache');
+assert.ok(html.includes('src="/theme-studio.js?v=10" defer'),'Optimized Theme Studio must bypass stale browser JS cache');
 assert.ok(themeSource.includes('const photoThemeIds=new Set('),'Self-hosted photo themes should skip redundant vector previews');
 assert.ok(themeSource.includes("typeof IntersectionObserver==='function'"),'Theme Studio should lazily render visible vector artwork');
 assert.ok(themeSource.includes("el('themeStudioPanel')?.hidden"),'Hidden studio must not render 56 cards during normal navigation');
 const photoMatch=themeSource.match(/const photoThemeIds=new Set\(\[([^\]]+)\]\)/);
 assert.ok(photoMatch,'Photo theme list must be explicit and stable');
 const photographed=photoMatch[1].match(/'ex\d{2}'/g)||[];
-assert.equal(photographed.length,16,'All 16 photographic themes must bypass legacy vector thumbnails');
+assert.equal(photographed.length,20,'All 20 Extreme photographic themes must bypass legacy vector thumbnails');
+
+const v814Css=readFileSync(new URL('../site/theme-photo-v814.css',import.meta.url),'utf8');
+assert.ok(html.includes('href="/theme-photo-v814.css?v=1"'),'V814 photo CSS must load');
+assert.ok(html.indexOf('/theme-photo-v814.css')>html.indexOf('/theme-photo-v813.css'),'V814 CSS must be last');
+for(const [id,slug] of [['ex09','lunar'],['ex10','sakura'],['ex11','ice'],['ex12','eclipse']]){
+ const image=readFileSync(new URL('../site/theme-world-v814-'+slug+'.jpg',import.meta.url));
+ assert.ok(image.length>35000,'High-detail local art missing for '+id);
+ assert.ok(v814Css.includes('data-theme-id="'+id+'"'),'Missing theme mapping '+id);
+ assert.ok(photographed.includes("'"+id+"'"),'V814 photo theme must skip SVG '+id);
+}
+assert.ok(!v814Css.includes('filter:blur('),'V814 art must not add GPU blur');
+
 
 const v813Atlas=readFileSync(new URL('../site/theme-worlds-v813.jpg',import.meta.url));
 const v813Styles=readFileSync(new URL('../site/theme-photo-v813.css',import.meta.url),'utf8');
