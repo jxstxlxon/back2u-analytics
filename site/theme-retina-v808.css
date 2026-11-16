@@ -445,3 +445,35 @@ body[data-theme-artwork="on"][data-reference-layout][data-theme-tone="light"] #o
 body[data-theme-artwork="on"][data-reference-layout][data-theme-family="aero"] #overview .hero-main{
  background-image:linear-gradient(90deg,rgba(242,251,255,.94),rgba(244,252,255,.76) 30%,rgba(242,251,255,.10) 88%),var(--t-scene-url)!important;
 }
+
+/* v808 regression: earlier masthead direct-div styles are more specific.
+ * Decorative art must fill the header, not become a zero-width flex child. */
+body[data-theme-artwork="on"] .masthead > .theme-world-stage{
+ position:absolute!important;
+ inset:0!important;
+ width:auto!important;
+ height:auto!important;
+ max-width:none!important;
+ flex:none!important;
+ z-index:1!important;
+ overflow:hidden!important;
+}
+body[data-theme-artwork="on"] #overview .hero-main > .theme-hero-stage{
+ position:absolute!important;
+ inset:0!important;
+ width:auto!important;
+ height:auto!important;
+ max-width:none!important;
+ z-index:1!important;
+ overflow:hidden!important;
+}
+body[data-theme-artwork="on"] .masthead > .theme-world-stage img,
+body[data-theme-artwork="on"] #overview .hero-main > .theme-hero-stage img{
+ position:absolute!important;
+ inset:0!important;
+ display:block!important;
+ width:100%!important;
+ height:100%!important;
+ max-width:none!important;
+ object-fit:cover!important;
+}
