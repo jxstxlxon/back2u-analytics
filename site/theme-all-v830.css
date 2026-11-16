@@ -192,7 +192,8 @@ body[data-theme-artwork="on"] :is(.topbar,.controlbar,.masthead,#overview .hero-
 /* The actual hero scene is still rendered in .theme-world-stage. Make its
    frame/material unique without replacing its existing high-res image. */
 body[data-theme-artwork="on"] .masthead{
- border-width:var(--v830-cut,1px)!important;
+ /* Keep the original layout box/border thickness: the scene must span the
+    complete header, including on 3x-density iPhones. Material lives on rims. */
  border-top-width:2px!important;
  background-color:var(--t-bg)!important;
 }
