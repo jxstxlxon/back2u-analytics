@@ -95,9 +95,13 @@ try{
  // local browser profile, never a user's real saved themes.
  await phone.locator('#themeStudioToggle').click();
  assert.ok(await phone.locator('#themeStudioPanel').isVisible());
- assert.equal(await phone.locator('#themeStudioPanel .v80-theme-favorite').count(),4);
- await phone.locator('#themeStudioPanel [data-v80-theme="n23"]').click();
- assert.equal(await phone.evaluate(()=>window.BACK2U_THEMES.current()),'n23');
+ assert.equal(await phone.locator('#themeStudioPanel .v80-theme-favorite').count(),8);
+ await phone.locator('#themeStudioPanel [data-v80-theme="ex05"]').click();
+ assert.equal(await phone.evaluate(()=>window.BACK2U_THEMES.current()),'ex05');
+ await phone.locator('#themeStudioPanel [data-v80-theme="ex06"]').click();
+ assert.equal(await phone.evaluate(()=>window.BACK2U_THEMES.current()),'ex06');
+ await phone.locator('#themeStudioPanel [data-v80-theme="n04"]').click();
+ assert.equal(await phone.evaluate(()=>window.BACK2U_THEMES.current()),'n04');
  await phone.locator('#themeClose').click();
  await phone.locator('#storyModeToggle').click();
  await phone.waitForFunction(()=>document.querySelector('#storyOverlay')?.classList.contains('story-composer-active'));
