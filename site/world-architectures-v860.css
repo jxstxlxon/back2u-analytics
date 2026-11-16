@@ -501,3 +501,17 @@ body[data-v860-world="ocean"] .platform-stack>.platform-card:nth-child(odd){
   flex:none!important;
  }
 }
+
+/* Preserve exact retina image bounds when a world uses a thicker decorated
+ * border: stage covers the border-box, not only its content-box. This avoids
+ * a 3x-DPR 2–4px uncovered strip on Corvette and all other photo/vector worlds. */
+html body[data-v860-world][data-theme-artwork="on"][data-theme-id][data-theme-tone]
+ .masthead > div.theme-world-stage{
+ position:absolute!important;
+ inset:-2px!important;
+ width:calc(100% + 4px)!important;
+ max-width:none!important;
+ height:calc(100% + 4px)!important;
+ flex:none!important;
+ overflow:hidden!important;
+}
