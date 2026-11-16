@@ -161,7 +161,7 @@ try{
  });
  assert.ok(!cinematicContrast.bodyImage,'No huge wallpaper behind entire dashboard');
  assert.ok(!cinematicContrast.heroImage&&cinematicContrast.sceneOnly,'Real KPIs must not be cartoon wallpaper');
- assert.ok(cinematicContrast.stageRatio<=1.01&&cinematicContrast.stageOpacity<=.45,'On phone, background art may span header only when strongly dimmed');
+ assert.ok(cinematicContrast.stageRatio<=1.01&&cinematicContrast.stageOpacity<=.45,'On phone, background art must be dimmed: '+JSON.stringify(cinematicContrast));
  assert.ok(cinematicContrast.mastImage,'Cinematic hero keeps its theme illustration');
  assert.ok(cinematicContrast.width<=cinematicContrast.viewport+24,'No mobile horizontal overflow');
 
