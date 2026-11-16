@@ -7,7 +7,7 @@ const ux=readFileSync(new URL('../site/workspace-v80.js',import.meta.url),'utf8'
 const css=readFileSync(new URL('../site/workspace-v80.css',import.meta.url),'utf8');
 const themeSource=readFileSync(new URL('../site/theme-studio.js',import.meta.url),'utf8');
 const artSource=readFileSync(new URL('../site/reference-theme-art.js',import.meta.url),'utf8');
-const catalog=themeSource.match(/'((?:ex|fa|n)\\d{2})\\|/g)||[];
+const catalog=themeSource.match(/'((?:ex|fa|n)\d{2})\|/g)||[];
 assert.equal(catalog.length,56,'Original 36 plus 20 Extreme themes');
 for(let i=13;i<=20;i++){
  const id='ex'+i;
