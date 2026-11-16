@@ -77,6 +77,17 @@ assert.ok(!retinaCss.includes('filter:blur('),'Retina visual layer cannot add ex
 assert.ok(retinaStage.includes('back2u-theme-changed'),'Art stage must respond to theme changes');
 
 const themeSource=readFileSync(new URL('../site/theme-studio.js',import.meta.url),'utf8');
+
+new vm.Script(themeSource,{filename:'theme-studio.js'});
+assert.ok(html.includes('src="/theme-studio.js?v=8" defer'),'Optimized Theme Studio must bypass stale browser JS cache');
+assert.ok(themeSource.includes('const photoThemeIds=new Set('),'Self-hosted photo themes should skip redundant vector previews');
+assert.ok(themeSource.includes("typeof IntersectionObserver==='function'"),'Theme Studio should lazily render visible vector artwork');
+assert.ok(themeSource.includes("el('themeStudioPanel')?.hidden"),'Hidden studio must not render 56 cards during normal navigation');
+const photoMatch=themeSource.match(/const photoThemeIds=new Set\(\[([^\]]+)\]\)/);
+assert.ok(photoMatch,'Photo theme list must be explicit and stable');
+const photographed=photoMatch[1].match(/'ex\d{2}'/g)||[];
+assert.equal(photographed.length,12,'All 12 photographic themes must bypass legacy vector thumbnails');
+
 const artSource=readFileSync(new URL('../site/reference-theme-art.js',import.meta.url),'utf8');
 const catalog=themeSource.match(/'((?:ex|fa|n)\d{2})\|/g)||[];
 assert.equal(catalog.length,56,'Original 36 plus 20 Extreme themes');
