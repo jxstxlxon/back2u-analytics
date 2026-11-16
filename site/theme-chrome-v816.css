@@ -144,7 +144,6 @@ body[data-theme-artwork="on"] .masthead .theme-world-stamp #themeWorldName{
 /* Navigation: etched glass rail, thin laser slit and controlled neon active
    surface. Static gradients keep scroll compositing inexpensive. */
 body[data-theme-artwork="on"][data-reference-layout] .section-nav{
- position:relative;
  isolation:isolate;
  border:1px solid rgba(var(--v816-a),.63)!important;
  border-top:2px solid var(--v816-pearl)!important;
