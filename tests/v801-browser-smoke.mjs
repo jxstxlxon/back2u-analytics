@@ -199,6 +199,27 @@ try{
  assert.equal(await phone.locator('#themeGrid .theme-option').count(),56,
   'Opening Theme Studio must show the full theme collection');
 
+ // V8.5 Studio: hero art, favourites persistence, recent and search-compatible filtering.
+ assert.ok(await phone.locator('#v850Star').isVisible());
+ assert.ok(await phone.locator('.v850-spotlight .theme-option-preview').isVisible());
+ assert.equal(await phone.locator('#v850ThemeTools [data-v850-mode]').count(),3);
+ await phone.locator('#v850Star').click();
+ const favId=await phone.evaluate(()=>window.BACK2U_THEMES.current());
+ assert.deepEqual(await phone.evaluate(()=>window.BACK2U_THEME_WORKBENCH.favorites()),[favId]);
+ await phone.locator('#v850ThemeTools [data-v850-mode="favorites"]').click();
+ await phone.waitForFunction(()=>document.querySelectorAll('#themeGrid .theme-option:not([hidden])').length===1);
+ assert.equal(await phone.locator('#themeGrid .theme-option:not([hidden])').count(),1);
+ assert.equal(await phone.locator('#v850ThemeTools [data-v850-mode="favorites"]').getAttribute('aria-pressed'),'true');
+ await phone.locator('#v850ThemeTools [data-v850-mode="all"]').click();
+ assert.equal(await phone.locator('#themeGrid .theme-option:not([hidden])').count(),56);
+ const beforeShuffle=await phone.evaluate(()=>window.BACK2U_THEMES.current());
+ await phone.locator('#v850Shuffle').click();
+ assert.notEqual(await phone.evaluate(()=>window.BACK2U_THEMES.current()),beforeShuffle);
+ assert.ok((await phone.locator('#v850FeatureName').textContent()).length>3);
+ assert.ok((await phone.evaluate(()=>window.BACK2U_THEME_WORKBENCH.recent())).length>=2);
+ await phone.evaluate(id=>window.BACK2U_THEMES.use(id),beforeShuffle);
+
+
 
  // V8.2.1 mobile gallery regression: real card geometry and usable filter tabs,
  // Preserve the existing selected theme for all later, independent tests.
@@ -349,6 +370,20 @@ try{
  await phone.locator('#themeStudioPanel [data-v80-theme="ex06"]').click();
  assert.equal(await phone.evaluate(()=>window.BACK2U_THEMES.current()),'ex06');
  await phone.locator('#themeClose').click();
+
+ // V8.5 Focus mode: reversible, stored locally, and actual artwork is hidden.
+ assert.ok(await phone.locator('#v850Focus').isVisible());
+ assert.equal(await phone.locator('#v850Focus').getAttribute('aria-pressed'),'false');
+ await phone.locator('#v850Focus').click();
+ assert.equal(await phone.locator('#v850Focus').getAttribute('aria-pressed'),'true');
+ assert.ok(await phone.locator('.masthead').isHidden());
+ assert.equal(await phone.evaluate(()=>localStorage.getItem('back2u-dashboard-focus-v850')),'1');
+ await phone.locator('#v850Focus').click();
+ assert.equal(await phone.locator('#v850Focus').getAttribute('aria-pressed'),'false');
+ assert.ok(await phone.locator('.masthead').isVisible());
+ assert.equal(await phone.evaluate(()=>localStorage.getItem('back2u-dashboard-focus-v850')),'0');
+ assert.ok(await phone.locator('#v850CopySnapshot').count()===1,'Live snapshot action exists');
+
  const mobileHeadline=await phone.evaluate(()=>{
   const h=document.querySelector('.masthead h1'),r=h.getBoundingClientRect();
   const mast=document.querySelector('.masthead').getBoundingClientRect();
@@ -483,6 +518,27 @@ try{
  await ipad.close();
 
  const {page:desktop,errors:desktopErrors}=await createPage('Desktop 1440×900',{width:1440,height:900});
+
+
+ // V8.5: all original vector worlds have distinct new stage art, photos remain.
+ const v850Art=await desktop.evaluate(()=>{
+  const t=window.BACK2U_THEMES,renderer=window.BACK2U_REFERENCE_ART;
+  const ids=window.BACK2U_SCENECRAFT_IDS||[];
+  const signatures=new Set(),issues=[];
+  for(const id of ids){
+   const art=renderer(t.get(id)),svg=decodeURIComponent(art.url.slice('data:image/svg+xml,'.length));
+   if(!svg.includes('viewBox="0 0 1920 1080"')||
+      !svg.includes('data-back2u-scenecraft="'+id+'"')||
+      !svg.includes('data-back2u-signature="'+id+'"'))issues.push(id+':incomplete SVG');
+   signatures.add(svg.slice(svg.indexOf('data-back2u-scenecraft='),svg.indexOf('data-back2u-scenecraft=')+34));
+  }
+  const photoArt=renderer(t.get('n24'));
+  return {count:ids.length,unique:signatures.size,issues,photoUntouched:!decodeURIComponent(photoArt.url).includes('data-back2u-scenecraft')};
+ });
+ assert.equal(v850Art.count,32);
+ assert.equal(v850Art.unique,32);
+ assert.deepEqual(v850Art.issues,[]);
+ assert.ok(v850Art.photoUntouched,'24 photo themes must remain on self-hosted raster atlases');
 
  // V8.3: inspect actual material/hero DOM from all 56 existing themes.
  // Use a disposable Chromium browser profile and restore the original preset.
