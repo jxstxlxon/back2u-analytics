@@ -720,7 +720,7 @@ async function route(req,env,ctx){
  if(path==='/api/health'){
   // Temporary deployment diagnostic: expose only generic health categories,
   // never authentication, content counts, private dates or raw error messages.
-  const health={service:'BACK2U Cloud',release:'V7.9',
+  const health={service:'BACK2U Cloud',release:'V8.0',
    configured:!!(env.DB&&env.DASHBOARD_PASSWORD&&env.SESSION_SECRET),
    dbReady:!!env.DB,loginReady:!!env.DASHBOARD_PASSWORD,
    sourceReady:!!env.BACK2U_GOOGLE_FEED_SECRET,
@@ -826,16 +826,20 @@ async function route(req,env,ctx){
  // the actual bundled assets inside the Worker, but return ONLY booleans.
  if(path==='/api/layout-verify'){
   if(req.method!=='GET')return json({error:'GET only'},405);
-  const unavailable={release:'V7.9',ready:false,checks:{html:false,css:false,
-   bottomNavigation:false,desktopRail:false,mobileSafeArea:false,topVideoExpand:false}};
+  const no={html:false,css:false,bottomNavigation:false,desktopRail:false,
+   mobileSafeArea:false,topVideoExpand:false,themeQuick:false,storyTemplates:false,
+   videoWorkspace:false,creatorAudience:false,moreActions:false};
+  const unavailable={release:'V8.0',ready:false,checks:no};
   if(!env.ASSETS)return json(unavailable);
   try{
-   const [page,stylesheet]=await Promise.all([
-    env.ASSETS.fetch(new Request(new URL('/index.html',req.url))),
-    env.ASSETS.fetch(new Request(new URL('/workspace-v78.css',req.url)))
-   ]);
-   if(!page.ok||!stylesheet.ok)return json(unavailable);
-   const [html,css]=await Promise.all([page.text(),stylesheet.text()]);
+   // Fetch protected static assets internally; the public response contains
+   // ONLY allowlisted booleans. No titles, video IDs or HTML contents escape.
+   const paths=['/index.html','/workspace-v78.css','/workspace-v80.css',
+    '/workspace-v80.js','/story-composer-v3.js'];
+   const assets=await Promise.all(paths.map(p=>
+    env.ASSETS.fetch(new Request(new URL(p,req.url)))));
+   if(assets.some(r=>!r.ok))return json(unavailable);
+   const [html,css,v80css,v80js,storyJs]=await Promise.all(assets.map(r=>r.text()));
    const checks={
     html:html.includes('id="dashboardWorkspace"')&&
      ['overview','videos','creator','experiments','audience','system']
@@ -845,9 +849,23 @@ async function route(req,env,ctx){
      html.includes('id="mobileMoreDrawer"'),
     desktopRail:css.includes('position:sticky;top:16px'),
     mobileSafeArea:css.includes('env(safe-area-inset-bottom,0px)'),
-    topVideoExpand:html.includes('id="topSevenExpand"')
+    topVideoExpand:html.includes('id="topSevenExpand"'),
+    themeQuick:html.includes('/workspace-v80.js?v=1')&&
+     v80js.includes('v80-theme-favorites')&&
+     v80css.includes('.v80-theme-favorite-grid'),
+    storyTemplates:html.includes('/story-composer-v3.js?v=7')&&
+     storyJs.includes('const QUICK_TEMPLATES=')&&
+     storyJs.includes('data-story-template'),
+    videoWorkspace:v80js.includes('function videoWorkspace()')&&
+     v80css.includes('#videos>.tools{order:2'),
+    creatorAudience:v80js.includes('function creatorWorkspace()')&&
+     v80js.includes('function audienceWorkspace()')&&
+     v80css.includes('#audienceCards .v7-audience-card[hidden]'),
+    moreActions:v80js.includes('function moreWorkspace()')&&
+     v80css.includes('.mobile-more-sheet .v80-more-actions')
    };
-   return json({release:'V7.9',ready:Object.values(checks).every(Boolean),checks});
+   return json({release:'V8.0',ready:Object.values(checks).every(Boolean),checks});
+  }
   }catch{
    // Never print, return, or log the protected HTML or any raw body.
    return json(unavailable);
