@@ -196,3 +196,7 @@ body[data-theme-artwork="on"] :is(.chart-card,.follower-aggregate,.lifetime-view
 @media(prefers-reduced-motion:reduce){
  #themeStudioPanel .v850-spotlight,#v850Focus{animation:none!important;transition:none!important}
 }
+
+/* Focus must beat historical theme-specific `display` declarations. */
+html body.v850-focus[data-theme-artwork="on"] .masthead,
+html body.v850-focus[data-theme-artwork="on"][data-theme-tone] .masthead{display:none!important}
