@@ -30,7 +30,7 @@ const route=worker.slice(start,end);
 assert.ok(route.includes('env.ASSETS.fetch('),'Check actual deployed Worker static bundle');
 assert.ok(route.includes("env.ASSETS.fetch(new Request(new URL('/index.html',req.url)))"));
 assert.ok(route.includes("env.ASSETS.fetch(new Request(new URL('/workspace-v78.css',req.url)))"));
-assert.ok(route.includes("return json({release:'V7.9',ready:Object.values(checks).every(Boolean),checks})"));
+assert.ok(route.includes("return json({release:'V8.0',ready:Object.values(checks).every(Boolean),checks})"));
 assert.ok(route.includes('Never print, return, or log the protected HTML'));
 assert.ok(!/console\.(log|warn|error)/.test(route),'No private HTML or error logs');
 assert.ok(!route.includes('body:html')&&!route.includes('json(html)'));
