@@ -339,3 +339,21 @@ assert.ok(v831Js.includes('existingTheme.click()')&&v831Js.includes("toggle.setA
  'Mobile hero controls should reuse real studio and expose glass state accessibly');
 assert.ok(!v831Css.includes('filter:blur(')&&!v831Css.includes('backdrop-filter:blur('),
  'Do not add new expensive blur effects to mobile composition');
+
+/* V8.4 real structure acceptance, not merely a new accent */
+const v840Css=readFileSync(new URL('../site/cinematic-v840.css',import.meta.url),'utf8');
+const v840Js=readFileSync(new URL('../site/cinematic-v840.js',import.meta.url),'utf8');
+new vm.Script(v840Js,{filename:'cinematic-v840.js'});
+assert.ok(html.includes('href="/cinematic-v840.css?v=1"'),'Cinematic layout CSS required');
+assert.ok(html.includes('src="/cinematic-v840.js?v=1" defer'),'Cinematic theme pager required');
+assert.ok(html.indexOf('/cinematic-v840.css')>html.indexOf('/mobile-world-v831.css'),'New physical composition must override old effects');
+assert.ok(html.indexOf('/cinematic-v840.js')>html.indexOf('/mobile-world-v831.js'),'Pager must mount after existing mobile world dock');
+for(const rule of ['display:contents!important','grid-template-areas:"brand theme story refresh"',
+ 'min-height:443px!important','.theme-world-stage img','#overview .hero-main',
+ '.platform-stack>.platform-card','.theme-world-stamp']){
+ assert.ok(v840Css.includes(rule),'Missing structural visual overhaul rule: '+rule);
+}
+assert.ok(v840Js.includes("themes.use(list[(i+dir+list.length)%list.length].id)"),
+ 'World pager must switch real existing presets');
+assert.ok(!v840Css.includes('filter:blur(')&&!v840Css.includes('backdrop-filter:blur('),
+ 'Cinematic look must not degrade iPhone scroll GPU performance with extra blur');
