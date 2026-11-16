@@ -61,8 +61,13 @@ try{
  const {page:phone,errors:phoneErrors}=await createPage('iPhone 390×844',{width:390,height:844},{mobile:true});
  assert.equal(await phone.locator('#mobileBottomNav').evaluate(x=>getComputedStyle(x).display),'grid',
   'iPhone uses fixed bottom navigation');
- assert.equal(await phone.locator('#dashboardWorkspace>.section-nav').evaluate(x=>getComputedStyle(x).display),'none',
-  'iPhone hides desktop navigation');
+ const navStatus=await phone.locator('.section-nav').evaluate(x=>({
+  display:getComputedStyle(x).display,parent:x.parentElement?.id||x.parentElement?.tagName,
+  direct:x.matches('#dashboardWorkspace>.section-nav'),
+  mq:matchMedia('(max-width:760px)').matches
+ }));
+ assert.equal(navStatus.display,'none',
+  'iPhone hides desktop navigation; info='+JSON.stringify(navStatus));
  await phone.locator('#mobileBottomNav [data-section="videos"]').click();
  await phone.waitForFunction(()=>document.querySelector('#videos')?.classList.contains('active'));
  assert.ok(await phone.locator('#videoSearch').isVisible(),'Search is available above rankings');
