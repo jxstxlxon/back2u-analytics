@@ -29,6 +29,15 @@ assert.ok(!universe.includes('filter:blur('),'Universe effect should not reintro
 
 const visualRescue=readFileSync(new URL('../site/theme-art-direction-v809.css',import.meta.url),'utf8');
 const atlas=readFileSync(new URL('../site/theme-worlds-v809.jpg',import.meta.url));
+
+const newAtlas=readFileSync(new URL('../site/theme-worlds-v810.jpg',import.meta.url));
+const newScenes=readFileSync(new URL('../site/theme-photo-v810.css',import.meta.url),'utf8');
+assert.ok(newAtlas.length>200000,'V8.1 photo atlas must be self-hosted and not a placeholder');
+assert.ok(html.includes('href="/theme-photo-v810.css?v=1"'),'V8.1 photo CSS is linked');
+assert.ok(html.indexOf('/theme-photo-v810.css')>html.indexOf('/theme-art-direction-v809.css'),'New photo art must load last');
+for(const id of ['ex13','ex14','ex15','ex16'])assert.ok(newScenes.includes('data-theme-id="'+id+'"'),'Missing v810 theme art '+id);
+assert.ok(!newScenes.includes('filter:blur('),'New art cannot introduce GPU blur filters');
+
 assert.ok(atlas.length>150000,'Cinematic four-world atlas must be bundled locally, not remote or placeholder');
 assert.ok(visualRescue.includes('theme-worlds-v809.jpg'),'Dedicated photographic worlds must be styled');
 for(const id of ['ex05','ex06','ex18','ex04'])assert.ok(visualRescue.includes('data-theme-id="'+id+'"'),'Missing photo-scene mapping '+id);

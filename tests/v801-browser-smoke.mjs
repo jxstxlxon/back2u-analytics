@@ -236,6 +236,24 @@ try{
    'Photo worlds must not stack geometric SVG with photographic atlas: '+id);
   await shot(desktop,'desktop-'+id);
  }
+
+ for(const id of ['ex13','ex14','ex15','ex16']){
+  assert.ok(await desktop.evaluate(id=>window.BACK2U_THEMES.use(id),id));
+  await desktop.waitForFunction(id=>document.body.dataset.themeId===id,id);
+  const scene=await desktop.evaluate(async()=>{
+   const img=new Image();
+   img.src='/theme-worlds-v810.jpg';
+   await img.decode();
+   const header=document.querySelector('.masthead');
+   const stage=document.querySelector('.masthead>.theme-world-stage');
+   return {image:img.naturalWidth,stage:getComputedStyle(stage).backgroundImage,
+    oldSvg:getComputedStyle(header).backgroundImage.includes('data:image/svg+xml'),
+    stillThere:!!document.querySelector('.masthead h1')};
+  });
+  assert.ok(scene.image>=1200&&scene.stage.includes('theme-worlds-v810.jpg'), 'Photo theme must have real image: '+id);
+  assert.ok(!scene.oldSvg&&scene.stillThere,'Photo scene must not draw old SVG or hide actual heading: '+id);
+  await shot(desktop,'desktop-'+id);
+ }
  const railLayout=await desktop.locator('#dashboardWorkspace>.section-nav').evaluate(x=>({
   position:getComputedStyle(x).position,referenceLayout:document.body.dataset.referenceLayout||''
  }));
