@@ -242,6 +242,13 @@ body[data-theme-tone="light"] #themeStudioPanel .v80-theme-favorite{
  font:780 12px var(--t-font-ui,system-ui);
 }
 @media(min-width:1240px){
+ /* Existing reference themes can request a genuinely fixed left rail.
+    Their .shell already reserves 260px on the left. Do not additionally
+    reserve the grid's 184px rail: that made the content unnecessarily narrow
+    in 1440px desktop despite ample available screen width. */
+ body[data-reference-layout="sidebar"] #dashboardWorkspace{
+  grid-template-columns:0 minmax(0,1fr);column-gap:0
+ }
  #videos .v80-video-jumps{position:relative;z-index:1}
  #creator .creator-calendar{gap:8px}
  #audience .audience-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
