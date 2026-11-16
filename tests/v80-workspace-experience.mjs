@@ -11,10 +11,10 @@ const v78=readFileSync(new URL('../site/workspace-v78.css',import.meta.url),'utf
 
 new vm.Script(ux,{filename:'workspace-v80.js'});
 new vm.Script(stories,{filename:'story-composer-v3.js'});
-assert.ok(html.includes('href="/workspace-v80.css?v=3"'),'Current workspace CSS must be cache-busted after scroll fixes');
-assert.ok(html.includes('src="/workspace-v80.js?v=1" defer'));
+assert.ok(html.includes('href="/workspace-v80.css?v=4"'),'Current workspace CSS must be cache-busted after scroll fixes');
+assert.ok(html.includes('src="/workspace-v80.js?v=2" defer'));
 assert.ok(html.includes('src="/story-composer-v3.js?v=7" defer'));
-assert.ok(html.indexOf('src="/workspace-v80.js?v=1"')>html.indexOf('src="/audience-import.js?v=4"'),
+assert.ok(html.indexOf('src="/workspace-v80.js?v=2"')>html.indexOf('src="/audience-import.js?v=4"'),
  'Interaction enhancements must follow authenticated existing renderers and themes');
 assert.ok(v78.includes('grid-template-areas:"side notice" "side content"'),
  'V8 must preserve the V7.8 verified desktop/iPhone base');
