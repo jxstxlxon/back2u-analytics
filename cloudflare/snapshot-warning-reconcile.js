@@ -50,3 +50,31 @@ export function reconcileSnapshotWarnings(snapshot,{
  return {...snapshot,errors:retained,
   status:retained.length?'partial':snapshot.status==='error'?'error':'ok'};
 }
+
+
+/**
+ * Public-safe diagnosis for operational /api/health.
+ * Only allowlisted warning categories/booleans are returned. Never return
+ * raw account metrics, video IDs, user captions, tokens or error messages.
+ * This diagnoses STORED warnings, not an optional overlay failure at runtime.
+ */
+export function publicSnapshotWarningDiagnosis(snapshot,{tiktokOrganic=null,tiktokSync=null,tiktokCursor=null}={}){
+ if(!snapshot?.platforms?.tt||!Array.isArray(snapshot.errors))
+  return {category:'unknown',legacyTikTokRecovered:false};
+ const old=snapshot.errors;
+ // Organic media can be stored separately from the original Apps Script
+ // snapshot. We only use it to verify a formerly missing media source.
+ const sourceMedia=[...(Array.isArray(snapshot.platforms.tt.videos)?snapshot.platforms.tt.videos:[]),
+  ...(Array.isArray(tiktokOrganic?.videos)?tiktokOrganic.videos:[])];
+ const live={...snapshot,platforms:{...snapshot.platforms,tt:{
+  ...snapshot.platforms.tt,videos:sourceMedia
+ }}};
+ const current=reconcileSnapshotWarnings(live,{tiktokOrganic,tiktokSync,tiktokCursor});
+ const remaining=current.errors||[];
+ const tags=new Set(remaining.map(e=>e?.platform==='tt'&&e?.task==='tt-feed'?'tiktok-bootstrap':
+  e?.platform==='tt'&&e?.task==='video-list'?'tiktok-pagination':'other'));
+ const category=tags.size===0?'none':tags.size>1?'multiple':Array.from(tags)[0];
+ const legacyTikTokRecovered=old.some(e=>e?.platform==='tt'&&e?.task==='tt-feed')&&
+  !remaining.some(e=>e?.platform==='tt'&&e?.task==='tt-feed');
+ return {category,legacyTikTokRecovered};
+}
