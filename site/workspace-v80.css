@@ -355,3 +355,79 @@ body[data-theme-tone] .grain{
 @media(prefers-reduced-motion:reduce){
  body[data-theme-tone] .glass{transition:none}
 }
+
+
+/* BACK2U V8.0.3 SCROLL COMPOSITOR REPAIR
+ * Static, theme-colored refractive surfaces instead of per-card backdrop
+ * sampling on every scroll frame. Applies equally to PC and phone.
+ * Preserve all theme hues, radii, opacity controls, layout and interactions.
+ */
+body[data-theme-tone],
+body[data-theme-artwork="on"]{
+ background-attachment:scroll!important;
+}
+body[data-theme-tone] .ambient,
+body[data-theme-artwork="on"] .ambient,
+body[data-theme-tone] .grain{
+ display:none!important;
+}
+body[data-theme-background="bubbles"]::before{
+ position:absolute!important;
+}
+body[data-theme-tone] :is(.glass,.glass:hover),
+body[data-theme-artwork="on"] :is(.glass,.glass:hover),
+body[data-theme-tone] :is(.poster-platform,.rank-badge,.hero-source-details[open]),
+body[data-theme-tone] .mobile-bottom-nav,
+body[data-theme-tone] .mobile-more-sheet,
+body[data-theme-tone] #dashboardWorkspace>.section-nav,
+body[data-reference-layout="sidebar"] .section-nav,
+body[data-theme-tone] :is(.v80-action,.v80-filter-button,.v80-theme-favorite,.v80-maintenance) {
+ -webkit-backdrop-filter:none!important;
+ backdrop-filter:none!important;
+}
+body[data-theme-tone] .glass {
+ /* Existing layered highlights + tint still create depth without sampling
+    everything behind every card on each frame. */
+ background-color:rgba(var(--t-card,23,48,48),.93);
+ box-shadow:inset 0 1px 0 rgba(255,255,255,.20),0 5px 17px rgba(0,0,0,.13)!important;
+ transition:border-color .15s ease,background-color .15s ease!important;
+}
+body[data-theme-tone="light"] .glass{
+ background-color:rgba(var(--t-card,240,248,255),.97);
+ box-shadow:inset 0 1px 0 rgba(255,255,255,.88),0 5px 17px rgba(25,45,80,.10)!important;
+}
+body[data-theme-tone] .glass::before{
+ opacity:.42;
+}
+body[data-theme-tone] .mobile-bottom-nav,
+body[data-theme-tone] .mobile-more-sheet,
+body[data-reference-layout="sidebar"] .section-nav{
+ background-color:rgb(var(--t-card,23,48,48))!important;
+ box-shadow:0 4px 16px rgba(0,0,0,.16)!important;
+}
+body[data-theme-tone="light"] :is(.mobile-bottom-nav,.mobile-more-sheet),
+body[data-theme-tone="light"][data-reference-layout="sidebar"] .section-nav{
+ background-color:rgb(var(--t-card,240,248,255))!important;
+}
+body[data-theme-tone] .view.active{
+ animation:none!important;
+}
+body[data-theme-tone] :is(.glass,.video-card,.list-row,.top-seven-item,.chart-card){
+ will-change:auto!important;
+}
+body[data-theme-tone] .glass:hover{
+ transform:none;
+}
+/* Scope paint invalidations of video-list entries without changing height,
+   grid sizing, keyboard focus, or scroll position. */
+body[data-theme-tone] :is(#videoList .list-row,#topSevenList .top-seven-item){
+ contain:paint;
+}
+@media(max-width:760px){
+ body[data-theme-tone] :is(.mobile-bottom-nav,.mobile-more-sheet){
+  background-color:rgb(var(--t-card,23,48,48))!important;
+ }
+ body[data-theme-tone="light"] :is(.mobile-bottom-nav,.mobile-more-sheet){
+  background-color:rgb(var(--t-card,240,248,255))!important;
+ }
+}
