@@ -97,8 +97,28 @@ try{
 
  // Theme updates go through the existing theme API. This is a disposable
  // local browser profile, never a user's real saved themes.
+ assert.equal(await phone.locator('#themeGrid .theme-option').count(),0,
+  'Closed Theme Studio must not build 56 unseen preview cards');
  await phone.locator('#themeStudioToggle').click();
  assert.ok(await phone.locator('#themeStudioPanel').isVisible());
+ assert.equal(await phone.locator('#themeGrid .theme-option').count(),56,
+  'Opening Theme Studio must show the full theme collection');
+ const photoPreviews=await phone.evaluate(()=>{
+  const ids=['ex05','ex13','ex17'],urls=['theme-worlds-v809.jpg','theme-worlds-v810.jpg','theme-worlds-v811.jpg'];
+  return ids.map((id,i)=>{
+   const card=document.querySelector('#themeGrid .theme-option[data-preset="'+id+'"]');
+   return {id,vectorGenerated:!!card?.style.getPropertyValue('--ref-preview'),
+    photoLoaded:getComputedStyle(card.querySelector('.theme-option-preview')).backgroundImage.includes(urls[i])};
+  });
+ });
+ assert.ok(photoPreviews.every(x=>x.photoLoaded&&!x.vectorGenerated),
+  'Photographic themes should use atlas imagery without generating redundant SVGs: '+JSON.stringify(photoPreviews));
+ const firstVector=phone.locator('#themeGrid .theme-option[data-preset="n01"]');
+ await firstVector.scrollIntoViewIfNeeded();
+ await phone.waitForFunction(()=>!!document.querySelector('#themeGrid .theme-option[data-preset="n01"]')?.style.getPropertyValue('--ref-preview'),
+  null,{timeout:10000});
+ assert.ok((await firstVector.evaluate(x=>x.style.getPropertyValue('--ref-preview'))).includes('data:image/svg+xml'),
+  'Visible non-photo previews must still appear on demand');
  assert.equal(await phone.locator('#themeStudioPanel .v80-theme-favorite').count(),8);
  await phone.locator('#themeStudioPanel [data-v80-theme="ex05"]').click();
  assert.equal(await phone.evaluate(()=>window.BACK2U_THEMES.current()),'ex05');
