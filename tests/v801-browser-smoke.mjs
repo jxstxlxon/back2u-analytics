@@ -105,6 +105,18 @@ try{
  await phone.locator('#themeStudioPanel [data-v80-theme="ex06"]').click();
  assert.equal(await phone.evaluate(()=>window.BACK2U_THEMES.current()),'ex06');
  await phone.locator('#themeClose').click();
+ const mobileHeadline=await phone.evaluate(()=>{
+  const h=document.querySelector('.masthead h1'),r=h.getBoundingClientRect();
+  const mast=document.querySelector('.masthead').getBoundingClientRect();
+  const st=getComputedStyle(h);
+  return {visible:st.display!=='none'&&st.visibility!=='hidden',width:r.width,height:r.height,
+    inside:r.top>=mast.top&&r.bottom<=mast.bottom+1,text:h.textContent,
+    background:getComputedStyle(document.querySelector('.masthead')).backgroundImage};
+ });
+ assert.ok(mobileHeadline.visible&&mobileHeadline.height>=55&&mobileHeadline.inside,
+  'iPhone must show actual hero title: '+JSON.stringify(mobileHeadline));
+ assert.ok(!mobileHeadline.background.includes('data:image/svg+xml'),
+  'Photo themes must not retain giant obsolete SVG car behind their photo');
  await shot(phone,'iphone-black-corvette');
  await phone.locator('#themeStudioToggle').click();
  await phone.waitForFunction(()=>document.querySelector('.theme-world-stage img')?.src.startsWith('data:image/svg+xml,'));
@@ -219,6 +231,9 @@ try{
  for(const id of ['ex06','ex05','ex18','ex04']){
   assert.ok(await desktop.evaluate(id=>window.BACK2U_THEMES.use(id),id));
   await desktop.waitForFunction(id=>document.body.dataset.themeId===id,id);
+  const desktopHeroBackground=await desktop.evaluate(()=>getComputedStyle(document.querySelector('.masthead')).backgroundImage);
+  assert.ok(!desktopHeroBackground.includes('data:image/svg+xml'),
+   'Photo worlds must not stack geometric SVG with photographic atlas: '+id);
   await shot(desktop,'desktop-'+id);
  }
  const railLayout=await desktop.locator('#dashboardWorkspace>.section-nav').evaluate(x=>({
