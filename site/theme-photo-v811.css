@@ -1,0 +1,63 @@
+/* BACK2U V8.1.1 / four additional photorealistic theme worlds.
+ * One self-hosted 2x2 atlas; the live dashboard retains genuine statistics.
+ * Quadrants: top-left Golden Singularity, top-right Hyperdrive Redline,
+ * bottom-left Dreamwave Paradise, bottom-right Quantum Aurora.
+ * No fixed wallpaper, animations, backdrop filters, or external image hosts.
+ */
+body[data-theme-id="ex17"]{--v811-photo-x:0%;--v811-photo-y:0%;--v809-card:21,15,9;--v809-edge:rgba(255,193,55,.82)}
+body[data-theme-id="ex19"]{--v811-photo-x:100%;--v811-photo-y:0%;--v809-card:14,10,17;--v809-edge:rgba(251,59,81,.84)}
+body[data-theme-id="ex20"]{--v811-photo-x:0%;--v811-photo-y:100%;--v809-card:242,250,255;--v809-edge:rgba(146,129,255,.72)}
+body[data-theme-id="ex01"]{--v811-photo-x:100%;--v811-photo-y:100%;--v809-card:10,14,36;--v809-edge:rgba(93,244,255,.78)}
+body:is([data-theme-id="ex17"],[data-theme-id="ex19"],[data-theme-id="ex20"],[data-theme-id="ex01"])[data-theme-artwork="on"] .masthead>.theme-world-stage{
+ background-image:url("/theme-worlds-v811.jpg")!important;
+ background-size:200% 200%!important;
+ background-position:var(--v811-photo-x) var(--v811-photo-y)!important;
+ background-repeat:no-repeat!important;
+ opacity:1!important;
+ -webkit-mask-image:linear-gradient(90deg,transparent 0%,rgba(0,0,0,.27) 17%,#000 53%)!important;
+ mask-image:linear-gradient(90deg,transparent 0%,rgba(0,0,0,.27) 17%,#000 53%)!important;
+}
+body:is([data-theme-id="ex17"],[data-theme-id="ex19"],[data-theme-id="ex20"],[data-theme-id="ex01"])[data-theme-artwork="on"] .masthead>.theme-world-stage>img{
+ visibility:hidden!important;
+}
+body:is([data-theme-id="ex17"],[data-theme-id="ex19"],[data-theme-id="ex20"],[data-theme-id="ex01"])[data-theme-artwork="on"] .masthead>.theme-world-stage::after{
+ background:none!important;
+}
+body[data-theme-artwork="on"][data-reference-layout][data-theme-id="ex17"] .masthead,
+body[data-theme-artwork="on"][data-reference-layout][data-theme-id="ex19"] .masthead,
+body[data-theme-artwork="on"][data-reference-layout][data-theme-id="ex01"] .masthead{
+ background-image:linear-gradient(94deg,rgba(var(--v809-card),.99),rgba(var(--v809-card),.97) 29%,rgba(var(--v809-card),.82) 47%,rgba(var(--v809-card),.10) 88%),
+ radial-gradient(ellipse 66% 99% at 92% 54%,rgba(var(--v809-accent),.18),transparent 79%)!important;
+ background-color:rgb(var(--v809-card))!important;
+}
+body[data-theme-artwork="on"][data-reference-layout][data-theme-id="ex20"] .masthead{
+ background-image:linear-gradient(92deg,rgba(244,251,255,.99) 0%,rgba(244,251,255,.94) 31%,rgba(244,251,255,.72) 47%,rgba(244,251,255,.07) 87%),
+ radial-gradient(ellipse 63% 110% at 92% 55%,rgba(153,134,255,.15),transparent 79%)!important;
+ background-color:#f4fbff!important;
+}
+body[data-theme-id="ex17"][data-theme-artwork="on"] :is(.section-nav button.active,.platform-tabs button.selected,.period-tabs button.selected){border-color:#ffcf64!important}
+body[data-theme-id="ex19"][data-theme-artwork="on"] :is(.section-nav button.active,.platform-tabs button.selected,.period-tabs button.selected){border-color:#fb4668!important}
+body[data-theme-id="ex01"][data-theme-artwork="on"] :is(.section-nav button.active,.platform-tabs button.selected,.period-tabs button.selected){border-color:#68ecff!important}
+body[data-theme-id="ex20"][data-theme-artwork="on"] :is(.section-nav button.active,.platform-tabs button.selected,.period-tabs button.selected){border-color:#9e9aff!important}
+#themeStudioPanel .theme-option[data-preset="ex17"] .theme-option-preview,
+#themeStudioPanel .theme-option[data-preset="ex19"] .theme-option-preview,
+#themeStudioPanel .theme-option[data-preset="ex20"] .theme-option-preview,
+#themeStudioPanel .theme-option[data-preset="ex01"] .theme-option-preview{
+ background-image:linear-gradient(0deg,rgba(0,0,0,.20),transparent 66%),url("/theme-worlds-v811.jpg")!important;
+ background-size:cover,200% 200%!important;
+ background-repeat:no-repeat!important;
+}
+#themeStudioPanel .theme-option[data-preset="ex17"] .theme-option-preview{background-position:center,0% 0%!important}
+#themeStudioPanel .theme-option[data-preset="ex19"] .theme-option-preview{background-position:center,100% 0%!important}
+#themeStudioPanel .theme-option[data-preset="ex20"] .theme-option-preview{background-position:center,0% 100%!important}
+#themeStudioPanel .theme-option[data-preset="ex01"] .theme-option-preview{background-position:center,100% 100%!important}
+@media(max-width:760px){
+ html body[data-theme-artwork="on"][data-theme-tone][data-theme-id="ex17"] .masthead>div.theme-world-stage,
+ html body[data-theme-artwork="on"][data-theme-tone][data-theme-id="ex19"] .masthead>div.theme-world-stage,
+ html body[data-theme-artwork="on"][data-theme-tone][data-theme-id="ex20"] .masthead>div.theme-world-stage,
+ html body[data-theme-artwork="on"][data-theme-tone][data-theme-id="ex01"] .masthead>div.theme-world-stage{
+  opacity:.38!important;
+  -webkit-mask-image:linear-gradient(90deg,transparent 0%,rgba(0,0,0,.67) 35%,#000 83%)!important;
+  mask-image:linear-gradient(90deg,transparent 0%,rgba(0,0,0,.67) 35%,#000 83%)!important;
+ }
+}

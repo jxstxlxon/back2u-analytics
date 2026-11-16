@@ -32,6 +32,15 @@ const atlas=readFileSync(new URL('../site/theme-worlds-v809.jpg',import.meta.url
 
 const newAtlas=readFileSync(new URL('../site/theme-worlds-v810.jpg',import.meta.url));
 const newScenes=readFileSync(new URL('../site/theme-photo-v810.css',import.meta.url),'utf8');
+
+const newestAtlas=readFileSync(new URL('../site/theme-worlds-v811.jpg',import.meta.url));
+const newestScenes=readFileSync(new URL('../site/theme-photo-v811.css',import.meta.url),'utf8');
+assert.ok(newestAtlas.length>200000,'V8.1.1 photo atlas must be self-hosted and high-detail');
+assert.ok(html.includes('href="/theme-photo-v811.css?v=1"'),'V8.1.1 photo CSS must load');
+assert.ok(html.indexOf('/theme-photo-v811.css')>html.indexOf('/theme-photo-v810.css'),'V8.1.1 overrides must load after prior themes');
+for(const id of ['ex17','ex19','ex20','ex01'])assert.ok(newestScenes.includes('data-theme-id="'+id+'"'),'Missing V8.1.1 photo world '+id);
+assert.ok(!newestScenes.includes('filter:blur('),'Photorealistic art must not add GPU blur');
+
 assert.ok(newAtlas.length>200000,'V8.1 photo atlas must be self-hosted and not a placeholder');
 assert.ok(html.includes('href="/theme-photo-v810.css?v=1"'),'V8.1 photo CSS is linked');
 assert.ok(html.indexOf('/theme-photo-v810.css')>html.indexOf('/theme-art-direction-v809.css'),'New photo art must load last');
