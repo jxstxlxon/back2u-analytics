@@ -102,7 +102,7 @@ body.story-open{overflow:hidden}
 #back2uLoginOverlay input{display:block;width:100%;padding:15px 16px;border-radius:12px;background:#061326cc;border:1px solid #adcafa5a;color:white;font:inherit;font-size:16px;margin-bottom:12px}
 #back2uLoginOverlay button{border:0;border-radius:12px;background:#449dfb;color:white;font:600 15px system-ui;padding:13px 16px;width:100%;cursor:pointer}
 #back2uLoginOverlay #back2uLoginError{min-height:20px;color:#ffc5c5;font-size:12px;margin-top:14px}
-</style><link rel="stylesheet" href="/theme-studio.css?v=1"><link rel="stylesheet" href="/theme-reference.css?v=2"><link rel="stylesheet" href="/ui-v3.css?v=3"><link rel="stylesheet" href="/ui-v4.css?v=4"><link rel="stylesheet" href="/creator-hub-v5.css?v=6"><link rel="stylesheet" href="/mobile-theme-polish-v6.css?v=6"><link rel="stylesheet" href="/dashboard-v7.css?v=15"><link rel="stylesheet" href="/audience-import.css?v=2"><link rel="stylesheet" href="/guest-access.css?v=1"><link rel="stylesheet" href="/mobile-performance-v77.css?v=2"><link rel="stylesheet" href="/workspace-v78.css?v=1"></head>
+</style><link rel="stylesheet" href="/theme-studio.css?v=1"><link rel="stylesheet" href="/theme-reference.css?v=2"><link rel="stylesheet" href="/ui-v3.css?v=3"><link rel="stylesheet" href="/ui-v4.css?v=4"><link rel="stylesheet" href="/creator-hub-v5.css?v=6"><link rel="stylesheet" href="/mobile-theme-polish-v6.css?v=6"><link rel="stylesheet" href="/dashboard-v7.css?v=15"><link rel="stylesheet" href="/audience-import.css?v=2"><link rel="stylesheet" href="/guest-access.css?v=1"><link rel="stylesheet" href="/mobile-performance-v77.css?v=2"><link rel="stylesheet" href="/workspace-v78.css?v=2"></head>
 <body>
 <div class="ambient ambient-a"></div><div class="ambient ambient-b"></div><div class="ambient ambient-c"></div><div class="grain"></div>
 <div class="shell">
@@ -221,7 +221,7 @@ body.story-open{overflow:hidden}
    <h4>Direkte Plattform-APIs (V7.7)</h4>
    <div id="directAudienceStatus" role="status" aria-live="polite">Verbindung zu YouTube und Instagram wird geprüft …</div>
    <div id="directInsightsStatus" role="status" aria-live="polite">Erweiterte Video- und Instagram-Tagesdaten werden geprüft …</div>
-   <div id="directParityStatus" role="status" aria-live="polite">Datenqualität und Lücken werden geprüft …</div>
+   <div class="direct-parity-heading"><strong>Offizielle Datenabdeckung</strong><button type="button" id="directParityRefresh" class="small-button">↻ 12 Prüfungen aktualisieren</button></div><div id="directParityStatus" role="status" aria-live="polite">Datenqualität und Lücken werden geprüft …</div>
    <p id="directAudienceHint">Die direkten APIs werden über das bestehende Google Apps Script übertragen, nachdem die zwei neuen Zusatzdateien einmalig aktiviert wurden. Bei fehlenden Berechtigungen bleibt der letzte gespeicherte Wert sichtbar.</p>
    <h4>Windsor.ai (Bestand / TikTok-Fallback)</h4>
    <div id="audienceAutoSyncStatus" role="status" aria-live="polite">Verbindung wird geprüft …</div>
@@ -1369,5 +1369,5 @@ window.BACK2U_REFRESH_CHART=()=>{if(state.section==='overview')renderTrend()};gl
  renderActive();loadLive(false);
 })();
 </script><script src="/reference-theme-art.js?v=4" defer></script><script src="/theme-studio.js?v=4" defer></script><script src="/chart-v3.js?v=6" defer></script><script src="/story-composer-v3.js?v=6" defer></script><script src="/creator-hub-v5.js?v=9" defer></script><script src="/dashboard-v7.js?v=12" defer></script>
-<script src="/guest-access.js?v=1" defer></script><script src="/manual-video-links.js?v=1" defer></script><script src="/audience-import.js?v=3" defer></script>
+<script src="/guest-access.js?v=1" defer></script><script src="/manual-video-links.js?v=1" defer></script><script src="/audience-import.js?v=4" defer></script>
 </body></html>
