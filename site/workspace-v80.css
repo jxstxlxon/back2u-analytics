@@ -316,3 +316,42 @@ body[data-theme-tone="light"] #themeStudioPanel .v80-theme-favorite{
 @media(prefers-reduced-motion:reduce){
  .v80-jumps{scroll-behavior:auto}
 }
+
+
+/* V8.0.2 performance: cap expensive GPU blur, especially on touch devices.
+ * Keep the current theme's colors, transparency and glass control working.
+ * Avoid continuous filter animation during pointer / section interaction.
+ */
+body[data-theme-tone] .glass{
+ -webkit-backdrop-filter:blur(clamp(4px,var(--glass-blur,14px),18px)) saturate(115%);
+ backdrop-filter:blur(clamp(4px,var(--glass-blur,14px),18px)) saturate(115%);
+ transition:background-color .15s ease,border-color .15s ease,box-shadow .15s ease;
+}
+body[data-theme-tone] .view{
+ animation:none;
+}
+body[data-theme-tone] .ambient{
+ filter:blur(34px);
+ opacity:.12;
+}
+body[data-theme-tone] .grain{
+ display:none;
+}
+@media(max-width:760px),(pointer:coarse){
+ body[data-theme-tone] .glass{
+  -webkit-backdrop-filter:blur(clamp(3px,var(--glass-blur,10px),10px)) saturate(110%);
+  backdrop-filter:blur(clamp(3px,var(--glass-blur,10px),10px)) saturate(110%);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.08),0 5px 16px rgba(0,0,0,.12);
+ }
+ body[data-theme-tone] .ambient{filter:none;opacity:.045}
+ body[data-theme-tone] :is(
+  .video-card,.list-row,.top-seven-item,.detail-metric,
+  .metric-box,.format-card,.creator-cal-day
+ ){
+  -webkit-backdrop-filter:none!important;
+  backdrop-filter:none!important;
+ }
+}
+@media(prefers-reduced-motion:reduce){
+ body[data-theme-tone] .glass{transition:none}
+}
