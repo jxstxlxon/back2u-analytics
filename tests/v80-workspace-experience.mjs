@@ -26,6 +26,25 @@ assert.ok(universe.includes('backdrop-filter:none!important'),'Universe should a
 assert.ok(universe.includes('background-attachment:scroll!important'),'Universe artwork must not use fixed wallpaper');
 assert.ok(!universe.includes('filter:blur('),'Universe effect should not reintroduce heavy blur');
 
+
+const retinaCss=readFileSync(new URL('../site/theme-retina-v808.css',import.meta.url),'utf8');
+const retinaArt=readFileSync(new URL('../site/theme-worlds-v808.js',import.meta.url),'utf8');
+const retinaStage=readFileSync(new URL('../site/theme-stage-v808.js',import.meta.url),'utf8');
+new vm.Script(retinaArt,{filename:'theme-worlds-v808.js'});
+new vm.Script(retinaStage,{filename:'theme-stage-v808.js'});
+assert.ok(html.includes('href="/theme-retina-v808.css?v=1"'),'Retina CSS must load');
+assert.ok(html.includes('src="/theme-worlds-v808.js?v=1" defer'),'Retina art generator must load');
+assert.ok(html.includes('src="/theme-stage-v808.js?v=1" defer'),'Retina stage must load');
+assert.ok(html.indexOf('/theme-retina-v808.css')>html.indexOf('/theme-cinematic-v807.css'),'Retina styles must win the cascade');
+assert.ok(html.indexOf('/reference-theme-art.js')<html.indexOf('/theme-worlds-v808.js'),'Retina scenes must wrap the original art engine');
+assert.ok(html.indexOf('/theme-worlds-v808.js')<html.indexOf('/theme-studio.js'),'Theme Studio must receive upgraded art');
+assert.ok(retinaArt.includes('viewBox="0 0 1920 1080"'),'Retina vector viewbox must be high resolution');
+assert.ok(retinaArt.includes("ex05:'backrooms'")&&retinaArt.includes("ex06:'corvette'"));
+assert.ok(retinaCss.includes('.theme-world-stage')&&retinaCss.includes('.theme-hero-stage'));
+assert.ok(retinaCss.includes('data-reference-layout'),'Legacy sidebar rules must be overridden');
+assert.ok(!retinaCss.includes('filter:blur('),'Retina visual layer cannot add expensive blur');
+assert.ok(retinaStage.includes('back2u-theme-changed'),'Art stage must respond to theme changes');
+
 const themeSource=readFileSync(new URL('../site/theme-studio.js',import.meta.url),'utf8');
 const artSource=readFileSync(new URL('../site/reference-theme-art.js',import.meta.url),'utf8');
 const catalog=themeSource.match(/'((?:ex|fa|n)\d{2})\|/g)||[];
