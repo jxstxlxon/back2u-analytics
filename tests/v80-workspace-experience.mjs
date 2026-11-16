@@ -12,7 +12,7 @@ assert.equal(catalog.length,56,'Original 36 plus 20 Extreme themes');
 for(let i=13;i<=20;i++){
  const id='ex'+i;
  assert.ok(themeSource.includes("'"+id+"|"),'Missing new preset '+id);
- assert.ok(artSource.includes(' '+id+':['),'Missing custom artwork '+id);
+ assert.ok(artSource.includes(id+':['),'Missing custom artwork '+id);
 }
 assert.ok(css.includes('Legacy Theme Remaster'));
 assert.ok(artSource.includes('Remastered legacy artwork'));
