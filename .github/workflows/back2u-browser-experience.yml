@@ -1,0 +1,29 @@
+name: BACK2U iPhone iPad Desktop Browser Experience
+on:
+  pull_request:
+    paths:
+      - site/**
+      - cloudflare/**
+      - tests/**
+      - package.json
+      - .github/workflows/back2u-browser-experience.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  playwright-browser:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install isolated Chromium browser
+        run: |
+          npm install --no-save --ignore-scripts playwright@1.56.1
+          npx playwright install --with-deps chromium
+      - name: Test full responsive UI interactions without private APIs
+        run: node tests/v801-browser-smoke.mjs
