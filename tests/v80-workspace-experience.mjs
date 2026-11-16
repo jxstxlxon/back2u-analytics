@@ -372,3 +372,34 @@ assert.ok(safariCoverCss.includes('top:auto!important;right:auto!important;botto
 assert.ok(safariCoverCss.includes('margin:auto 0 9px!important;')&&
  safariCoverCss.includes('min-height:308px!important;'),
  'Hero title must sit above dock and leave analytics reachable');
+
+/* V8.5: genuine 32-scene art and new end-user workflows */
+const sceneCraft=readFileSync(new URL('../site/theme-scenecraft-v850.js',import.meta.url),'utf8');
+const workbench=readFileSync(new URL('../site/theme-workbench-v850.js',import.meta.url),'utf8');
+const dashboardTools=readFileSync(new URL('../site/dashboard-tools-v850.js',import.meta.url),'utf8');
+const visual850=readFileSync(new URL('../site/visual-system-v850.css',import.meta.url),'utf8');
+for(const [src,name] of [[sceneCraft,'sceneCraft'],[workbench,'workbench'],[dashboardTools,'dashboardTools']])
+ new vm.Script(src,{filename:name+'.js'});
+assert.ok(html.includes('href="/visual-system-v850.css?v=1"'),'New visual system CSS loaded');
+assert.ok(html.indexOf('/visual-system-v850.css')>html.indexOf('/safari-cover-v841.css'),
+ 'V8.5 surfaces load after iOS screenshot fix without undoing safe areas');
+assert.ok(html.includes('src="/theme-scenecraft-v850.js?v=1" defer')&&
+ html.indexOf('/theme-scenecraft-v850.js')>html.indexOf('/theme-signatures-v830.js')&&
+ html.indexOf('/theme-scenecraft-v850.js')<html.indexOf('/theme-studio.js'),
+ 'SceneCraft must upgrade the renderer before theme preview and hero initialise');
+assert.ok(html.includes('src="/theme-workbench-v850.js?v=1" defer')&&
+ html.includes('src="/dashboard-tools-v850.js?v=1" defer'),'New daily-use interactions loaded');
+assert.equal((sceneCraft.match(/(?:^|[, \n])(?:n\d\d|fa\d\d):\[/g)||[]).length,32,
+ 'Exactly 32 non-photographic pre-existing themes get new sculptural vector stages');
+assert.ok(sceneCraft.includes('data-back2u-scenecraft=')&&
+ sceneCraft.includes("!photos.has(p.id)")===false,
+ 'SceneCraft must label each original SVG scene and preserve photo worlds');
+assert.ok(!sceneCraft.includes('<filter')&&!sceneCraft.includes('setInterval'),
+ 'SceneCraft must not introduce SVG filter blur or animation loops');
+for(const token of ['v850-spotlight','v850ThemeTools','v850Star','v850Shuffle','v850FavoriteCount',
+ 'back2u-theme-changed','v850Focus','v850CopySnapshot','v850-focus']){
+ assert.ok(workbench.includes(token)||dashboardTools.includes(token)||visual850.includes(token),
+ 'V8.5 user workflow missing '+token);
+}
+assert.ok(!visual850.includes('filter:blur(')&&!visual850.includes('backdrop-filter:blur('),
+ 'Visual polish should remain performant without adding heavy GPU filters');
