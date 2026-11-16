@@ -30,8 +30,9 @@ const extremeKinds={
  ex11:['blackice','wide','frost'],ex12:['eclipse','sidebar','molten']
 };
 function extremeArt(p){
- const [type,layout,finish]=extremeKinds[p.id];
- if(!type)return null;
+ const config=extremeKinds[p.id];
+ if(!config)return null;
+ const [type,layout,finish]=config;
  const bg=p.bg,mid=p.bg2,a=p.accent,b=p.secondary;
  const frame='<rect width="1600" height="900" fill="url(#ground)"/>';
  const streaks='<g fill="none" stroke-linecap="round"><path d="M-180 770C240 420 290 60 760 230S1280 670 1760 85" stroke="url(#beam)" stroke-width="110" opacity=".22"/><path d="M-180 770C240 420 290 60 760 230S1280 670 1760 85" stroke="url(#beam)" stroke-width="7" opacity=".73"/><path d="M-90 870Q510 540 930 750T1690 490" stroke="url(#beam)" stroke-width="4" opacity=".55"/></g>';
