@@ -296,6 +296,26 @@ try{
   assert.ok(!scene.oldSvg&&scene.heading&&!scene.overflow,'No obsolete SVG, hidden heading or viewport overflow: '+id+' '+JSON.stringify(scene));
   await shot(desktop,'desktop-'+id);
  }
+
+ for(const id of ['ex02','ex03','ex07','ex08']){
+  assert.ok(await desktop.evaluate(id=>window.BACK2U_THEMES.use(id),id),'Theme selection failed '+id);
+  await desktop.waitForFunction(id=>document.body.dataset.themeId===id,id);
+  const imageTest=await desktop.evaluate(async()=>{
+   const img=new Image();img.src='/theme-worlds-v813.jpg';await img.decode();
+   const stage=document.querySelector('.masthead>.theme-world-stage');
+   const mast=document.querySelector('.masthead');
+   const h=mast.querySelector('h1'),r=h.getBoundingClientRect();
+   return {width:img.naturalWidth,image:getComputedStyle(stage).backgroundImage,
+    vector:getComputedStyle(mast).backgroundImage.includes('data:image/svg+xml'),
+    heading:r.height>=50&&getComputedStyle(h).display!=='none',
+    overflow:document.documentElement.scrollWidth>document.documentElement.clientWidth+24};
+  });
+  assert.ok(imageTest.width>=1200&&imageTest.image.includes('theme-worlds-v813.jpg'),
+   'New world image must be loaded: '+id+' '+JSON.stringify(imageTest));
+  assert.ok(!imageTest.vector&&imageTest.heading&&!imageTest.overflow,
+   'Header must stay functional and avoid old SVG wallpaper: '+id+' '+JSON.stringify(imageTest));
+  await shot(desktop,'desktop-'+id);
+ }
  const railLayout=await desktop.locator('#dashboardWorkspace>.section-nav').evaluate(x=>({
   position:getComputedStyle(x).position,referenceLayout:document.body.dataset.referenceLayout||''
  }));
