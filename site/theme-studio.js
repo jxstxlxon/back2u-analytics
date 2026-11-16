@@ -310,7 +310,15 @@ function setup(){
  }));
  document.querySelectorAll('#themeStudioPanel [data-setting]').forEach(item=>{
   const k=item.dataset.setting;
-  item.addEventListener(k==='motion'?'change':'input',()=>edit(k,k==='motion'?item.checked:item.value));
+  const commit=()=>{
+   const value=k==='motion'?item.checked:item.value;
+   // On iOS a color picker or select may only emit change after dismissal.
+   // Avoid rendering twice if another browser fires input AND change.
+   if(String(settings()[k])===String(value))return;
+   edit(k,value);
+  };
+  if(item.matches('input[type="range"],input[type="color"]'))item.addEventListener('input',commit);
+  item.addEventListener('change',commit);
  });
  el('themeReset').addEventListener('click',()=>{delete state.edits[state.id];save();apply()});
  document.addEventListener('keydown',event=>{

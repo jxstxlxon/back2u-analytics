@@ -119,6 +119,29 @@ try{
   null,{timeout:10000});
  assert.ok((await firstVector.evaluate(x=>x.style.getPropertyValue('--ref-preview'))).includes('data:image/svg+xml'),
   'Visible non-photo previews must still appear on demand');
+ // Basic theme values must be usable on an actual touch-size viewport.
+ // Check persisted values and active CSS, not just the presence of inputs.
+ await phone.locator('#theme_accent').fill('#2277ee');
+ assert.equal(await phone.evaluate(()=>document.documentElement.style.getPropertyValue('--t-accent').trim()),'#2277ee',
+  'iPhone color control must update active dashboard accent');
+ await phone.locator('#theme_layout').selectOption('wide');
+ assert.equal(await phone.evaluate(()=>document.body.dataset.referenceLayout),'wide',
+  'iPhone layout selector must update the actual dashboard');
+ await phone.locator('#theme_chartMode').selectOption('bar');
+ assert.equal(await phone.evaluate(()=>window.BACK2U_THEMES.get(window.BACK2U_THEMES.current()).chartMode),'bar',
+  'iPhone chart-mode basic control must update the active selection');
+ const glow=phone.locator('#theme_glow');
+ await glow.scrollIntoViewIfNeeded();
+ await glow.evaluate(e=>{e.value='79';e.dispatchEvent(new Event('change',{bubbles:true}));});
+ assert.equal(await phone.evaluate(()=>document.documentElement.style.getPropertyValue('--t-glow').trim()),'0.79',
+  'iPhone range final change must commit the glow value');
+ await phone.locator('#themeReset').click();
+ assert.equal(await phone.locator('#theme_accent').inputValue(),'#2fbbff',
+  'iPhone reset must restore the preset primary color');
+ assert.equal(await phone.locator('#theme_layout').inputValue(),'auto',
+  'iPhone reset must restore original layout');
+ assert.equal(await phone.evaluate(()=>document.documentElement.style.getPropertyValue('--t-glow').trim()),'0.55',
+  'iPhone reset must restore base glow');
  assert.equal(await phone.locator('#themeStudioPanel .v80-theme-favorite').count(),8);
  await phone.locator('#themeStudioPanel [data-v80-theme="ex05"]').click();
  assert.equal(await phone.evaluate(()=>window.BACK2U_THEMES.current()),'ex05');
@@ -390,6 +413,17 @@ try{
  assert.ok(lightChrome.headline>50&&lightChrome.stats>50&&!lightChrome.overflow,
   'Dreamwave remains usable and its real data visible');
  await shot(desktop,'desktop-v816-reference-dreamwave');
+ // Desktop basic values must work with the same controls.
+ await desktop.locator('#themeStudioToggle').click();
+ await desktop.locator('#theme_accent').fill('#123abc');
+ assert.equal(await desktop.evaluate(()=>document.documentElement.style.getPropertyValue('--t-accent').trim()),'#123abc',
+  'Desktop color picker updates CSS');
+ await desktop.locator('#theme_layout').selectOption('wide');
+ assert.equal(await desktop.evaluate(()=>document.body.dataset.referenceLayout),'wide',
+  'Desktop layout control updates view');
+ await desktop.locator('#themeReset').click();
+ assert.equal(await desktop.locator('#theme_layout').inputValue(),'auto');
+ await desktop.locator('#themeClose').click();
  const railLayout=await desktop.locator('#dashboardWorkspace>.section-nav').evaluate(x=>({
   position:getComputedStyle(x).position,referenceLayout:document.body.dataset.referenceLayout||''
  }));

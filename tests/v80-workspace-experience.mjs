@@ -94,8 +94,11 @@ assert.ok(retinaStage.includes('back2u-theme-changed'),'Art stage must respond t
 const themeSource=readFileSync(new URL('../site/theme-studio.js',import.meta.url),'utf8');
 
 new vm.Script(themeSource,{filename:'theme-studio.js'});
-assert.ok(html.includes('src="/theme-studio.js?v=10" defer'),'Optimized Theme Studio must bypass stale browser JS cache');
+assert.ok(html.includes('src="/theme-studio.js?v=11" defer'),'Optimized Theme Studio must bypass stale browser JS cache');
 assert.ok(themeSource.includes('const photoThemeIds=new Set('),'Self-hosted photo themes should skip redundant vector previews');
+assert.ok(html.includes('href="/theme-studio.css?v=2"'),'Touch-friendly theme controls must load');
+assert.ok(themeSource.includes("item.addEventListener('change',commit)"),'iOS select/color controls must commit on change');
+
 assert.ok(themeSource.includes("typeof IntersectionObserver==='function'"),'Theme Studio should lazily render visible vector artwork');
 assert.ok(themeSource.includes("el('themeStudioPanel')?.hidden"),'Hidden studio must not render 56 cards during normal navigation');
 const photoMatch=themeSource.match(/const photoThemeIds=new Set\(\[([^\]]+)\]\)/);
