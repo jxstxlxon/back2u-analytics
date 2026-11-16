@@ -37,7 +37,19 @@ const rows=[
 'fa07|Pearl Aqua|aero|#e1f6fb|#b3deec|#effcfc|#23add7|#8be6bc',
 'fa08|Sky Garden|aero|#a7def5|#43b6d5|#b7eeea|#48cae2|#74ec83',
 'fa09|Lagoon Prism|aero|#59bee6|#0a8bac|#8bd9f0|#23bee2|#48e7b1',
-'fa10|Fresh Horizon|aero|#8addf6|#32b8d6|#b1f1f1|#22c3ea|#6ce7c6'
+'fa10|Fresh Horizon|aero|#8addf6|#32b8d6|#b1f1f1|#22c3ea|#6ce7c6',
+'ex01|Quantum Aurora|dark|#050822|#1a1763|#111d59|#55f4ff|#c05cff',
+'ex02|Obsidian Plasma|dark|#0d040d|#390c23|#27101d|#ff3d9c|#ff913d',
+'ex03|Emerald Hyperglass|dark|#011712|#075a4c|#064d43|#54ffab|#25f4e0',
+'ex04|Frutiger Aero Infinity|aero|#76d9ff|#1d97d9|#b6ecfa|#12bdf4|#86ee53',
+'ex05|The Backrooms · Level 0|dark|#211f0b|#787337|#454326|#f3e372|#bdaf65',
+'ex06|Black Corvette|dark|#040507|#1b1d24|#16191e|#f1443d|#a9b0bc',
+'ex07|Neon Cathedral|dark|#0d0624|#301372|#261957|#f062ff|#28d8ff',
+'ex08|Void Reactor|dark|#020911|#10364b|#123541|#00efff|#5cff91',
+'ex09|Lunar Chrome|dark|#10131e|#30394b|#333e50|#e2f1ff|#8d9ef5',
+'ex10|Sakura Voltage|dark|#190a27|#58305d|#462853|#ff82d2|#9c91ff',
+'ex11|Black Ice|dark|#030b17|#123652|#1a3e52|#8ddaff|#c0f5ff',
+'ex12|Solar Eclipse|dark|#130c0a|#473027|#432720|#ffba50|#ff614f'
 ];
 const presets=rows.map(s=>{const a=s.split('|');return {id:a[0],name:a[1],family:a[2],bg:a[3],bg2:a[4],card:a[5],accent:a[6],secondary:a[7],light:a[2]!=='dark'}});
 const byId=Object.fromEntries(presets.map(p=>[p.id,p]));
@@ -47,6 +59,7 @@ try{let old=JSON.parse(localStorage.getItem(key)||'null');if(old&&byId[old.id]){
 const defaults={tintStrength:14,glow:55,blur:27,sheen:56,radius:25,saturation:130,chartContrast:78,backgroundIntensity:76,outlineStrength:55};
 const ranges={tintStrength:[0,80],glow:[0,100],blur:[0,64],sheen:[0,100],radius:[12,42],saturation:[80,180],chartContrast:[20,100],backgroundIntensity:[0,100],outlineStrength:[0,100]};
 let category='all';
+const extremeIds=new Set(["ex01","ex02","ex03","ex04","ex05","ex06","ex07","ex08","ex09","ex10","ex11","ex12"]);
 const el=id=>document.getElementById(id);
 const color=(c,d)=>typeof c==='string'&&/^#[\da-f]{6}$/i.test(c)?c:d;
 const rgb=x=>{x=color(x,'#000000');return [1,3,5].map(n=>parseInt(x.slice(n,n+2),16)).join(',')};
@@ -197,7 +210,7 @@ function refreshEditor(){
 function renderGrid(){
  const grid=el('themeGrid');if(!grid)return;grid.replaceChildren();
  const query=(el('themeSearch')?.value||'').toLowerCase().trim();
- presets.filter(p=>(category==='all'||p.family===category)&&p.name.toLowerCase().includes(query)).forEach(p=>{
+ presets.filter(p=>(category==='all'||(category==='extreme'?extremeIds.has(p.id):p.family===category))&&p.name.toLowerCase().includes(query)).forEach(p=>{
   const b=document.createElement('button');b.type='button';b.className='theme-option';b.dataset.preset=p.id;
   b.style.setProperty('--preview-a',p.bg);b.style.setProperty('--preview-b',p.bg2);b.style.setProperty('--preview-c',p.accent);
   if(typeof window.BACK2U_REFERENCE_ART==='function'){
@@ -205,7 +218,7 @@ function renderGrid(){
   }
   const art=document.createElement('span');art.className='theme-option-preview';art.setAttribute('aria-hidden','true');
   const name=document.createElement('strong');name.textContent=p.name;
-  const desc=document.createElement('small');desc.textContent=p.family==='aero'?'Frutiger Aero':p.family==='light'?'Hell':'Dunkel';
+  const desc=document.createElement('small');desc.textContent=extremeIds.has(p.id)?'Extreme Collection':p.family==='aero'?'Frutiger Aero':p.family==='light'?'Hell':'Dunkel';
   b.append(art,name,desc);
   b.addEventListener('click',()=>{state.id=p.id;save();apply();renderGrid()});
   grid.appendChild(b);
@@ -221,9 +234,9 @@ function setup(){
  panel.innerHTML=[
  '<div id="themeBackdrop" class="theme-backdrop"></div>',
  '<section class="theme-dialog glass" role="dialog" aria-modal="true" aria-labelledby="themeDialogTitle">',
- '<header class="theme-dialog-head"><div><small>BACK2U / DESIGN SYSTEM</small><h2 id="themeDialogTitle">Liquid Glass Studio</h2><p>36 Themes · Farben, Licht und Glas individuell einstellen</p></div><button id="themeClose" type="button" aria-label="Schließen">✕</button></header>',
- '<div class="theme-dialog-body"><section class="theme-library"><div class="theme-search-row"><input id="themeSearch" type="search" placeholder="Theme suchen …" aria-label="Theme suchen"><span>36 Presets</span></div>',
- '<div class="theme-tabs" role="group" aria-label="Kategorien"><button data-family="all" class="selected">Alle</button><button data-family="dark">Dunkel</button><button data-family="light">Hell</button><button data-family="aero">Frutiger Aero</button></div>',
+ '<header class="theme-dialog-head"><div><small>BACK2U / DESIGN SYSTEM</small><h2 id="themeDialogTitle">Liquid Glass Studio</h2><p>'+presets.length+' Themes · Farben, Licht und Glas individuell einstellen</p></div><button id="themeClose" type="button" aria-label="Schließen">✕</button></header>',
+ '<div class="theme-dialog-body"><section class="theme-library"><div class="theme-search-row"><input id="themeSearch" type="search" placeholder="Theme suchen …" aria-label="Theme suchen"><span>'+presets.length+' Presets</span></div>',
+ '<div class="theme-tabs" role="group" aria-label="Kategorien"><button data-family="all" class="selected">Alle</button><button data-family="extreme">Extreme ✦</button><button data-family="dark">Dunkel</button><button data-family="light">Hell</button><button data-family="aero">Frutiger Aero</button></div>',
  '<div id="themeGrid" class="theme-grid"></div><p id="themeNone" hidden>Keine Themes gefunden.</p></section>',
  '<section class="theme-adjust"><h3>Dein Theme</h3><p id="themeCurrentName"></p>',
  '<div class="theme-colors">',colorControl('accent','Hauptfarbe'),colorControl('secondary','Zweitfarbe'),colorControl('tint','Farbüberlagerung'),'</div>',
