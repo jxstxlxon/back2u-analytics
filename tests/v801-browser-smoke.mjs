@@ -103,6 +103,49 @@ try{
  assert.ok(await phone.locator('#themeStudioPanel').isVisible());
  assert.equal(await phone.locator('#themeGrid .theme-option').count(),56,
   'Opening Theme Studio must show the full theme collection');
+
+ // V8.2.1 mobile gallery regression: real card geometry and usable filter tabs,
+ // not only DOM count. The previous iPhone failure compressed cards into strips.
+ for(const width of [320,390,430,760]){
+  await phone.setViewportSize({width,height:844});
+  const gallery=await phone.evaluate(()=>{
+   const root=document.querySelector('#themeStudioPanel');
+   const body=root.querySelector('.theme-dialog-body');
+   const grid=root.querySelector('.theme-grid');
+   const cards=[...grid.querySelectorAll('.theme-option')];
+   const first=cards[0]?.getBoundingClientRect(),third=cards[2]?.getBoundingClientRect();
+   const preview=cards[0]?.querySelector('.theme-option-preview').getBoundingClientRect();
+   const tabs=root.querySelector('.theme-tabs').getBoundingClientRect();
+   return {count:cards.length,cardHeight:first?.height,previewHeight:preview?.height,
+    nextRowTop:third?.top,firstRowBottom:first?.bottom,
+    gridHeight:grid.getBoundingClientRect().height,gridScroll:grid.scrollHeight,
+    viewportOverflow:document.documentElement.scrollWidth>document.documentElement.clientWidth+20,
+    bodyScroll:body.scrollHeight>body.clientHeight,
+    tabsHeight:tabs.height,gridColumns:getComputedStyle(grid).gridTemplateColumns.split(' ').length};
+  });
+  assert.equal(gallery.count,56,'Full 56-card collection must remain available '+width);
+  assert.ok(gallery.cardHeight>=165&&gallery.previewHeight>=85,
+   'Theme previews must be full-size, not stripes: '+JSON.stringify({width,gallery}));
+  assert.ok(gallery.nextRowTop>=gallery.firstRowBottom-2,
+   'Theme preview grid rows must not overlap: '+JSON.stringify({width,gallery}));
+  assert.equal(gallery.gridColumns,width<=820?2:3,'Two mobile columns required '+width);
+  assert.ok(gallery.gridHeight>800&&gallery.bodyScroll&&!gallery.viewportOverflow,
+   'Theme studio must scroll as one vertical view without horizontal overflow: '+JSON.stringify({width,gallery}));
+  assert.ok(gallery.tabsHeight>=40,'Usable filter touch targets '+width);
+ }
+ await phone.setViewportSize({width:390,height:844});
+ await phone.locator('#themeStudioPanel [data-family="aero"]').click();
+ const aeroGalleryCount=await phone.locator('#themeGrid .theme-option').count();
+ assert.ok(aeroGalleryCount>=10&&aeroGalleryCount<56,'Aero filter should show only matching themes');
+ assert.equal(await phone.locator('#themeStudioPanel [data-family="aero"]').getAttribute('aria-pressed'),'true');
+ const firstAero=phone.locator('#themeGrid .theme-option').first();
+ const firstAeroId=await firstAero.getAttribute('data-preset');
+ await firstAero.click();
+ assert.equal(await phone.evaluate(()=>window.BACK2U_THEMES.current()),firstAeroId);
+ assert.equal(await phone.locator('#themeGrid .theme-option[data-preset="'+firstAeroId+'"]').getAttribute('aria-pressed'),'true');
+ await phone.locator('#themeStudioPanel [data-family="all"]').click();
+ assert.equal(await phone.locator('#themeGrid .theme-option').count(),56);
+
  const photoPreviews=await phone.evaluate(()=>{
   const ids=['ex05','ex13','ex17'],urls=['theme-worlds-v809.jpg','theme-worlds-v810.jpg','theme-worlds-v811.jpg'];
   return ids.map((id,i)=>{

@@ -256,12 +256,14 @@ function renderGrid(){
  }
  presets.filter(p=>(category==='all'||(category==='extreme'?extremeIds.has(p.id):p.family===category))&&p.name.toLowerCase().includes(query)).forEach(p=>{
   const b=document.createElement('button');b.type='button';b.className='theme-option';b.dataset.preset=p.id;
+  b.dataset.previewSource=photoThemeIds.has(p.id)?'photo':'vector';
+  b.setAttribute('aria-label',p.name+' auswählen');
   b.style.setProperty('--preview-a',p.bg);b.style.setProperty('--preview-b',p.bg2);b.style.setProperty('--preview-c',p.accent);
   const art=document.createElement('span');art.className='theme-option-preview';art.setAttribute('aria-hidden','true');
   const name=document.createElement('strong');name.textContent=p.name;
   const desc=document.createElement('small');desc.textContent=extremeIds.has(p.id)?'Extreme Collection':p.family==='aero'?'Frutiger Aero':p.family==='light'?'Hell':'Dunkel';
   b.append(art,name,desc);
-  b.addEventListener('click',()=>{state.id=p.id;save();apply();renderGrid()});
+  b.addEventListener('click',()=>{state.id=p.id;save();apply()});
   grid.appendChild(b);
   if(!photoThemeIds.has(p.id)){
    if(previewObserver)previewObserver.observe(b);
@@ -305,8 +307,9 @@ function setup(){
  el('themeStudioToggle')?.addEventListener('click',()=>panel.hidden?open():close());
  ['themeClose','themeDone','themeBackdrop'].forEach(id=>el(id).addEventListener('click',close));
  el('themeSearch').addEventListener('input',renderGrid);
+ document.querySelectorAll('#themeStudioPanel [data-family]').forEach(x=>x.setAttribute('aria-pressed',String(x.dataset.family===category)));
  document.querySelectorAll('[data-family]').forEach(btn=>btn.addEventListener('click',()=>{
-  category=btn.dataset.family;document.querySelectorAll('[data-family]').forEach(x=>x.classList.toggle('selected',x===btn));renderGrid();
+  category=btn.dataset.family;document.querySelectorAll('[data-family]').forEach(x=>{x.classList.toggle('selected',x===btn);x.setAttribute('aria-pressed',String(x===btn))});renderGrid();
  }));
  document.querySelectorAll('#themeStudioPanel [data-setting]').forEach(item=>{
   const k=item.dataset.setting;
@@ -342,7 +345,7 @@ window.BACK2U_THEMES={
   tint:color(o.tint,p.accent),chartMode:['line','area','bar'].includes(o.chartMode)?o.chartMode:'line',
   backgroundIntensity:clamp(o.backgroundIntensity,0,100,76),outlineStrength:clamp(o.outlineStrength,0,100,55),readability:o.readability==='strong'?'strong':'auto',
   fontProfile:['aero','elegant','tech','modern','glass','geometric'].includes(o.typography)?o.typography:(p.family==='aero'?'aero':p.light?'elegant':'futuristic'),aeroCursor:['auto','aqua','orb','crystal'].includes(o.aeroCursor)?o.aeroCursor:'auto'};},
- use:id=>{if(byId[id]){state.id=id;save();apply();renderGrid();return true}return false},
+ use:id=>{if(byId[id]){state.id=id;save();apply();return true}return false},
  setChartMode:mode=>{if(['line','area','bar'].includes(mode))edit('chartMode',mode)}
 };
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',setup,{once:true});
