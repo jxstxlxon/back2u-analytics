@@ -1,0 +1,474 @@
+/* BACK2U V8.6 – WORLD ARCHITECTURES
+ * Nine genuinely different visual languages across all 56 original themes.
+ * Different shapes, spatial rhythm, typography, dividers, scene framing and
+ * data presentation. Not another generic glass/glow stylesheet.
+ * Static CSS only: no blur filters, animations, 3rd-party assets or canvas.
+ */
+body[data-v860-world]{
+ --v860-rhythm:clamp(10px,1.6vw,19px);
+ --v860-panel-radius:24px;
+ --v860-panel-edge:rgba(var(--t-accent-rgb),.48);
+ --v860-page-accent:rgba(var(--t-accent-rgb),.22);
+ --v860-line:rgba(255,255,255,.62);
+ --v860-fill:linear-gradient(145deg,rgba(var(--t-accent-rgb),.14),transparent 45%),
+  linear-gradient(135deg,rgba(255,255,255,.08),transparent 26%),
+  rgba(var(--t-card),.95);
+ --v860-hero-type:var(--t-font-display,system-ui);
+}
+body[data-v860-world] :is(.topbar,.controlbar,#overview .hero-main,
+ #overview .platform-stack>.platform-card,.chart-card,.lifetime-views-card,
+ .follower-aggregate,#videos .top-seven-card,
+ #creator .creator-panel,#audience .audience-card,
+ #experiments .glass,.metric-box){
+ border-radius:var(--v860-panel-radius)!important;
+ background:var(--v860-fill)!important;
+ border:1px solid var(--v860-panel-edge)!important;
+ border-top:2px solid var(--v860-line)!important;
+ box-shadow:0 12px 26px rgba(0,0,0,.18),
+  inset 0 1px 0 rgba(255,255,255,.15)!important;
+}
+body[data-v860-world] :is(.masthead,#overview .hero-main,.platform-card,.chart-card){
+ transition:none!important; /* no expensive theme-switch animation on mobile */
+}
+body[data-v860-world] #overview .hero-main .hero-big{
+ font-family:var(--v860-hero-type)!important;
+ font-variant-numeric:tabular-nums lining-nums;
+ text-shadow:none!important;
+ font-weight:950!important;
+}
+body[data-v860-world] .view>.section-heading{
+ border-radius:var(--v860-panel-radius)!important;
+ border-left:5px solid var(--t-accent)!important;
+ background:var(--v860-fill)!important;
+}
+/* REAL KPI overlay in the scene. Sourced exclusively from existing #heroValue. */
+.v860-live-pulse{display:none}
+@media(max-width:760px){
+ body[data-v860-world] .masthead{
+  position:relative!important;isolation:isolate!important;
+  margin:9px 0 9px!important;
+  min-height:308px!important;
+ }
+ body[data-v860-world] .masthead>div:first-child{
+  min-height:306px!important;
+ }
+ body[data-v860-world] .v860-live-pulse{
+  display:flex!important;
+  flex-direction:column;
+  position:absolute;
+  top:61px;right:13px;
+  z-index:8;
+  width:min(63%,265px);
+  min-height:76px;
+  padding:8px 13px 7px;
+  border:1px solid rgba(255,255,255,.69);
+  border-left:3px solid var(--t-accent);
+  border-radius:14px;
+  background:linear-gradient(125deg,rgba(var(--t-accent-rgb),.21),transparent 80%),
+   rgba(var(--t-card),.95);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.36),0 10px 25px rgba(0,0,0,.25);
+  pointer-events:none;
+  gap:1px;
+  line-height:1.12;
+ }
+ body[data-v860-world] .v860-pulse-kicker{
+  color:var(--t-ink-muted);font-size:8px;font-weight:800;letter-spacing:.10em;
+ }
+ body[data-v860-world] #v860PulseLabel{
+  font:760 10px/1.15 var(--t-font-ui,system-ui);color:var(--t-ink-strong);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+ }
+ body[data-v860-world] #v860PulseValue{
+  color:var(--t-ink-strong);
+  font:950 clamp(19px,6.7vw,29px)/1.11 var(--t-font-display,system-ui);
+  letter-spacing:-.07em;font-variant-numeric:tabular-nums lining-nums;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+ }
+ body[data-v860-world] #v860PulseRange{
+  display:none;
+ }
+ body[data-v860-world] .masthead .eyebrow{
+  max-width:min(65%,265px)!important;
+ }
+ body[data-v860-world] .masthead h1{
+  font-size:clamp(28px,7.6vw,35px)!important;
+  max-width:100%!important;
+  line-height:1.08!important;
+ }
+ body[data-v860-world] #overview .hero-main{
+  min-height:218px!important;
+  padding:16px!important;
+ }
+ body[data-v860-world] .controlbar{
+  border-radius:18px!important;
+  margin:0 0 9px!important;
+ }
+ body[data-v860-world] .view>.section-heading{
+  border-radius:16px!important;
+ }
+ body[data-v860-world] .platform-stack>.platform-card{
+  min-height:77px!important;
+ }
+}
+/* A // VELOCITY: carbon-fibre angular surfaces and racing telemetry.
+   Ex06 Corvette, Hyperdrive, Titanium and other mechanical worlds. */
+body[data-v860-world="velocity"]{
+ --v860-panel-radius:8px;
+ --v860-panel-edge:rgba(var(--t-secondary-rgb),.56);
+ --v860-line:rgba(var(--t-accent-rgb),.91);
+ --v860-fill:
+  repeating-linear-gradient(127deg,transparent 0 26px,rgba(255,255,255,.017) 26px 28px),
+  linear-gradient(112deg,rgba(var(--t-accent-rgb),.23) 0%,transparent 35%),
+  rgba(var(--t-card),.98);
+ --v860-hero-type:Impact,"Arial Narrow",system-ui,sans-serif;
+}
+body[data-v860-world="velocity"] .masthead{
+ border-radius:7px!important;
+ clip-path:polygon(0 0,95% 0,100% 12%,100% 100%,6% 100%,0 89%);
+ border:2px solid var(--t-accent)!important;
+}
+body[data-v860-world="velocity"] .masthead::after{
+ background:
+  linear-gradient(126deg,transparent 65%,rgba(var(--t-accent-rgb),.19) 65.5% 70%,transparent 70.5%),
+  repeating-linear-gradient(125deg,transparent 0 52px,rgba(255,255,255,.13) 53px 55px,transparent 56px 100px)!important;
+}
+body[data-v860-world="velocity"] #overview .hero-main{
+ border-left:7px solid var(--t-accent)!important;
+ transform:none!important;
+}
+body[data-v860-world="velocity"] #overview .hero-main .hero-big{
+ font-style:italic!important;letter-spacing:-.065em!important;
+}
+body[data-v860-world="velocity"] .platform-stack>.platform-card{
+ border-left:5px solid var(--t-accent)!important;
+}
+body[data-v860-world="velocity"] :is(.section-nav button.active,.mobile-bottom-nav button.active,
+ .platform-tabs button.selected,.period-tabs button.selected){
+ background:linear-gradient(110deg,rgba(var(--t-accent-rgb),.38),transparent 90%)!important;
+ border-radius:5px!important;
+}
+/* B // AERO: pearlescent water-lens, huge aqueous capsules and white seams. */
+body[data-v860-world="aero"]{
+ --v860-panel-radius:34px;
+ --v860-panel-edge:rgba(255,255,255,.91);
+ --v860-line:rgba(255,255,255,.99);
+ --v860-fill:
+  radial-gradient(ellipse 60% 90% at 90% 1%,rgba(255,255,255,.55),transparent 70%),
+  radial-gradient(ellipse 65% 110% at 12% 100%,rgba(var(--t-secondary-rgb),.19),transparent 73%),
+  linear-gradient(160deg,rgba(255,255,255,.19),rgba(var(--t-card),.90) 59%,rgba(var(--t-accent-rgb),.22));
+ --v860-hero-type:"Trebuchet MS","Arial Rounded MT Bold",system-ui;
+}
+body[data-v860-world="aero"] .masthead{
+ border-radius:44px!important;
+ border:2px solid rgba(255,255,255,.96)!important;
+ box-shadow:inset 0 4px 0 #fff,0 16px 32px rgba(32,120,173,.22)!important;
+}
+body[data-v860-world="aero"] #overview .hero-main{
+ border-radius:42px 20px 42px 20px!important;
+}
+body[data-v860-world="aero"] .platform-stack>.platform-card:nth-child(2){
+ border-radius:17px 40px 18px 40px!important;
+}
+body[data-v860-world="aero"] .platform-stack>.platform-card:nth-child(3){
+ border-radius:42px 16px 40px 16px!important;
+}
+body[data-v860-world="aero"] .masthead>.theme-world-stage::after{
+ background:linear-gradient(0deg,rgba(255,255,255,.19),transparent 45%),
+ linear-gradient(90deg,rgba(var(--t-card),.37),transparent 65%)!important;
+}
+/* C // LIMINAL: geometric architectural corridors, amber fluorescent planes. */
+body[data-v860-world="liminal"]{
+ --v860-panel-radius:3px;
+ --v860-panel-edge:rgba(224,220,130,.58);
+ --v860-line:rgba(244,238,166,.8);
+ --v860-fill:
+  repeating-linear-gradient(0deg,transparent 0 64px,rgba(243,235,142,.13) 64px 65px),
+  repeating-linear-gradient(90deg,transparent 0 85px,rgba(243,235,142,.07) 85px 86px),
+  linear-gradient(170deg,rgba(var(--t-accent-rgb),.24),rgba(var(--t-card),.96));
+ --v860-hero-type:"Arial Narrow","Roboto Condensed",system-ui;
+}
+body[data-v860-world="liminal"] .masthead{
+ border-radius:2px!important;outline:2px solid rgba(227,218,130,.28);
+ outline-offset:3px;
+}
+body[data-v860-world="liminal"] .masthead>.theme-world-stage::after{
+ background:linear-gradient(180deg,rgba(69,61,19,.08),transparent 32%,rgba(56,49,12,.6) 98%)!important;
+}
+body[data-v860-world="liminal"] .view>.section-heading{
+ border-left:1px solid var(--t-accent)!important;
+ border-top:6px solid rgba(241,231,142,.68)!important;
+}
+/* D // CATHEDRAL: arch silhouettes and monumental, high-contrast layout. */
+body[data-v860-world="cathedral"]{
+ --v860-panel-radius:18px;
+ --v860-panel-edge:rgba(var(--t-accent-rgb),.70);
+ --v860-line:rgba(255,255,255,.72);
+ --v860-fill:linear-gradient(90deg,rgba(var(--t-accent-rgb),.29),transparent 12%,transparent 87%,
+ rgba(var(--t-secondary-rgb),.23)),rgba(var(--t-card),.98);
+ --v860-hero-type:Georgia,"Times New Roman",serif;
+}
+body[data-v860-world="cathedral"] .masthead{
+ border-radius:120px 120px 15px 15px!important;
+ border-top:3px solid rgba(255,255,255,.83)!important;
+}
+body[data-v860-world="cathedral"] #overview .hero-main{
+ border-radius:72px 72px 17px 17px!important;
+ border-top:4px double rgba(255,255,255,.80)!important;
+}
+body[data-v860-world="cathedral"] .view>.section-heading{
+ text-align:center;
+ border-left:0!important;
+ border-top:5px double rgba(var(--t-accent-rgb),.9)!important;
+}
+body[data-v860-world="cathedral"] .view>.section-heading h2{
+ font-family:Georgia,"Times New Roman",serif!important;
+ font-weight:650!important;
+ letter-spacing:-.02em!important;
+}
+/* E // FROST: stepped facet silhouettes with cold mineral highlights. */
+body[data-v860-world="frost"]{
+ --v860-panel-radius:17px;
+ --v860-panel-edge:rgba(211,241,255,.74);
+ --v860-line:#f1fcff;
+ --v860-fill:
+  linear-gradient(147deg,rgba(255,255,255,.34),transparent 28%),
+  linear-gradient(48deg,rgba(var(--t-accent-rgb),.22),transparent 54%),
+  linear-gradient(165deg,rgba(var(--t-card),.97),rgba(var(--t-secondary-rgb),.21));
+ --v860-hero-type:"Helvetica Neue",system-ui;
+}
+body[data-v860-world="frost"] .masthead{
+ border-radius:18px!important;
+ clip-path:polygon(0 0,92% 0,100% 10%,100% 100%,8% 100%,0 91%);
+ border:2px solid rgba(228,248,255,.85)!important;
+}
+body[data-v860-world="frost"] .platform-stack>.platform-card{
+ border-left:5px solid rgba(220,247,255,.78)!important;
+}
+body[data-v860-world="frost"] #overview .hero-main{
+ border-radius:18px 36px 18px 36px!important;
+}
+/* F // COSMOS: immersive deep-space rings and floating nebula layers. */
+body[data-v860-world="cosmos"]{
+ --v860-panel-radius:32px;
+ --v860-panel-edge:rgba(var(--t-secondary-rgb),.63);
+ --v860-line:rgba(var(--t-accent-rgb),.75);
+ --v860-fill:
+  radial-gradient(ellipse 64% 116% at 115% -20%,rgba(var(--t-secondary-rgb),.47),transparent 67%),
+  radial-gradient(ellipse 80% 100% at -5% 120%,rgba(var(--t-accent-rgb),.24),transparent 72%),
+  rgba(var(--t-card),.97);
+ --v860-hero-type:"Arial Rounded MT Bold",system-ui;
+}
+body[data-v860-world="cosmos"] .masthead{
+ border-radius:42px!important;
+ border:1.5px solid rgba(var(--t-secondary-rgb),.72)!important;
+}
+body[data-v860-world="cosmos"] #overview .hero-main{
+ border-radius:47px 22px 47px 22px!important;
+}
+body[data-v860-world="cosmos"] .platform-stack>.platform-card:nth-child(odd){
+ border-radius:13px 40px 13px 40px!important;
+}
+/* G // GARDEN: organic asymmetric border shapes, petals, bright spectrum. */
+body[data-v860-world="garden"]{
+ --v860-panel-radius:29px;
+ --v860-panel-edge:rgba(var(--t-accent-rgb),.57);
+ --v860-line:rgba(255,255,255,.75);
+ --v860-fill:
+  radial-gradient(ellipse 65% 90% at 5% 95%,rgba(var(--t-secondary-rgb),.24),transparent 73%),
+  linear-gradient(143deg,rgba(var(--t-accent-rgb),.25),transparent 49%),
+  rgba(var(--t-card),.95);
+ --v860-hero-type:"Trebuchet MS",system-ui;
+}
+body[data-v860-world="garden"] .masthead{
+ border-radius:26px 85px 28px 70px!important;
+ border:2px solid rgba(var(--t-accent-rgb),.62)!important;
+}
+body[data-v860-world="garden"] #overview .hero-main{
+ border-radius:26px 60px 26px 60px!important;
+}
+body[data-v860-world="garden"] .platform-stack>.platform-card:nth-child(even){
+ border-radius:48px 17px 48px 17px!important;
+}
+/* H // INFERNO: scorched edges, hot neon slabs and saturated diagonals. */
+body[data-v860-world="inferno"]{
+ --v860-panel-radius:9px;
+ --v860-panel-edge:rgba(var(--t-accent-rgb),.76);
+ --v860-line:rgba(255,224,175,.92);
+ --v860-fill:
+  repeating-linear-gradient(133deg,transparent 0 71px,rgba(var(--t-accent-rgb),.13) 72px 77px,transparent 78px 143px),
+  linear-gradient(125deg,rgba(var(--t-accent-rgb),.37),transparent 45%),
+  rgba(var(--t-card),.97);
+ --v860-hero-type:Impact,"Arial Black",system-ui;
+}
+body[data-v860-world="inferno"] .masthead{
+ border-radius:9px!important;
+ border-top:5px solid var(--t-accent)!important;
+}
+body[data-v860-world="inferno"] #overview .hero-main{
+ border-top:7px solid var(--t-accent)!important;
+ border-radius:9px!important;
+}
+body[data-v860-world="inferno"] .view>.section-heading{
+ border-radius:8px!important;
+ border-left:8px solid var(--t-accent)!important;
+}
+body[data-v860-world="inferno"] #overview .hero-main .hero-big{
+ font-style:italic!important;
+}
+/* I // OCEAN: fluid scallops, reef translucency and broad wave surfaces. */
+body[data-v860-world="ocean"]{
+ --v860-panel-radius:27px;
+ --v860-panel-edge:rgba(var(--t-accent-rgb),.62);
+ --v860-line:rgba(208,251,255,.90);
+ --v860-fill:
+  radial-gradient(ellipse 90% 94% at 100% 5%,rgba(var(--t-secondary-rgb),.23),transparent 68%),
+  linear-gradient(160deg,rgba(var(--t-accent-rgb),.30),transparent 44%),
+  rgba(var(--t-card),.95);
+ --v860-hero-type:"Trebuchet MS",system-ui;
+}
+body[data-v860-world="ocean"] .masthead{
+ border-radius:60px 20px 60px 20px!important;
+ border:2px solid rgba(200,248,255,.68)!important;
+}
+body[data-v860-world="ocean"] #overview .hero-main{
+ border-radius:24px 65px 24px 65px!important;
+}
+body[data-v860-world="ocean"] .platform-stack>.platform-card:nth-child(odd){
+ border-radius:37px 12px 37px 12px!important;
+}
+/* Theme Studio World Lab — design truly switches the whole layout. */
+#themeStudioPanel .v860-world-lab{
+ display:flex;flex-direction:column;
+ gap:9px;margin:10px 0 12px;padding:15px;
+ border:1px solid rgba(var(--t-accent-rgb),.61);
+ border-top:2px solid rgba(255,255,255,.71);
+ border-radius:19px;
+ background:linear-gradient(124deg,rgba(var(--t-accent-rgb),.28),transparent 50%),rgba(var(--t-card),.96);
+}
+#themeStudioPanel .v860-lab-title span{
+ font:850 9px/1.3 var(--t-font-ui,system-ui);letter-spacing:.12em;
+ color:var(--t-accent-readable,var(--t-accent));
+}
+#themeStudioPanel .v860-lab-title h3{
+ margin:4px 0 0!important;
+ font:950 clamp(17px,2.2vw,24px)/1.13 var(--t-font-display,system-ui);
+ color:var(--t-ink-strong);letter-spacing:-.05em;
+}
+#themeStudioPanel .v860-lab-actions{
+ display:flex;align-items:stretch;flex-wrap:wrap;gap:8px;
+}
+#themeStudioPanel .v860-lab-actions select,
+#themeStudioPanel .v860-lab-actions button,
+#themeStudioPanel #v860CompareUse{
+ min-height:44px;padding:9px 12px;border-radius:12px;
+ border:1px solid rgba(var(--t-accent-rgb),.64);
+ color:var(--t-ink-strong);font:780 12px var(--t-font-ui,system-ui);
+ background:rgba(var(--t-card),.90);
+}
+#themeStudioPanel .v860-lab-actions select{max-width:100%;flex:2 1 190px;min-width:0}
+#themeStudioPanel .v860-lab-actions button{flex:1 1 150px}
+#themeStudioPanel #v860CompareToggle[aria-pressed="true"],
+#themeStudioPanel #v860CompareUse:not(:disabled){
+ background:linear-gradient(125deg,rgba(var(--t-accent-rgb),.48),rgba(var(--t-secondary-rgb),.21))!important;
+ border-color:rgba(255,255,255,.7);
+}
+#themeStudioPanel .v860-world-description{
+ margin:0!important;font:600 11px/1.45 var(--t-font-ui,system-ui);
+ color:var(--t-ink-muted);
+}
+#themeStudioPanel .v860-world-description strong{color:var(--t-ink-strong)}
+#themeStudioPanel .v860-compare-panel[hidden]{display:none!important}
+#themeStudioPanel .v860-compare-panel{
+ display:flex;flex-direction:column;gap:9px;padding:12px 0 0;
+ border-top:1px solid rgba(var(--t-accent-rgb),.46);
+}
+#themeStudioPanel #v860CompareInstructions{
+ margin:0;color:var(--t-ink-muted);font-size:11px;line-height:1.4;
+}
+#themeStudioPanel .v860-compare-slots{
+ display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;
+}
+#themeStudioPanel .v860-compare-slots>div{
+ min-width:0;min-height:160px;
+ border-radius:14px;border:1px solid rgba(var(--t-accent-rgb),.47);
+ background:rgba(var(--t-card),.78);
+ overflow:hidden;
+}
+#themeStudioPanel .v860-compare-preview.theme-option{
+ display:flex;flex-direction:column;
+ height:auto;min-height:160px!important;
+ border:0!important;padding:6px!important;border-radius:14px!important;
+ box-shadow:none!important;pointer-events:none;
+}
+#themeStudioPanel .v860-compare-preview .theme-option-preview{
+ width:100%!important;display:block!important;min-height:103px!important;
+ height:103px!important;border-radius:10px!important;
+ background-position:center!important;
+}
+#themeStudioPanel .v860-compare-preview .theme-option-preview::before,
+#themeStudioPanel .v860-compare-preview .theme-option-preview::after{display:none!important}
+#themeStudioPanel .v860-compare-preview strong{
+ font-size:11px;font-weight:850;line-height:1.25;
+ color:var(--t-ink-strong);overflow-wrap:break-word;
+ padding:5px 2px 0;
+}
+#themeStudioPanel .v860-comparison-placeholder{
+ display:grid;place-items:center;
+ height:100%;min-height:153px;padding:12px;
+ font:850 10px/1.4 var(--t-font-ui,system-ui);
+ text-align:center;color:var(--t-ink-muted);
+ letter-spacing:.09em;
+}
+#themeStudioPanel #v860CompareUse:disabled{opacity:.46;cursor:not-allowed}
+#themeStudioPanel .theme-grid[data-v860-compare="true"] .theme-option{
+ outline:1px dashed rgba(var(--t-accent-rgb),.44);
+}
+#themeStudioPanel .theme-grid .theme-option[data-comparison="true"]{
+ outline:3px solid var(--t-accent)!important;
+ box-shadow:0 0 0 3px rgba(var(--t-accent-rgb),.21)!important;
+}
+#themeStudioPanel .theme-grid .theme-option[data-v860-world="velocity"]{border-radius:6px!important}
+#themeStudioPanel .theme-grid .theme-option[data-v860-world="aero"]{border-radius:25px!important}
+#themeStudioPanel .theme-grid .theme-option[data-v860-world="liminal"]{border-radius:2px!important}
+#themeStudioPanel .theme-grid .theme-option[data-v860-world="cathedral"]{border-radius:50px 50px 13px 13px!important}
+#themeStudioPanel .theme-grid .theme-option[data-v860-world="frost"]{border-radius:10px 28px 10px 28px!important}
+#themeStudioPanel .theme-grid .theme-option[data-v860-world="cosmos"]{border-radius:26px 15px 26px 15px!important}
+#themeStudioPanel .theme-grid .theme-option[data-v860-world="garden"]{border-radius:12px 35px 18px 40px!important}
+#themeStudioPanel .theme-grid .theme-option[data-v860-world="inferno"]{border-radius:4px!important;border-top:3px solid var(--t-accent)!important}
+#themeStudioPanel .theme-grid .theme-option[data-v860-world="ocean"]{border-radius:28px 8px 28px 8px!important}
+/* Shared phone safety. No structural overflows, readable tiny KPI values. */
+@media(max-width:760px){
+ body[data-v860-world] .masthead{
+  min-height:308px!important;
+ }
+ body[data-v860-world="cathedral"] .masthead{border-radius:85px 85px 14px 14px!important}
+ body[data-v860-world="aero"] .masthead{border-radius:38px!important}
+ body[data-v860-world="garden"] .masthead{border-radius:25px 53px 25px 50px!important}
+ body[data-v860-world] .platform-stack>.platform-card{min-height:77px!important}
+ body[data-v860-world] #overview .hero-main .hero-big{
+  font-size:clamp(27px,8.1vw,40px)!important;
+  white-space:nowrap!important;
+ }
+ #themeStudioPanel .v860-world-lab{padding:12px 11px;border-radius:16px;margin:9px 0}
+ #themeStudioPanel .v860-lab-actions{flex-direction:column}
+ #themeStudioPanel .v860-lab-actions select,
+ #themeStudioPanel .v860-lab-actions button{width:100%;flex:none}
+ #themeStudioPanel .v860-compare-preview .theme-option-preview{
+  height:86px!important;min-height:86px!important;
+ }
+ #themeStudioPanel .v860-compare-slots>div,
+ #themeStudioPanel .v860-compare-preview.theme-option{min-height:140px!important}
+}
+@media(max-width:355px){
+ body[data-v860-world] .v860-live-pulse{
+  top:54px;right:10px;padding:7px 9px;min-height:67px;
+  max-width:61%;
+ }
+ body[data-v860-world] #v860PulseValue{font-size:clamp(17px,6vw,24px)}
+ body[data-v860-world] .masthead h1{font-size:27px!important}
+}
+@media(prefers-reduced-motion:reduce){
+ body[data-v860-world] *,body[data-v860-world] *::before,body[data-v860-world] *::after{
+  animation-duration:0s!important;transition-duration:0s!important;
+ }
+}
