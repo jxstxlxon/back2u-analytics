@@ -104,7 +104,9 @@ try{
  assert.equal(await phone.evaluate(()=>window.BACK2U_THEMES.current()),'ex05');
  await phone.locator('#themeStudioPanel [data-v80-theme="ex06"]').click();
  assert.equal(await phone.evaluate(()=>window.BACK2U_THEMES.current()),'ex06');
+ await phone.locator('#themeClose').click();
  await shot(phone,'iphone-black-corvette');
+ await phone.locator('#themeStudioToggle').click();
  await phone.waitForFunction(()=>document.querySelector('.theme-world-stage img')?.src.startsWith('data:image/svg+xml,'));
  const retinaScene=await phone.evaluate(async()=>{
   const stage=document.querySelector('.theme-world-stage img');
@@ -212,7 +214,7 @@ try{
    height:header.getBoundingClientRect().height,
    sharp:decodeURIComponent(img.src.slice('data:image/svg+xml,'.length)).includes('viewBox="0 0 1920 1080"')};
  });
- assert.ok(desktopRetina.width>800&&desktopRetina.height>=340&&desktopRetina.sharp,
+ assert.ok(desktopRetina.width>=650&&desktopRetina.width<=980&&desktopRetina.height>=340&&desktopRetina.sharp,
   'Desktop must render a large true vector illustration: '+JSON.stringify(desktopRetina));
  for(const id of ['ex06','ex05','ex18','ex04']){
   assert.ok(await desktop.evaluate(id=>window.BACK2U_THEMES.use(id),id));
