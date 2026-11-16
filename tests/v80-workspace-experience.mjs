@@ -322,3 +322,20 @@ assert.ok(!allProfiles.includes('filter:blur(')&&!allProfiles.includes('backdrop
  'Premium 56-world CSS must avoid expensive realtime Gaussian filters');
 assert.ok(!signatureJs.includes('<filter')&&!signatureJs.includes('setInterval'),
  'Enhanced vector artwork must not add SVG filters or animations');
+
+/* V8.3.1: mobile art and utility integration regression coverage */
+const v831Css=readFileSync(new URL('../site/mobile-world-v831.css',import.meta.url),'utf8');
+const v831Js=readFileSync(new URL('../site/mobile-world-v831.js',import.meta.url),'utf8');
+new vm.Script(v831Js,{filename:'mobile-world-v831.js'});
+assert.ok(html.includes('href="/mobile-world-v831.css?v=1"'),'Mobile composition remaster stylesheet must load');
+assert.ok(html.includes('src="/mobile-world-v831.js?v=1" defer'),'Mobile world controls must load');
+assert.ok(html.indexOf('/mobile-world-v831.css')>html.indexOf('/theme-all-v830.css'),
+ 'The new mobile hierarchy should override older styles');
+assert.ok(v831Css.includes('opacity:1!important')&&v831Css.includes('opacity:.94!important'),
+ 'Mobile world imagery should not remain artificially dimmed');
+assert.ok(v831Css.includes('.v831-glass-open .mast-right')&&v831Css.includes('display:none!important'),
+ 'Large glass controls should only occupy mobile hero when requested');
+assert.ok(v831Js.includes('existingTheme.click()')&&v831Js.includes("toggle.setAttribute('aria-expanded'"),
+ 'Mobile hero controls should reuse real studio and expose glass state accessibly');
+assert.ok(!v831Css.includes('filter:blur(')&&!v831Css.includes('backdrop-filter:blur('),
+ 'Do not add new expensive blur effects to mobile composition');
