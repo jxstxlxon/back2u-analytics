@@ -105,6 +105,8 @@ try{
   'Opening Theme Studio must show the full theme collection');
 
  // V8.2.1 mobile gallery regression: real card geometry and usable filter tabs,
+ // Preserve the existing selected theme for all later, independent tests.
+ const originalGalleryTheme=await phone.evaluate(()=>window.BACK2U_THEMES.current());
  // not only DOM count. The previous iPhone failure compressed cards into strips.
  for(const width of [320,390,430,760]){
   await phone.setViewportSize({width,height:844});
@@ -145,6 +147,7 @@ try{
  assert.equal(await phone.locator('#themeGrid .theme-option[data-preset="'+firstAeroId+'"]').getAttribute('aria-pressed'),'true');
  await phone.locator('#themeStudioPanel [data-family="all"]').click();
  assert.equal(await phone.locator('#themeGrid .theme-option').count(),56);
+ await phone.evaluate(id=>window.BACK2U_THEMES.use(id),originalGalleryTheme);
 
  const photoPreviews=await phone.evaluate(()=>{
   const ids=['ex05','ex13','ex17'],urls=['theme-worlds-v809.jpg','theme-worlds-v810.jpg','theme-worlds-v811.jpg'];
