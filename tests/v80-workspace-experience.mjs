@@ -28,6 +28,11 @@ assert.ok(!universe.includes('filter:blur('),'Universe effect should not reintro
 
 
 const visualRescue=readFileSync(new URL('../site/theme-art-direction-v809.css',import.meta.url),'utf8');
+const atlas=readFileSync(new URL('../site/theme-worlds-v809.jpg',import.meta.url));
+assert.ok(atlas.length>150000,'Cinematic four-world atlas must be bundled locally, not remote or placeholder');
+assert.ok(visualRescue.includes('theme-worlds-v809.jpg'),'Dedicated photographic worlds must be styled');
+for(const id of ['ex05','ex06','ex18','ex04'])assert.ok(visualRescue.includes('data-theme-id="'+id+'"'),'Missing photo-scene mapping '+id);
+
 assert.ok(html.includes('href="/theme-art-direction-v809.css?v=1"'),'visual rescue stylesheet must load');
 assert.ok(html.indexOf('/theme-art-direction-v809.css')>html.indexOf('/theme-retina-v808.css'),'visual rescue must be last');
 assert.ok(visualRescue.includes('display:none!important'),'KPI hero wallpaper must be removed');
