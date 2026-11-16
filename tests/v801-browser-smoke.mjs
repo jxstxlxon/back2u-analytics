@@ -102,6 +102,47 @@ try{
  assert.equal(await phone.locator('#themeGrid .theme-option').count(),0,
   'Closed Theme Studio must not build 56 unseen preview cards');
 
+ // V8.4 acceptance: actual cover geometry, compact header and theme navigation.
+ const initialCinematicTheme=await phone.evaluate(()=>window.BACK2U_THEMES.current());
+ const cinematic=await phone.evaluate(()=>{
+  const mast=document.querySelector('.masthead'),stage=mast.querySelector(':scope>.theme-world-stage');
+  const top=document.querySelector('.topbar'),dock=mast.querySelector('.v831-world-actions');
+  const prev=document.querySelector('#v840PrevWorld'),next=document.querySelector('#v840NextWorld');
+  const number=document.querySelector('.v840-world-index');
+  const stageR=stage.getBoundingClientRect(),mastR=mast.getBoundingClientRect();
+  return {headerGrid:getComputedStyle(top).display,
+   headerHeight:top.getBoundingClientRect().height,
+   mastHeight:mastR.height,stageHeight:stageR.height,
+   stageOpacity:getComputedStyle(stage).opacity,
+   pagerVisible:!!prev?.getClientRects().length&&!!next?.getClientRects().length,
+   dockHeight:dock.getBoundingClientRect().height,stampHeight:mast.querySelector('.theme-world-stamp').getBoundingClientRect().height,number:number?.textContent,
+   textVisible:document.querySelector('.masthead h1').getBoundingClientRect().height>=60,
+   overflow:document.documentElement.scrollWidth>document.documentElement.clientWidth+20};
+ });
+ assert.ok(cinematic.headerGrid==='grid'&&cinematic.headerHeight<=200&&
+  cinematic.mastHeight>=420&&cinematic.stageHeight>=420&&cinematic.stageOpacity==='1'&&
+  cinematic.pagerVisible&&cinematic.dockHeight>=40&&cinematic.stampHeight>=95&&cinematic.textVisible&&!cinematic.overflow,
+  'iPhone must have a genuinely new cinematic cover/command bar: '+JSON.stringify(cinematic));
+ await phone.locator('#v840NextWorld').click();
+ assert.notEqual(await phone.evaluate(()=>window.BACK2U_THEMES.current()),initialCinematicTheme,
+  'Next world must switch actual UI theme');
+ await phone.locator('#v840PrevWorld').click();
+ assert.equal(await phone.evaluate(()=>window.BACK2U_THEMES.current()),initialCinematicTheme,
+  'World pager must return to the original theme');
+ for(const width of [320,390,430]){
+  await phone.setViewportSize({width,height:844});
+  const layout=await phone.evaluate(()=>{
+   const h=document.querySelector('.masthead').getBoundingClientRect(),
+    p=document.querySelector('#v840PrevWorld').getBoundingClientRect(),
+    n=document.querySelector('#v840NextWorld').getBoundingClientRect();
+   return {width:innerWidth,cover:h.height,prev:p.width,next:n.width,
+    overflow:document.documentElement.scrollWidth>document.documentElement.clientWidth+20};
+  });
+  assert.ok(layout.cover>=415&&layout.prev>=35&&layout.next>=35&&!layout.overflow,
+   'Cinematic composition must fit narrow phones without clipping: '+JSON.stringify(layout));
+ }
+ await phone.setViewportSize({width:390,height:844});
+
  // V8.3.1: real mobile world + useful inline controls. No screenshot-only test.
  const integratedWorld=await phone.evaluate(()=>{
   const mast=document.querySelector('.masthead'),stage=mast.querySelector(':scope>.theme-world-stage');
@@ -134,6 +175,7 @@ try{
  assert.ok(await phone.locator('#themeStudioPanel').isVisible());
  assert.equal(await phone.locator('#themeGrid .theme-option').count(),56,
   'Opening Theme Studio must show the full theme collection');
+
 
  // V8.2.1 mobile gallery regression: real card geometry and usable filter tabs,
  // Preserve the existing selected theme for all later, independent tests.
@@ -441,6 +483,9 @@ try{
    if(!matchingSvg)issues.push(t.id+':missing unique vector overlay');
    if(!hero.backgroundImage.includes('gradient'))issues.push(t.id+':no material background');
    if(!head||head.getBoundingClientRect().height<30)issues.push(t.id+':hidden headline');
+   const fullStage=document.querySelector('.masthead>.theme-world-stage')?.getBoundingClientRect();
+   const headerBox=document.querySelector('.masthead').getBoundingClientRect();
+   if(!fullStage||fullStage.width<headerBox.width-3)issues.push(t.id+':scene too narrow');
    seen.add(signature);
   }
   themes.use(saved);
@@ -452,6 +497,17 @@ try{
  assert.deepEqual(v830Audit.issues,[],'Theme world remaster missing some real artwork/materials: '+JSON.stringify(v830Audit.issues));
  assert.ok(!v830Audit.overflow,'Full theme sweep must not cause horizontal desktop overflow');
 
+
+ assert.ok(await desktop.locator('#v840PrevWorld').isHidden()&&await desktop.locator('#v840NextWorld').isHidden(),
+  'Only the iPhone experience should show the world pager');
+ const desktopWorld=await desktop.evaluate(()=>{
+  const s=document.querySelector('.masthead>.theme-world-stage');
+  return {height:document.querySelector('.masthead').getBoundingClientRect().height,
+   stageWidth:s.getBoundingClientRect().width,headerWidth:document.querySelector('.masthead').getBoundingClientRect().width};
+ });
+ assert.ok(desktopWorld.height>=370&&desktopWorld.stageWidth>=desktopWorld.headerWidth-2,
+  'Desktop must display a full-width theme image, not the old 63%-width strip: '+JSON.stringify(desktopWorld));
+
  const desktopRetina=await desktop.evaluate(async()=>{
   const img=document.querySelector('.theme-world-stage img');
   await img.decode();
@@ -460,7 +516,7 @@ try{
    height:header.getBoundingClientRect().height,
    sharp:decodeURIComponent(img.src.slice('data:image/svg+xml,'.length)).includes('viewBox="0 0 1920 1080"')};
  });
- assert.ok(desktopRetina.width>=650&&desktopRetina.width<=980&&desktopRetina.height>=340&&desktopRetina.sharp,
+ assert.ok(desktopRetina.width>=900&&desktopRetina.width<=1300&&desktopRetina.height>=370&&desktopRetina.sharp,
   'Desktop must render a large true vector illustration: '+JSON.stringify(desktopRetina));
  for(const id of ['ex06','ex05','ex18','ex04']){
   assert.ok(await desktop.evaluate(id=>window.BACK2U_THEMES.use(id),id));
