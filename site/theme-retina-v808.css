@@ -413,3 +413,35 @@ body[data-theme-family="aero"][data-theme-artwork="on"] .masthead h1{
   scroll-behavior:auto!important;
  }
 }
+
+
+/* Specificity bridge: legacy sidebar/hero rules use important declarations.
+ * Stage remains visible and the newest image always wins in both layouts. */
+body[data-theme-artwork="on"][data-reference-layout] .masthead{
+ background-image:
+  linear-gradient(90deg,rgba(var(--t-card),.95) 0%,rgba(var(--t-card),.76) 25%,rgba(var(--t-card),.16) 64%,rgba(var(--t-card),.05) 100%),
+  var(--t-scene-url)!important;
+ background-size:cover!important;
+ background-position:center!important;
+}
+body[data-theme-artwork="on"][data-reference-layout] #overview .hero-main{
+ background-image:
+  linear-gradient(90deg,rgba(var(--t-card),.94),rgba(var(--t-card),.77) 33%,rgba(var(--t-card),.12) 89%),
+  var(--t-scene-url)!important;
+ background-size:cover!important;
+}
+body[data-theme-artwork="on"][data-reference-layout][data-theme-id="ex05"] .masthead{
+ background-image:linear-gradient(90deg,rgba(40,34,11,.96),rgba(49,41,14,.66) 34%,rgba(49,41,14,.04) 82%),var(--t-scene-url)!important;
+}
+body[data-theme-artwork="on"][data-reference-layout][data-theme-id="ex06"] .masthead,
+body[data-theme-artwork="on"][data-reference-layout][data-theme-id="ex19"] .masthead{
+ background-image:linear-gradient(90deg,rgba(5,6,9,.98),rgba(8,9,13,.70) 35%,rgba(6,6,10,.03) 84%),var(--t-scene-url)!important;
+}
+body[data-theme-artwork="on"][data-reference-layout][data-theme-tone="light"] .masthead,
+body[data-theme-artwork="on"][data-reference-layout][data-theme-family="aero"] .masthead{
+ background-image:linear-gradient(90deg,rgba(241,251,255,.96),rgba(244,252,255,.80) 29%,rgba(244,253,255,.07) 80%),var(--t-scene-url)!important;
+}
+body[data-theme-artwork="on"][data-reference-layout][data-theme-tone="light"] #overview .hero-main,
+body[data-theme-artwork="on"][data-reference-layout][data-theme-family="aero"] #overview .hero-main{
+ background-image:linear-gradient(90deg,rgba(242,251,255,.94),rgba(244,252,255,.76) 30%,rgba(242,251,255,.10) 88%),var(--t-scene-url)!important;
+}
